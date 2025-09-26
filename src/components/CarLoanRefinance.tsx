@@ -1,19 +1,19 @@
 import React from 'react';
 import { ArrowRight, CheckCircle, Calculator, Clock, Shield, TrendingDown, Star, Users, Award, Phone, Mail, MapPin, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Hero from './HeroSection';
 
 const CarLoanRefinance = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Banner Image Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-28 max-sm:pt-32">
-        <div className="relative mb-8 sm:mb-12 lg:mb-16 overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl sm:shadow-2xl">
-          <img 
-            src="/banner/1.png" 
-            alt="Car Loan Refinance Banner" 
-            className="w-full h-[250px] sm:h-[300px] lg:h-[370px] max-sm:h-[110px] object-cover"
-          />
-        </div>
+         <Hero
+        page="car-refinance" 
+        title="Car Refinance" 
+        subtitle="Refinance your existing car loan with better rates and terms"
+      />
+
       </div>
 
       {/* Content Section */}

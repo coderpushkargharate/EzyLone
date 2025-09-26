@@ -76,7 +76,7 @@ const Dashboard = () => {
         />
       )}
 
-    {/* Sidebar */}
+       {/* Sidebar */}
 <div
   className={`fixed top-0 left-0 z-50 h-screen w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out
     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} 
@@ -137,7 +137,6 @@ const Dashboard = () => {
     </button>
   </div>
 </div>
-
 
       {/* Main content */}
       <div className="lg:ml-64">
@@ -275,6 +274,9 @@ const BannersManager = () => {
     { value: 'contact', label: 'Contact' },
     { value: 'apply', label: 'Apply Loan' },
     { value: 'car-refinance', label: 'Car Refinance' },
+    { value: 'used-car-refinance', label: 'Used Car Refinance' },
+    { value: 'car-balance-transfer', label: 'Car Balance Transfer' },
+    { value: 'car-top-up', label: 'Car Top-Up Loan' },
     { value: 'new-car-loan', label: 'New Car Loan' },
     { value: 'personal-loan', label: 'Personal Loan' },
     { value: 'property-loan', label: 'Property Loan' },
@@ -298,6 +300,17 @@ const BannersManager = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size should be less than 5MB');
+      return;
+    }
     setIsUploading(true);
     const formData = new FormData();
     formData.append('image', file);
@@ -308,8 +321,10 @@ const BannersManager = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       fetchBanners();
+      alert('Banner uploaded successfully!');
     } catch (error) {
       console.error('Error uploading banner:', error);
+      alert('Error uploading banner. Please try again.');
     }
 
     setIsUploading(false);
