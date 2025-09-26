@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Bass Effect Animations for Loader */
+@keyframes bassEffect1 {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1.2); }
+}
+
+@keyframes bassEffect2 {
+  0%, 100% { transform: scaleY(0.6); }
+  40% { transform: scaleY(1.4); }
+}
+
+@keyframes bassEffect3 {
+  0%, 100% { transform: scaleY(0.8); }
+  60% { transform: scaleY(1.6); }
+}
+
+@keyframes bassEffect4 {
+  0%, 100% { transform: scaleY(0.5); }
+  30% { transform: scaleY(1.3); }
+}
+
+@keyframes bassEffect5 {
+  0%, 100% { transform: scaleY(0.7); }
+  70% { transform: scaleY(1.5); }
+}
