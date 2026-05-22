@@ -87,8 +87,6 @@ const LOAN_TYPES = [
 
 const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || "http://127.0.0.1:3001";
 const FALLBACK_BANNER = "/fallback-banner.jpg";
-const EMAIL_PATTERN = "[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,}$";
-const PHONE_PATTERN = "[0-9]{10,13}";
 
 // ==================== LoanTypeDropdown ====================
 const LoanTypeDropdown = memo(({
@@ -111,7 +109,6 @@ const LoanTypeDropdown = memo(({
 
   useEffect(() => {
     if (!isOpen || !isMobile) return;
-    // ✅ FIX: Read scrollY BEFORE locking to avoid forced reflow during render
     const scrollY = window.scrollY;
     document.body.style.overflow = "hidden";
     return () => {
@@ -132,13 +129,12 @@ const LoanTypeDropdown = memo(({
       <>
         <div
           className="fixed inset-0 bg-black/50 z-[9998] touch-none"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClose(); }}
+          onClick={onClose}
           aria-hidden="true"
         />
         <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
-          style={{ marginTop: "-120px" }}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          onClick={onClose}
         >
           <div
             className="w-full max-w-md bg-white rounded-2xl shadow-2xl flex flex-col max-h-[70vh] border border-gray-100 pointer-events-auto overflow-hidden"
@@ -150,7 +146,7 @@ const LoanTypeDropdown = memo(({
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10 flex-shrink-0">
               <h3 className="text-base font-semibold text-gray-900">Select Loan Type</h3>
               <button
-                onClick={(e) => { e.stopPropagation(); e.preventDefault(); onClose(); }}
+                onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Close dropdown"
                 type="button"
@@ -181,11 +177,9 @@ const LoanTypeDropdown = memo(({
                             <button
                               key={loan.value}
                               type="button"
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLoanSelect(loan.value); }}
-                              onTouchStart={(e) => e.stopPropagation()}
-                              className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all duration-150 border-2 min-h-[44px] ${
-                                isSelected ? `${group.bgColor} border-blue-500` : "bg-white border-transparent hover:border-gray-200"
-                              }`}
+                              onClick={() => handleLoanSelect(loan.value)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all duration-150 border-2 min-h-[44px] ${isSelected ? `${group.bgColor} border-blue-500` : "bg-white border-transparent hover:border-gray-200"
+                                }`}
                               aria-pressed={isSelected}
                             >
                               <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isSelected ? "bg-white" : `bg-gradient-to-br ${group.color}`}`}>
@@ -235,10 +229,9 @@ const LoanTypeDropdown = memo(({
                     <button
                       key={loan.value}
                       type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLoanSelect(loan.value); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 border-2 min-h-[44px] ${
-                        isSelected ? `${group.bgColor} border-blue-500` : "bg-white border-transparent hover:border-gray-200"
-                      }`}
+                      onClick={() => handleLoanSelect(loan.value)}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 border-2 min-h-[44px] ${isSelected ? `${group.bgColor} border-blue-500` : "bg-white border-transparent hover:border-gray-200"
+                        }`}
                     >
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isSelected ? "bg-white" : `bg-gradient-to-br ${group.color}`}`}>
                         <LoanIcon className={`w-4 h-4 ${isSelected ? group.iconColor : "text-white"}`} />
@@ -307,10 +300,10 @@ const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Ar
                   <Image
                     src={partner.logo}
                     alt={partner.name}
-                    className="max-w-full max-h-full object-contain"
-                    loading="lazy"
                     width={120}
                     height={60}
+                    className="max-w-full max-h-full object-contain"
+                    loading="lazy"
                     quality={70}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                   />
@@ -343,9 +336,14 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [currentTestimonialMobile, setCurrentTestimonialMobile] = useState(0);
   const [currentTestimonialDesktop, setCurrentTestimonialDesktop] = useState(0);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Hydration fix: only enable client-side features after mount
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
-    // ✅ FIX: Check mobile on mount without causing reflow during render
     const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
     checkMobile();
     let resizeTimeout: ReturnType<typeof setTimeout>;
@@ -357,7 +355,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return () => { clearTimeout(resizeTimeout); window.removeEventListener("resize", handleResize); };
   }, []);
 
-  // Restore body scroll on unmount (safety net)
   useEffect(() => {
     return () => {
       document.body.style.overflow = "";
@@ -410,8 +407,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         setBanners(validBanners);
       } catch (err: unknown) {
         if (!isMounted) return;
-        const axiosErr = err as { response?: { status: number } };
-        setError(axiosErr.response?.status === 404 ? "Banners not found" : "Failed to load banners");
+        setError("Failed to load banners. Please refresh the page.");
         setBanners([]);
       } finally { if (isMounted) setIsLoading(false); }
     };
@@ -470,10 +466,11 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         if (typeof window !== "undefined" && (window as Window & { gtag?: Function }).gtag) {
           (window as Window & { gtag?: Function }).gtag!("event", "conversion", { send_to: "AW-18024243962/your_conversion_label" });
         }
+      } else {
+        throw new Error("Unexpected response");
       }
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { error?: string } } };
-      setSubmitMessage({ type: "error", text: axiosErr.response?.data?.error || "Something went wrong. Please try again." });
+      setSubmitMessage({ type: "error", text: "Something went wrong. Please try again." });
     } finally { setIsSubmitting(false); }
   }, [formData, validateForm, page]);
 
@@ -526,7 +523,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return (
       <section
         className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-16 sm:pt-20 lg:pt-24 pb-6 overflow-hidden"
-        style={{ contentVisibility: "auto" }}
+        suppressHydrationWarning
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full blur-xl lg:blur-2xl" />
@@ -534,14 +531,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
           {/* 📱 MOBILE HERO */}
           <div className="lg:hidden">
-            {/*
-              ✅ FIX CLS: Added explicit aspect-ratio / minHeight so the container
-              doesn't reflow when the image loads. Previously this caused a 0.776 CLS score.
-              The container now reserves space upfront via aspect-ratio.
-            */}
             <div
               className="relative mt-5 rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50"
               style={{ minHeight: "280px", aspectRatio: "4/3" }}
@@ -554,11 +545,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   priority
                   fetchPriority="high"
                   fill
-                  /*
-                    ✅ FIX LCP: Lighthouse reported image was 640x960 but displayed at 356x535.
-                    The sizes attribute now correctly tells the browser the actual display size
-                    so it fetches the right optimized size (384w) rather than over-fetching 640w.
-                  */
                   sizes="(max-width: 480px) 320px, (max-width: 768px) 384px, 640px"
                   quality={75}
                   loading="eager"
@@ -643,7 +629,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                       required
                       disabled={isSubmitting}
                       autoComplete="email"
-                      pattern={EMAIL_PATTERN}
                     />
                   </div>
                 </div>
@@ -665,7 +650,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                     disabled={isSubmitting}
                     inputMode="tel"
                     autoComplete="tel"
-                    pattern={PHONE_PATTERN}
                   />
                   {formErrors.phoneNumber && <p className="text-red-300 text-[9px] mt-0.5 ml-1">{formErrors.phoneNumber}</p>}
                 </div>
@@ -782,28 +766,22 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </div>
 
             <div className="relative h-[600px]">
-              {/*
-                ✅ FIX LCP: Desktop banner image — reserve space explicitly via
-                width/height props and use correct sizes so the browser fetches
-                the right optimized variant.
-              */}
-              <div className="absolute right-100  w-120 z-10" style={{ left:"-16rem", top:"-6.80rem" }}>
+              <div className="absolute z-10" style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}>
                 <Image
-                  src="/homebanner/bannerimg.webp"
+                  src="/homebanner/bannerimg.webp"   // Ensure this file is high-res (min 940px width for retina)
                   alt="Car Loan illustration"
-                  className="w-full h-auto object-contain"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 470px"
                   priority
                   fetchPriority="high"
                   loading="eager"
-                  width={460}
-                  height={345}
-                  quality={75}
-                  sizes="(min-width: 1024px) 460px, 100vw"
+                  quality={100}                        // Increased quality
+                  className="object-contain"          // Keeps aspect ratio without upscaling artifacts
                 />
               </div>
 
               {/* Desktop Form */}
-              <div className="absolute  lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30" style={{ right:"0.30rem"}}>
+              <div className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30" style={{ right: "0.30rem" }}>
                 <div className="text-center mb-4">
                   <p className="text-lg font-bold">
                     <span>Check Your Loan Eligibility in </span>
@@ -841,7 +819,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                       required
                       disabled={isSubmitting}
                       autoComplete="email"
-                      pattern={EMAIL_PATTERN}
                     />
                     {formErrors.email && <p className="text-red-300 text-xs mt-1 ml-1">{formErrors.email}</p>}
                   </div>
@@ -857,7 +834,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                       disabled={isSubmitting}
                       inputMode="tel"
                       autoComplete="tel"
-                      pattern={PHONE_PATTERN}
                     />
                     {formErrors.phoneNumber && <p className="text-red-300 text-xs mt-1 ml-1">{formErrors.phoneNumber}</p>}
                   </div>
@@ -970,10 +946,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                         <Image
                           src={testimonial.avatar}
                           alt={testimonial.name}
-                          className="w-14 h-14 rounded-full object-cover border-2 border-white/60"
-                          loading="lazy"
                           width={56}
                           height={56}
+                          className="rounded-full object-cover border-2 border-white/60"
+                          loading="lazy"
                           quality={70}
                           unoptimized={testimonial.avatar.includes("googleusercontent.com")}
                           onError={(e) => {
@@ -1010,10 +986,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                         <Image
                           src={testimonial.avatar}
                           alt={testimonial.name}
-                          className="w-14 h-14 rounded-full object-cover border-2 border-white/60"
-                          loading="lazy"
                           width={56}
                           height={56}
+                          className="rounded-full object-cover border-2 border-white/60"
+                          loading="lazy"
                           quality={70}
                           unoptimized={testimonial.avatar.includes("googleusercontent.com")}
                           onError={(e) => {
@@ -1073,6 +1049,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     <section
       id={page === "home" ? "home" : undefined}
       className={`relative overflow-hidden pt-0 ${page === "home" ? "min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50" : "min-h-[16vh]"}`}
+      suppressHydrationWarning
     >
       {page === "home" && (
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
@@ -1094,8 +1071,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 <Image
                   src={banner.image}
                   alt={`Banner ${index + 1}`}
-                  className="w-full h-full object-cover"
                   fill
+                  className="object-cover"
                   loading={index === 0 ? "eager" : "lazy"}
                   quality={75}
                   sizes="(max-width: 768px) 100vw, 1200px"
