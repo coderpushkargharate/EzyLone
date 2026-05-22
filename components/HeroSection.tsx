@@ -88,7 +88,7 @@ const LOAN_TYPES = [
 const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || "http://127.0.0.1:3001";
 const FALLBACK_BANNER = "/fallback-banner.jpg";
 
-// ==================== LoanTypeDropdown ====================
+// ==================== LoanTypeDropdown (unchanged) ====================
 const LoanTypeDropdown = memo(({
   isOpen, onClose, onSelect, selectedLoan, isMobile,
 }: {
@@ -251,7 +251,7 @@ const LoanTypeDropdown = memo(({
 });
 LoanTypeDropdown.displayName = "LoanTypeDropdown";
 
-// ==================== BankingPartnersCarousel ====================
+// ==================== BankingPartnersCarousel (unchanged) ====================
 const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Array<{ name: string; logo: string }> }) => {
   const itemWidth = 160;
   const itemGap = 24;
@@ -338,7 +338,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [currentTestimonialDesktop, setCurrentTestimonialDesktop] = useState(0);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Hydration fix: only enable client-side features after mount
   useEffect(() => {
     setIsHydrated(true);
   }, []);
@@ -538,6 +537,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               style={{ minHeight: "280px", aspectRatio: "4/3" }}
             >
               <div className="absolute inset-0">
+                {/* OPTIMIZED: proper sizes for mobile banner */}
                 <Image
                   src="/homebanner/image1.webp"
                   alt="Car Loan - Get approved in 24 hours in Odisha"
@@ -545,7 +545,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   priority
                   fetchPriority="high"
                   fill
-                  sizes="(max-width: 480px) 320px, (max-width: 768px) 384px, 640px"
+                  sizes="(max-width: 480px) 280px, (max-width: 768px) 350px, 450px"
                   quality={75}
                   loading="eager"
                 />
@@ -590,7 +590,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
 
-            {/* Mobile Form */}
+            {/* Mobile Form (unchanged) */}
             <div className="w-full bg-gradient-to-r from-blue-600/95 to-cyan-500/95 rounded-2xl p-3 sm:p-4 text-white shadow-2xl border border-white/30 relative" data-loan-dropdown>
               <div className="text-center mb-3">
                 <p className="text-sm font-bold mb-0.5">
@@ -768,19 +768,19 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             <div className="relative h-[600px]">
               <div className="absolute z-10" style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}>
                 <Image
-                  src="/homebanner/bannerimg.webp"   // Ensure this file is high-res (min 940px width for retina)
+                  src="/homebanner/bannerimg.webp"
                   alt="Car Loan illustration"
                   fill
                   sizes="(max-width: 1024px) 100vw, 470px"
                   priority
                   fetchPriority="high"
                   loading="eager"
-                  quality={100}                        // Increased quality
-                  className="object-contain"          // Keeps aspect ratio without upscaling artifacts
+                  quality={80}
+                  className="object-contain"
                 />
               </div>
 
-              {/* Desktop Form */}
+              {/* Desktop Form (unchanged) */}
               <div className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30" style={{ right: "0.30rem" }}>
                 <div className="text-center mb-4">
                   <p className="text-lg font-bold">
@@ -931,9 +931,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </a>
           </div>
 
-          {/* Testimonials */}
+          {/* Testimonials (unchanged) */}
           <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full">
-            {/* Mobile */}
             <div className="lg:hidden relative overflow-hidden">
               <div
                 className="flex transition-transform duration-500 ease-in-out will-change-transform"
@@ -973,7 +972,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
 
-            {/* Desktop */}
             <div className="hidden lg:block relative overflow-hidden">
               <div
                 className="flex transition-transform duration-700 ease-in-out will-change-transform"
@@ -1020,7 +1018,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     );
   }
 
-  // ==================== OTHER PAGES ====================
+  // ==================== OTHER PAGES (with optimized banners) ====================
   if (isLoading) return (
     <section className="relative overflow-hidden min-h-[50vh] bg-gray-100 flex items-center justify-center pt-20">
       <div className="text-lg">Loading...</div>
@@ -1051,12 +1049,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       className={`relative overflow-hidden pt-0 ${page === "home" ? "min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50" : "min-h-[16vh]"}`}
       suppressHydrationWarning
     >
-      {page === "home" && (
-        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-xl lg:blur-2xl" />
-          <div className="absolute top-1/2 -right-4 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-xl lg:blur-2xl" />
-        </div>
-      )}
       <div className="w-full relative z-10">
         <div className={`max-w-[85rem] mx-auto lg:px-0 ${page === "home" ? "px-[10px]" : ""}`}>
           <div
@@ -1073,9 +1065,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   alt={`Banner ${index + 1}`}
                   fill
                   className="object-cover"
-                  loading={index === 0 ? "eager" : "lazy"}
+                  // OPTIMIZED: responsive sizes based on container width
+                  sizes="(max-width: 640px) 90vw, (max-width: 1024px) 80vw, 1200px"
                   quality={75}
-                  sizes="(max-width: 768px) 100vw, 1200px"
+                  loading={index === 0 ? "eager" : "lazy"}
                   priority={index === 0}
                   fetchPriority={index === 0 ? "high" : "auto"}
                 />
