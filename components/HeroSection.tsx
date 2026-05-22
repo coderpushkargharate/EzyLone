@@ -764,7 +764,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 ))}
               </div>
             </div>
-
+{/* he;;o */}
             <div className="relative h-[600px]">
               <div className="absolute z-10" style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}>
                 <Image
