@@ -59,6 +59,10 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* 🚀 Preconnect to API + Cloudinary so DNS+TLS happens in parallel with JS bundle */}
+        <link rel="preconnect" href="https://api.ezyloan.co.in" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.ezyloan.co.in" />
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
 
         {/* ✅ DNS PREFETCH */}

@@ -898,18 +898,33 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 
-// 🔥 BANNER ROUTES - ✅ OPTIMIZED (safe version - images unchanged)
+// 🔥 BANNER ROUTES - in-memory cache + browser cache (per-page TTL=5min)
+const BANNER_CACHE = new Map();              // key -> { data, expiresAt }
+const BANNER_TTL_MS = 5 * 60 * 1000;
+const invalidateBannerCache = () => BANNER_CACHE.clear();
+
 app.get('/api/banners', async (req, res) => {
   try {
     const { page } = req.query;
-    const query = page ? { page } : {};
-    
-    // 🆕 ONLY CHANGE: .lean() for 30% faster queries, NO image modification
-    const banners = await Banner.find(query)
-      .sort({ order: 1, createdAt: -1 })
-      .lean(); // Returns plain JS objects - faster, less memory
-    
-    // ✅ Return banners EXACTLY as stored - no URL changes, all banners show
+    const key = page || '__all__';
+    const now = Date.now();
+    const cached = BANNER_CACHE.get(key);
+
+    let banners;
+    if (cached && cached.expiresAt > now) {
+      banners = cached.data;
+      res.setHeader('X-Cache', 'HIT');
+    } else {
+      const query = page ? { page } : {};
+      banners = await Banner.find(query)
+        .sort({ order: 1, createdAt: -1 })
+        .lean();
+      BANNER_CACHE.set(key, { data: banners, expiresAt: now + BANNER_TTL_MS });
+      res.setHeader('X-Cache', 'MISS');
+    }
+
+    // Browser cache: 5 min fresh, then stale-while-revalidate up to 1h
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
     res.json(banners);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching banners', error: error.message });
@@ -941,6 +956,7 @@ app.post('/api/banners', authenticateToken, upload.single('image'), async (req, 
       isActive: req.body.isActive !== undefined ? req.body.isActive : true
     });
     await banner.save();
+    invalidateBannerCache();
     res.status(201).json(banner);
   } catch (error) {
     console.error('Banner error:', error);
@@ -960,6 +976,7 @@ app.delete('/api/banners/:id', authenticateToken, async (req, res) => {
       console.warn('⚠️ Cloudinary delete failed:', cloudinaryError.message);
     }
     await Banner.findByIdAndDelete(req.params.id);
+    invalidateBannerCache();
     res.json({ message: 'Banner deleted' });
   } catch (error) {
     console.error('Delete banner error:', error);
@@ -974,6 +991,7 @@ app.put('/api/banners/:id/order', authenticateToken, async (req, res) => {
       { order: req.body.order },
       { new: true }
     );
+    invalidateBannerCache();
     res.json(banner);
   } catch (error) {
     res.status(500).json({ message: 'Error updating order', error: error.message });
