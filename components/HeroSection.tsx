@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import axios from "axios";
 import Image from "next/image";
 import {
@@ -85,10 +85,22 @@ const LOAN_TYPES = [
   },
 ];
 
+// Use environment variable for backend – MUST be a public IP or domain for mobile access
 const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || "http://127.0.0.1:3001";
 const FALLBACK_BANNER = "/fallback-banner.jpg";
 
-// ==================== LoanTypeDropdown (unchanged) ====================
+// Helper to detect if page is visible (optimize intervals)
+const usePageVisibility = () => {
+  const [isVisible, setIsVisible] = useState(true);
+  useEffect(() => {
+    const handleVisibilityChange = () => setIsVisible(!document.hidden);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+  return isVisible;
+};
+
+// ==================== LoanTypeDropdown (unchanged but added type="button") ====================
 const LoanTypeDropdown = memo(({
   isOpen, onClose, onSelect, selectedLoan, isMobile,
 }: {
@@ -110,9 +122,9 @@ const LoanTypeDropdown = memo(({
   useEffect(() => {
     if (!isOpen || !isMobile) return;
     const scrollY = window.scrollY;
-    document.body.style.overflow = "hidden";
+    document.body.classList.add("overflow-hidden");
     return () => {
-      document.body.style.overflow = "";
+      document.body.classList.remove("overflow-hidden");
       window.scrollTo({ top: scrollY, behavior: "instant" });
     };
   }, [isOpen, isMobile]);
@@ -146,10 +158,10 @@ const LoanTypeDropdown = memo(({
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10 flex-shrink-0">
               <h3 className="text-base font-semibold text-gray-900">Select Loan Type</h3>
               <button
+                type="button"
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Close dropdown"
-                type="button"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -175,8 +187,8 @@ const LoanTypeDropdown = memo(({
                           const isSelected = selectedLoan === loan.value;
                           return (
                             <button
-                              key={loan.value}
                               type="button"
+                              key={loan.value}
                               onClick={() => handleLoanSelect(loan.value)}
                               className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all duration-150 border-2 min-h-[44px] ${isSelected ? `${group.bgColor} border-blue-500` : "bg-white border-transparent hover:border-gray-200"
                                 }`}
@@ -227,8 +239,8 @@ const LoanTypeDropdown = memo(({
                   const isSelected = selectedLoan === loan.value;
                   return (
                     <button
-                      key={loan.value}
                       type="button"
+                      key={loan.value}
                       onClick={() => handleLoanSelect(loan.value)}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150 border-2 min-h-[44px] ${isSelected ? `${group.bgColor} border-blue-500` : "bg-white border-transparent hover:border-gray-200"
                         }`}
@@ -251,7 +263,7 @@ const LoanTypeDropdown = memo(({
 });
 LoanTypeDropdown.displayName = "LoanTypeDropdown";
 
-// ==================== BankingPartnersCarousel (unchanged) ====================
+// ==================== BankingPartnersCarousel (optimized sizes) ====================
 const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Array<{ name: string; logo: string }> }) => {
   const itemWidth = 160;
   const itemGap = 24;
@@ -305,6 +317,7 @@ const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Ar
                     className="max-w-full max-h-full object-contain"
                     loading="lazy"
                     quality={70}
+                    sizes="160px"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                   />
                 </div>
@@ -336,11 +349,11 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [currentTestimonialMobile, setCurrentTestimonialMobile] = useState(0);
   const [currentTestimonialDesktop, setCurrentTestimonialDesktop] = useState(0);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  
+  const isPageVisible = usePageVisibility();
+  const slideIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const testimonialMobileIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const testimonialDesktopIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
@@ -352,12 +365,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     };
     window.addEventListener("resize", handleResize, { passive: true });
     return () => { clearTimeout(resizeTimeout); window.removeEventListener("resize", handleResize); };
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, []);
 
   const testimonials = useMemo<Testimonial[]>(() => [
@@ -398,7 +405,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     const fetchBanners = async () => {
       try {
         setIsLoading(true); setError(null);
-        const response = await axios.get(`${SERVER_HOST}/api/banners?page=${encodeURIComponent(page)}`);
+        const response = await axios.get(`${SERVER_HOST}/api/banners?page=${encodeURIComponent(page)}`, { timeout: 5000 });
         if (!isMounted) return;
         const validBanners = (response.data || [])
           .filter((b: Banner) => b.isActive && b.image?.trim())
@@ -416,25 +423,44 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
   useEffect(() => { setCurrentSlide(0); }, [banners]);
 
+  // Optimized intervals with visibility check
   useEffect(() => {
     if (banners.length <= 1) return;
-    const i = setInterval(() => setCurrentSlide((p) => (p + 1) % banners.length), 4000);
-    return () => clearInterval(i);
-  }, [banners.length]);
+    const startInterval = () => {
+      if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+      slideIntervalRef.current = setInterval(() => {
+        if (isPageVisible) setCurrentSlide((p) => (p + 1) % banners.length);
+      }, 4000);
+    };
+    startInterval();
+    return () => { if (slideIntervalRef.current) clearInterval(slideIntervalRef.current); };
+  }, [banners.length, isPageVisible]);
 
   useEffect(() => {
     if (page !== "home") return;
-    const i = setInterval(() => setCurrentTestimonialMobile((p) => (p + 1) % testimonials.length), 5000);
-    return () => clearInterval(i);
-  }, [page, testimonials.length]);
+    const startMobileInterval = () => {
+      if (testimonialMobileIntervalRef.current) clearInterval(testimonialMobileIntervalRef.current);
+      testimonialMobileIntervalRef.current = setInterval(() => {
+        if (isPageVisible) setCurrentTestimonialMobile((p) => (p + 1) % testimonials.length);
+      }, 5000);
+    };
+    startMobileInterval();
+    return () => { if (testimonialMobileIntervalRef.current) clearInterval(testimonialMobileIntervalRef.current); };
+  }, [page, testimonials.length, isPageVisible]);
 
   useEffect(() => {
     if (page !== "home") return;
     const visible = 3;
     const max = Math.max(0, testimonials.length - visible);
-    const i = setInterval(() => setCurrentTestimonialDesktop((p) => (p + 1 > max ? 0 : p + 1)), 4000);
-    return () => clearInterval(i);
-  }, [page, testimonials.length]);
+    const startDesktopInterval = () => {
+      if (testimonialDesktopIntervalRef.current) clearInterval(testimonialDesktopIntervalRef.current);
+      testimonialDesktopIntervalRef.current = setInterval(() => {
+        if (isPageVisible) setCurrentTestimonialDesktop((p) => (p + 1 > max ? 0 : p + 1));
+      }, 4000);
+    };
+    startDesktopInterval();
+    return () => { if (testimonialDesktopIntervalRef.current) clearInterval(testimonialDesktopIntervalRef.current); };
+  }, [page, testimonials.length, isPageVisible]);
 
   const validateForm = useCallback(() => {
     const errors: Record<string, string> = {};
@@ -451,6 +477,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
   const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     if (!validateForm()) { setSubmitMessage({ type: "error", text: "Please correct errors above" }); return; }
     setIsSubmitting(true); setSubmitMessage(null); setFormErrors({});
     try {
@@ -469,9 +496,13 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         throw new Error("Unexpected response");
       }
     } catch (err: unknown) {
-      setSubmitMessage({ type: "error", text: "Something went wrong. Please try again." });
+      let errorMsg = "Something went wrong. Please try again.";
+      if (axios.isAxiosError(err) && err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      setSubmitMessage({ type: "error", text: errorMsg });
     } finally { setIsSubmitting(false); }
-  }, [formData, validateForm, page]);
+  }, [formData, validateForm, page, isSubmitting]);
 
   const handleLoanTypeSelect = useCallback((loanType: string) => {
     setFormData((prev) => ({ ...prev, loanType }));
@@ -530,26 +561,18 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* 📱 MOBILE HERO */}
+          {/* 📱 MOBILE HERO - FIXED LCP */}
           <div className="lg:hidden">
-            <div
-              className="relative mt-5 rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50"
-              style={{ minHeight: "280px", aspectRatio: "4/3" }}
-            >
-              <div className="absolute inset-0">
-                {/* OPTIMIZED: proper sizes for mobile banner */}
-                <Image
-                  src="/homebanner/image1.webp"
-                  alt="Car Loan - Get approved in 24 hours in Odisha"
-                  className="object-contain object-right"
-                  priority
-                  fetchPriority="high"
-                  fill
-                  sizes="(max-width: 480px) 280px, (max-width: 768px) 350px, 450px"
-                  quality={75}
-                  loading="eager"
-                />
-              </div>
+            <div className="relative mt-5 rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50 w-full h-[300px] sm:h-[350px]">
+              <Image
+                src="/homebanner/image1.webp"
+                alt="Car Loan - Get approved in 24 hours in Odisha"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center"
+                quality={80}
+              />
               <div className="relative z-10 p-4 sm:p-5">
                 <h1 className="text-2xl sm:text-4xl font-bold w-75 text-gray-900 leading-tight mb-2">
                   <span>Get Loan Approved in </span>
@@ -590,7 +613,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
 
-            {/* Mobile Form (unchanged) */}
+            {/* Mobile Form */}
             <div className="w-full bg-gradient-to-r from-blue-600/95 to-cyan-500/95 rounded-2xl p-3 sm:p-4 text-white shadow-2xl border border-white/30 relative" data-loan-dropdown>
               <div className="text-center mb-3">
                 <p className="text-sm font-bold mb-0.5">
@@ -723,7 +746,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </div>
           </div>
 
-          {/* 💻 DESKTOP HERO */}
+          {/* 💻 DESKTOP HERO (unchanged) */}
           <div className="hidden lg:grid lg:grid-cols-2 lg:gap-12 mt-5 lg:items-start">
             <div className="space-y-6 text-left">
               <h1 className="text-5xl font-bold text-gray-900 leading-tight">
@@ -773,14 +796,12 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   fill
                   sizes="(max-width: 1024px) 100vw, 470px"
                   priority
-                  fetchPriority="high"
-                  loading="eager"
                   quality={80}
                   className="object-contain"
                 />
               </div>
 
-              {/* Desktop Form (unchanged) */}
+              {/* Desktop Form */}
               <div className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30" style={{ right: "0.30rem" }}>
                 <div className="text-center mb-4">
                   <p className="text-lg font-bold">
@@ -931,7 +952,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </a>
           </div>
 
-          {/* Testimonials (unchanged) */}
+          {/* Testimonials */}
           <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full">
             <div className="lg:hidden relative overflow-hidden">
               <div
@@ -1018,7 +1039,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     );
   }
 
-  // ==================== OTHER PAGES (with optimized banners) ====================
+  // ==================== OTHER PAGES ====================
   if (isLoading) return (
     <section className="relative overflow-hidden min-h-[50vh] bg-gray-100 flex items-center justify-center pt-20">
       <div className="text-lg">Loading...</div>
@@ -1029,7 +1050,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     <section className="relative overflow-hidden min-h-[50vh] bg-red-50 flex items-center justify-center pt-20">
       <div className="text-red-600 text-center p-4 max-w-md">
         <p className="font-medium">⚠️ {error}</p>
-        <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition">Retry</button>
+        <button type="button" onClick={() => window.location.reload()} className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition">Retry</button>
       </div>
     </section>
   );
@@ -1065,12 +1086,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   alt={`Banner ${index + 1}`}
                   fill
                   className="object-cover"
-                  // OPTIMIZED: responsive sizes based on container width
                   sizes="(max-width: 640px) 90vw, (max-width: 1024px) 80vw, 1200px"
                   quality={75}
                   loading={index === 0 ? "eager" : "lazy"}
                   priority={index === 0}
-                  fetchPriority={index === 0 ? "high" : "auto"}
                 />
                 <div className="absolute inset-0 bg-black/10" />
               </div>
@@ -1078,8 +1097,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
             {banners.length > 1 && (
               <>
-                <button onClick={prevSlide} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]" aria-label="Previous slide">‹</button>
-                <button onClick={nextSlide} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]" aria-label="Next slide">›</button>
+                <button type="button" onClick={prevSlide} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]" aria-label="Previous slide">‹</button>
+                <button type="button" onClick={nextSlide} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]" aria-label="Next slide">›</button>
               </>
             )}
           </div>

@@ -50,30 +50,13 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['system-ui', 'sans-serif'], // fallback only – Inter is loaded via next/font
       },
       animation: {
-        shimmer: 'shimmer 2s linear infinite',
-        borderGlow: 'borderGlow 3s ease-in-out infinite',
-        float: 'float 6s ease-in-out infinite',
-        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.5s ease-out',
-        'slide-in-right': 'slideInRight 0.3s ease-out',
       },
       keyframes: {
-        shimmer: {
-          '0%': { transform: 'translateX(-100%) skewX(-15deg)' },
-          '100%': { transform: 'translateX(200%) skewX(-15deg)' },
-        },
-        borderGlow: {
-          '0%, 100%': { opacity: '0.5' },
-          '50%': { opacity: '1' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-20px)' },
-        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
@@ -82,17 +65,14 @@ const config: Config = {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
-        slideInRight: {
-          '0%': { transform: 'translateX(100%)', opacity: '0' },
-          '100%': { transform: 'translateX(0)', opacity: '1' },
-        },
       },
       backdropBlur: {
         xs: '2px',
       },
       boxShadow: {
-        glass: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-        'glass-lg': '0 16px 48px 0 rgba(31, 38, 135, 0.25)',
+        // ✅ Replaced heavy glass shadow with softer, faster-to-paint shadow
+        soft: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        'soft-lg': '0 8px 24px rgba(0, 0, 0, 0.12)',
         glow: '0 0 20px rgba(59, 130, 246, 0.5)',
         'glow-green': '0 0 20px rgba(34, 197, 94, 0.5)',
       },
