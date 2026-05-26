@@ -1,25 +1,9 @@
 "use client";
 
-// HeroSection.tsx — EzyLoan Performance-Optimized
-//
-// FIXES APPLIED:
-// ✅ [LCP] LCP image uses `unoptimized` so browser fetches /homebanner/image1.webp directly
-//    matching the preload in layout.tsx — removes the 490ms resource load delay
-// ✅ [Image] All homebanners use proper responsive `sizes` to match actual display dimensions
-//    (was 1536×1024 served for 378×252 display — 900 KiB wasted)
-// ✅ [Image] Services carousel images use <img> with correct sizes (preserved, not next/image
-//    since they're lazy-loaded cards and don't need optimization overhead)
-// ✅ [LCP] Element render delay reduced: removed heavy CSS recalculations during mount
-//    by eliminating backdrop-filter and blur on mobile hero
-// ✅ [Mobile scroll] BankingPartnersCarousel: animation-duration increased to 80s on mobile
-//    to prevent forced reflows from fast transforms
-// ✅ [Mobile scroll] Testimonial carousel uses CSS transform — no JS interval on mobile
-//    is the bottleneck, kept as-is but fixed will-change
-// ✅ [TBT] Removed all backdrop-blur-sm/xl from mobile hero containers
-// ✅ [DOM] 1268 DOM nodes — reduced by simplifying carousel duplication (kept 2×, not 3×)
-// ✅ [CLS] Banner slideshow container has explicit aspectRatio to reserve space
+// HeroSection.tsx — EzyLoan Performance Optimized (Mobile Smooth Scrolling)
+// FIXES: No backdrop filters on mobile, native scroll carousels, proper dependency order
 
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import axios from "axios";
 import Image from "next/image";
 import {
@@ -266,12 +250,67 @@ LoanTypeDropdown.displayName = "LoanTypeDropdown";
 
 // ==================== BankingPartnersCarousel ====================
 const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Array<{ name: string; logo: string }> }) => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    let timeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(checkMobile, 150);
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  if (bankingPartners.length === 0) return null;
+
+  // Mobile: native horizontal scroll
+  if (isMobile) {
+    return (
+      <div className="w-full px-4 py-5 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="h-[2px] w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+            <h2 className="text-xl font-bold text-center bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              Trusted Banking & NBFC Partners
+            </h2>
+            <div className="h-[2px] w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+          </div>
+          <div className="overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2">
+            <div className="flex gap-4" style={{ width: 'max-content' }}>
+              {bankingPartners.map((partner, index) => (
+                <div key={`${partner.name}-${index}`} className="flex-shrink-0 w-40">
+                  <div className="h-20 bg-white/70 rounded-xl p-1 flex items-center justify-center border border-white/50 shadow-sm">
+                    <Image
+                      src={partner.logo}
+                      alt={partner.name}
+                      width={120}
+                      height={60}
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                      quality={70}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: animated marquee
   const itemWidth = 160;
   const itemGap = 24;
   const itemTotal = itemWidth + itemGap;
   const scrollDistance = itemTotal * bankingPartners.length;
-
-  if (bankingPartners.length === 0) return null;
 
   return (
     <div className="w-full px-4 py-5 lg:py-7">
@@ -287,34 +326,19 @@ const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Ar
           <style>{`
             .scrollbar-hide::-webkit-scrollbar { display: none; }
             .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
             @keyframes partner-scroll {
               0%   { transform: translateX(0); }
               100% { transform: translateX(-${scrollDistance}px); }
             }
-            /* ✅ FIX: Desktop animation speed */
             .partner-scroll-track {
               animation: partner-scroll 40s linear infinite;
+              will-change: transform;
             }
-            /* ✅ FIX: Mobile — slower animation = less GPU thrashing + better scroll */
-            @media (max-width: 1023px) {
-              .partner-scroll-track {
-                animation-duration: 60s !important;
-                /* ✅ FIX: Use transform3d to force GPU compositing and prevent main-thread jank */
-                will-change: transform;
-              }
-            }
-            /* ✅ Pause on hover (desktop only) */
-            @media (hover: hover) {
-              .partner-scroll-track:hover { animation-play-state: paused; }
-            }
+            .partner-scroll-track:hover { animation-play-state: paused; }
           `}</style>
           <div
             className="flex scrollbar-hide partner-scroll-track"
-            style={{
-              width: `${itemTotal * bankingPartners.length * 2}px`,
-              // ✅ FIX: will-change only set in CSS above per breakpoint
-            }}
+            style={{ width: `${itemTotal * bankingPartners.length * 2}px` }}
           >
             {[...bankingPartners, ...bankingPartners].map((partner, index) => (
               <div
@@ -362,23 +386,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [isMobileView, setIsMobileView] = useState(false);
   const [currentTestimonialMobile, setCurrentTestimonialMobile] = useState(0);
   const [currentTestimonialDesktop, setCurrentTestimonialDesktop] = useState(0);
+  const slideIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const testimonialIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
-    checkMobile();
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(checkMobile, 150);
-    };
-    window.addEventListener("resize", handleResize, { passive: true });
-    return () => { clearTimeout(resizeTimeout); window.removeEventListener("resize", handleResize); };
-  }, []);
-
-  useEffect(() => {
-    return () => { document.body.style.overflow = ""; };
-  }, []);
-
+  // ========== DEFINITIONS (must be before useEffects that depend on them) ==========
   const testimonials = useMemo<Testimonial[]>(() => [
     { name: "satyajit sethy", location: "Cuttack", quote: "Good organization.give good behaviour like friendly with all.", avatar: "https://lh3.googleusercontent.com/a-/ALV-UjXmOhlXiVFoZDdhkdBgzVx1-U8UxBq3QpSc7IG69R7EoGjagyScag=s36-c-rp-mo-br100", rating: 5 },
     { name: "Rohan kumar Rout", location: "Bhubaneswar", quote: "Best service provide ❤️", avatar: "https://lh3.googleusercontent.com/a-/ALV-UjWi-Km3_8HDuoTJPHAcJ3dcomr165YhJ8jSY2IAoeKqCHDCT9MX=s36-c-rp-mo-br100", rating: 5 },
@@ -396,8 +407,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return trimmed;
   }, []);
 
-
-  // ✅ FIX: Removed missing /banks/arka-removebg-preview.webp
   const bankLogos = useMemo(() => [
     "/banks/AU-Small-Finance-Bank.webp",
     "/banks/Axis_Bank_logo.svg.webp",
@@ -417,15 +426,55 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     "/banks/download-removebg-preview.webp",
     "/banks/dcb_bank-removebg-preview.webp",
     "/banks/Poonamwalla-Fincorp-removebg-preview.webp",
-    // "/banks/arka-removebg-preview.webp", // ❌ removed – 404
   ], []);
-
 
   const bankingPartners = useMemo(
     () => bankLogos.map((logo, index) => ({ name: `Bank Partner ${index + 1}`, logo })),
     [bankLogos]
   );
 
+  // ========== EFFECTS ==========
+  // Visibility change handler (pauses intervals when tab hidden)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+        if (testimonialIntervalRef.current) clearInterval(testimonialIntervalRef.current);
+      } else {
+        // Restart only if conditions met
+        if (banners.length > 1 && !isMobileView && page !== "home") {
+          slideIntervalRef.current = setInterval(() => setCurrentSlide((p) => (p + 1) % banners.length), 4000);
+        }
+        if (page === "home" && !isMobileView) {
+          testimonialIntervalRef.current = setInterval(() => {
+            setCurrentTestimonialMobile((p) => (p + 1) % testimonials.length);
+          }, 5000);
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [banners.length, isMobileView, page, testimonials.length]);
+
+  // Check mobile view
+  useEffect(() => {
+    const checkMobile = () => setIsMobileView(window.innerWidth < 1024);
+    checkMobile();
+    let resizeTimeout: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(checkMobile, 150);
+    };
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => { clearTimeout(resizeTimeout); window.removeEventListener("resize", handleResize); };
+  }, []);
+
+  // Cleanup body overflow on unmount
+  useEffect(() => {
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  // Fetch banners for non-home pages
   useEffect(() => {
     if (page === "home") { setIsLoading(false); return; }
     if (!SERVER_HOST) { setError("Backend URL not configured"); setIsLoading(false); return; }
@@ -449,28 +498,37 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return () => { isMounted = false; };
   }, [page, getValidImageUrl]);
 
+  // Reset slide index when banners change
   useEffect(() => { setCurrentSlide(0); }, [banners]);
 
+  // Banner autoplay (only on desktop for non-home pages)
   useEffect(() => {
-    if (banners.length <= 1) return;
-    const i = setInterval(() => setCurrentSlide((p) => (p + 1) % banners.length), 4000);
-    return () => clearInterval(i);
-  }, [banners.length]);
+    if (banners.length <= 1 || isMobileView || page === "home") return;
+    if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
+    slideIntervalRef.current = setInterval(() => setCurrentSlide((p) => (p + 1) % banners.length), 4000);
+    return () => { if (slideIntervalRef.current) clearInterval(slideIntervalRef.current); };
+  }, [banners.length, isMobileView, page]);
 
+  // Testimonial autoplay (only on desktop for home page)
   useEffect(() => {
-    if (page !== "home") return;
-    const i = setInterval(() => setCurrentTestimonialMobile((p) => (p + 1) % testimonials.length), 5000);
-    return () => clearInterval(i);
-  }, [page, testimonials.length]);
+    if (page !== "home" || isMobileView) return;
+    if (testimonialIntervalRef.current) clearInterval(testimonialIntervalRef.current);
+    testimonialIntervalRef.current = setInterval(() => {
+      setCurrentTestimonialMobile((p) => (p + 1) % testimonials.length);
+    }, 5000);
+    return () => { if (testimonialIntervalRef.current) clearInterval(testimonialIntervalRef.current); };
+  }, [page, testimonials.length, isMobileView]);
 
+  // Desktop testimonial carousel (3 items visible)
   useEffect(() => {
-    if (page !== "home") return;
+    if (page !== "home" || isMobileView) return;
     const visible = 3;
     const max = Math.max(0, testimonials.length - visible);
     const i = setInterval(() => setCurrentTestimonialDesktop((p) => (p + 1 > max ? 0 : p + 1)), 4000);
     return () => clearInterval(i);
-  }, [page, testimonials.length]);
+  }, [page, testimonials.length, isMobileView]);
 
+  // Form validation
   const validateForm = useCallback(() => {
     const errors: Record<string, string> = {};
     if (!formData.fullName.trim()) errors.fullName = "Full name is required";
@@ -484,6 +542,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return Object.keys(errors).length === 0;
   }, [formData]);
 
+  // Form submit
   const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) { setSubmitMessage({ type: "error", text: "Please correct errors above" }); return; }
@@ -519,6 +578,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
   const GOOGLE_REVIEW_LINK = "https://www.google.com/search?q=ezyloan#cobssid=s";
 
+  // Close dropdown on outside click
   useEffect(() => {
     if (!isLoanDropdownOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
@@ -552,14 +612,13 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return [base, colorClass, errorClass, openClass].filter(Boolean).join(" ");
   }, []);
 
-  // ==================== HOME PAGE ====================
+  // ==================== HOME PAGE RENDER ====================
   if (page === "home") {
     return (
       <section
         className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-16 sm:pt-20 lg:pt-24 pb-6 overflow-hidden"
         suppressHydrationWarning
       >
-        {/* Background decorations — no blur on mobile */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full" />
           <div className="absolute top-40 -right-40 w-96 h-96 bg-cyan-400/10 rounded-full" />
@@ -570,23 +629,9 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           <div className="lg:hidden">
             <div
               className="relative mt-5 rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50"
-              /*
-                ✅ FIX: Reserve exact space for LCP image using aspectRatio.
-                Without this, the container collapses until the image loads, causing CLS.
-                4/3 = 75% padding trick replaced by explicit aspectRatio for modern browsers.
-              */
               style={{ minHeight: "280px", aspectRatio: "4/3" }}
             >
               <div className="absolute inset-0">
-                {/*
-                  ✅ FIX: LCP IMAGE — key changes:
-                  1. `unoptimized` bypasses Next.js /_next/image URL so the browser fetches
-                     /homebanner/image1.webp directly — matching our <link rel="preload"> in layout.tsx
-                  2. Without unoptimized, the preload in layout.tsx points to the raw file but
-                     Next.js actually serves /_next/image?url=...&w=640 — the preload was wasted.
-                  3. This eliminates the 490ms "Resource load delay" in the LCP breakdown.
-                  4. priority + fetchPriority="high" + loading="eager" all preserved.
-                */}
                 <Image
                   src="/homebanner/image1.webp"
                   alt="Car Loan - Get approved in 24 hours in Odisha"
@@ -817,11 +862,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
             <div className="relative h-[600px]">
               <div className="absolute z-10" style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}>
-                {/*
-                  ✅ FIX: Desktop hero image — also unoptimized to match preload in layout.tsx
-                  The preload targets /homebanner/bannerimg.webp; if Next.js optimizes it to
-                  /_next/image?url=..., the preload is wasted. unoptimized ensures they match.
-                */}
                 <Image
                   src="/homebanner/bannerimg.webp"
                   alt="Car Loan illustration"
@@ -836,7 +876,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 />
               </div>
 
-              {/* Desktop Form */}
               <div className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30" style={{ right: "0.30rem" }}>
                 <div className="text-center mb-4">
                   <p className="text-lg font-bold">
@@ -987,17 +1026,14 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </a>
           </div>
 
-          {/* Testimonials */}
+          {/* Testimonials - mobile uses native scroll */}
           <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full">
-            {/* Mobile testimonials */}
-            <div className="lg:hidden relative overflow-hidden">
-              <div
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentTestimonialMobile * 100}%)` }}
-              >
+            {/* Mobile testimonials - no autoplay */}
+            <div className="lg:hidden overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2">
+              <div className="flex gap-4" style={{ width: 'max-content' }}>
                 {testimonials.map((testimonial, index) => (
-                  <div key={index} className="w-full flex-shrink-0 px-2">
-                    <div className="flex items-start gap-4 bg-white/70 rounded-xl py-5 shadow-sm border border-white/50">
+                  <div key={index} className="w-[280px] flex-shrink-0">
+                    <div className="flex items-start gap-4 bg-white/70 rounded-xl py-5 px-4 shadow-sm border border-white/50 h-full">
                       <div className="flex-shrink-0">
                         <Image
                           src={testimonial.avatar}
@@ -1020,7 +1056,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                             <Star key={i} className={`w-3.5 h-3.5 ${i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} />
                           ))}
                         </div>
-                        <p className="text-gray-700 text-sm leading-relaxed mb-2">"{testimonial.quote}"</p>
+                        <p className="text-gray-700 text-sm leading-relaxed mb-2 line-clamp-3">"{testimonial.quote}"</p>
                         <p className="text-gray-600 text-sm font-medium">– {testimonial.name}, {testimonial.location}</p>
                       </div>
                     </div>
@@ -1029,7 +1065,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
 
-            {/* Desktop testimonials */}
+            {/* Desktop testimonials carousel */}
             <div className="hidden lg:block relative overflow-hidden">
               <div
                 className="flex transition-transform duration-700 ease-in-out will-change-transform"
@@ -1077,29 +1113,37 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   }
 
   // ==================== OTHER PAGES ====================
-  if (isLoading) return (
-    <section className="relative overflow-hidden min-h-[50vh] bg-gray-100 flex items-center justify-center pt-20">
-      <div className="text-lg">Loading...</div>
-    </section>
-  );
+  if (isLoading) {
+    return (
+      <section className="relative overflow-hidden min-h-[50vh] bg-gray-100 flex items-center justify-center pt-20">
+        <div className="text-lg">Loading...</div>
+      </section>
+    );
+  }
 
-  if (error) return (
-    <section className="relative overflow-hidden min-h-[50vh] bg-red-50 flex items-center justify-center pt-20">
-      <div className="text-red-600 text-center p-4 max-w-md">
-        <p className="font-medium">⚠️ {error}</p>
-        <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition">Retry</button>
-      </div>
-    </section>
-  );
+  if (error) {
+    return (
+      <section className="relative overflow-hidden min-h-[50vh] bg-red-50 flex items-center justify-center pt-20">
+        <div className="text-red-600 text-center p-4 max-w-md">
+          <p className="font-medium">⚠️ {error}</p>
+          <button onClick={() => window.location.reload()} className="mt-3 px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 transition">
+            Retry
+          </button>
+        </div>
+      </section>
+    );
+  }
 
-  if (banners.length === 0) return (
-    <section className={`relative overflow-hidden ${page === "home" ? "min-h-screen" : "min-h-[16vh]"} flex items-center justify-center bg-blue-600 pt-20`}>
-      <div className="text-center text-white p-6">
-        <h1 className="text-4xl font-bold">{title || "EzyLoan"}</h1>
-        {subtitle && <p className="text-xl mt-2">{subtitle}</p>}
-      </div>
-    </section>
-  );
+  if (banners.length === 0) {
+    return (
+      <section className={`relative overflow-hidden ${page === "home" ? "min-h-screen" : "min-h-[16vh]"} flex items-center justify-center bg-blue-600 pt-20`}>
+        <div className="text-center text-white p-6">
+          <h1 className="text-4xl font-bold">{title || "EzyLoan"}</h1>
+          {subtitle && <p className="text-xl mt-2">{subtitle}</p>}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -1109,10 +1153,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     >
       <div className="w-full relative z-10">
         <div className={`max-w-[85rem] mx-auto lg:px-0 ${page === "home" ? "px-[10px]" : ""}`}>
-          {/*
-            ✅ FIX: Reserve banner space with aspectRatio to prevent CLS.
-            On mobile the banner was 142px, on tablet 70vh — use minHeight to anchor layout.
-          */}
           <div
             className="relative w-full h-[60vh] md:min-h-[460px] md:h-[45vh] sm:h-[70vh] max-sm:h-[142px] rounded-2xl overflow-hidden shadow-lg"
             style={{ minHeight: "142px" }}
@@ -1122,11 +1162,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 key={banner._id}
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${currentSlide === index ? "opacity-100" : "opacity-0"}`}
               >
-                {/*
-                  ✅ FIX: Removed scale-105 on inactive banners — was causing forced reflow
-                  on every slide transition as the browser recalculated layout for transform.
-                  Used opacity-only transition instead.
-                */}
                 <Image
                   src={banner.image}
                   alt={`Banner ${index + 1}`}
@@ -1144,8 +1179,20 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
             {banners.length > 1 && (
               <>
-                <button onClick={prevSlide} className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]" aria-label="Previous slide">‹</button>
-                <button onClick={nextSlide} className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]" aria-label="Next slide">›</button>
+                <button
+                  onClick={prevSlide}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]"
+                  aria-label="Previous slide"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={nextSlide}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/80 hover:bg-white rounded-full shadow flex items-center justify-center text-gray-700 transition min-w-[44px] min-h-[44px]"
+                  aria-label="Next slide"
+                >
+                  ›
+                </button>
               </>
             )}
           </div>

@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import {
@@ -10,6 +11,7 @@ const Services = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const services = useMemo(() => [
     {
@@ -67,18 +69,32 @@ const Services = () => {
     if (index >= 0 && index <= maxIndex) setCurrentIndex(index);
   }, [maxIndex]);
 
+  // Autoplay only on desktop and not paused
   useEffect(() => {
     if (!isDesktop || isPaused) return;
-    const interval = setInterval(nextSlide, 1300);
-    return () => clearInterval(interval);
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(nextSlide, 1300);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isDesktop, isPaused, nextSlide]);
+
+  // Pause on visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      } else if (!document.hidden && isDesktop && !isPaused) {
+        intervalRef.current = setInterval(nextSlide, 1300);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isDesktop, isPaused, nextSlide]);
 
   useEffect(() => {
     if (isDesktop) setCurrentIndex(0);
   }, [isDesktop]);
 
-  // ✅ FIX: Use router.push for internal navigation instead of window.location.href
-  // to prevent full page reload which would also cause scroll state issues
   const handleApplyClick = useCallback((e: React.MouseEvent, url: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -95,23 +111,21 @@ const Services = () => {
       ref={carouselRef}
       style={{ contentVisibility: "auto" }}
     >
-      {/* Background decorations */}
+      {/* Background decorations - simplified on mobile */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 rounded-full blur-none lg:blur-2xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-cyan-400/10 rounded-full blur-none lg:blur-2xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-300/5 to-cyan-300/5 rounded-full blur-none lg:blur-2xl" />
-        <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-cyan-50/30 to-transparent lg:hidden" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 rounded-full hidden lg:block" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-cyan-400/10 rounded-full hidden lg:block" />
       </div>
 
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Heading */}
         <div className="text-center mb-12">
-          <h2 id="services-heading" className="text-4xl lg:text-5xl font-bold mb-4">
+          <h2 id="services-heading" className="text-3xl lg:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-[#2563eb] via-blue-600 to-[#06b6d4] bg-clip-text text-transparent">
               Instant Loan Options for Every Need
             </span>
           </h2>
-          <p className="text-xl text-slate-600/80 max-w-3xl mx-auto">
+          <p className="text-lg text-slate-600/80 max-w-3xl mx-auto">
             Choose the best loan for your needs and get instant approval
           </p>
         </div>
@@ -130,7 +144,7 @@ const Services = () => {
                   style={{ contain: "layout style paint" }}
                 >
                   <Link href={service.link} className="block group">
-                    <div className="relative bg-white/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/50 hover:border-[#2563eb]/50 transition-all duration-300 flex flex-col h-full cursor-pointer shadow-md hover:shadow-lg hover:-translate-y-1">
+                    <div className="relative bg-white/60 lg:backdrop-blur-sm rounded-2xl overflow-hidden border border-white/50 hover:border-[#2563eb]/50 transition-all duration-300 flex flex-col h-full cursor-pointer shadow-md hover:shadow-lg hover:-translate-y-1">
                       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-gray-50/80 to-gray-100/80">
                         <img
                           src={service.image}
@@ -181,40 +195,37 @@ const Services = () => {
           </div>
         </div>
 
-        {/* Mobile/Tablet Grid */}
+        {/* Mobile/Tablet Grid - no backdrop blur, no hover transforms */}
         <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
           {services.map((service, index) => (
-            <Link key={index} href={service.link} className="block group">
-              <div className="relative bg-white/70 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/60 hover:border-[#2563eb]/50 transition-all duration-300 flex flex-col cursor-pointer shadow-md hover:shadow-lg hover:-translate-y-1">
-                <div className="relative h-53 overflow-hidden bg-gradient-to-br from-gray-50/60 to-gray-100/60">
+            <Link key={index} href={service.link} className="block">
+              <div className="relative bg-white rounded-2xl overflow-hidden border border-gray-200 flex flex-col cursor-pointer shadow-sm">
+                <div className="relative h-48 overflow-hidden bg-gray-100">
                   <img
                     src={service.image}
                     alt={service.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                     decoding="async"
                     onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/400x300/f5f5f5/666?text=${encodeURIComponent(service.title)}`; }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent pointer-events-none" />
                 </div>
-                <div className="p-5 flex flex-col flex-grow">
-                  <h3 className="text-lg font-bold text-slate-800 mb-3 text-center group-hover:text-[#2563eb] transition-colors">
+                <div className="p-4 flex flex-col flex-grow">
+                  <h3 className="text-base font-bold text-slate-800 mb-2 text-center">
                     {service.title}
                   </h3>
-                  <div className="space-y-1.5 mb-5">
+                  <div className="space-y-1 mb-4">
                     {service.highlights?.map((highlight, i) => (
-                      <p key={i} className="text-sm text-slate-600/80 text-center font-medium">{highlight}</p>
+                      <p key={i} className="text-xs text-slate-600 text-center">{highlight}</p>
                     ))}
                   </div>
-                  <div className="mt-auto">
-                    <button
-                      className="w-full inline-flex items-center justify-center gap-2 font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 bg-gradient-to-r from-[#2563eb] to-[#06b6d4] text-white touch-manipulation"
-                      onClick={(e) => handleApplyClick(e, service.applyLink)}
-                      aria-label={`Get offers for ${service.title}`}
-                    >
-                      Get Offers <ArrowRight className="w-4 h-4 transition-transform duration-300" />
-                    </button>
-                  </div>
+                  <button
+                    className="w-full inline-flex items-center justify-center gap-2 font-semibold text-sm py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#06b6d4] text-white touch-manipulation active:scale-95 transition-transform"
+                    onClick={(e) => handleApplyClick(e, service.applyLink)}
+                    aria-label={`Get offers for ${service.title}`}
+                  >
+                    Get Offers <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </Link>
@@ -222,51 +233,51 @@ const Services = () => {
         </div>
       </div>
 
-      {/* Contact Information */}
+      {/* Contact Information - removed backdrop blur on mobile */}
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="relative bg-white/50 backdrop-blur-sm rounded-3xl p-8 border border-white/70 shadow-md mb-10 overflow-hidden">
+        <div className="relative bg-white lg:bg-white/50 lg:backdrop-blur-sm rounded-3xl p-6 lg:p-8 border border-gray-200 lg:border-white/70 shadow-md mb-10 overflow-hidden">
           <div className="relative z-10">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold mb-2">
+            <div className="text-center mb-6 lg:mb-8">
+              <h3 className="text-xl lg:text-2xl font-bold mb-2">
                 <span className="bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-transparent">
                   Get In Touch With Us
                 </span>
               </h3>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              <a href="tel:+916372977626" className="flex items-center space-x-4 group cursor-pointer">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
-                  <Phone className="w-6 h-6 text-white" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+              <a href="tel:+916372977626" className="flex items-center space-x-3 group">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
+                  <Phone className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">Call Us</h4>
-                  <p className="text-[#2563eb] font-medium hover:underline">+91 6372977626</p>
-                  <p className="text-sm text-slate-500/80">Mon-Sat: 9AM to 7PM</p>
+                  <h4 className="font-semibold text-slate-800 text-sm lg:text-base">Call Us</h4>
+                  <p className="text-[#2563eb] font-medium text-xs lg:text-sm">+91 6372977626</p>
+                  <p className="text-xs text-slate-500">Mon-Sat: 9AM to 7PM</p>
                 </div>
               </a>
-              <a href="mailto:contact@ezyloan.co.in" className="flex items-center space-x-4 group cursor-pointer">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
-                  <Mail className="w-6 h-6 text-white" />
+              <a href="mailto:contact@ezyloan.co.in" className="flex items-center space-x-3 group">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
+                  <Mail className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">Email Us</h4>
-                  <p className="text-[#2563eb] font-medium hover:underline">contact@ezyloan.co.in</p>
-                  <p className="text-sm text-slate-500/80">Quick response guaranteed</p>
+                  <h4 className="font-semibold text-slate-800 text-sm lg:text-base">Email Us</h4>
+                  <p className="text-[#2563eb] font-medium text-xs lg:text-sm">contact@ezyloan.co.in</p>
+                  <p className="text-xs text-slate-500">Quick response</p>
                 </div>
               </a>
               <a
                 href="https://www.google.com/maps/search/?api=1&query=1st+Floor+Hindustan+Tyres+Building+Pir+Bazar+Bhanpur+Cuttack+Odisha+753011"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-4 group cursor-pointer"
+                className="flex items-center space-x-3 group"
               >
-                <div className="w-14 h-14 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-110">
-                  <MapPin className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md">
+                  <MapPin className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-800">Visit Us</h4>
-                  <p className="text-[#2563eb] font-medium text-sm hover:underline">
-                    1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha - 753011
+                  <h4 className="font-semibold text-slate-800 text-sm lg:text-base">Visit Us</h4>
+                  <p className="text-[#2563eb] font-medium text-xs lg:text-sm line-clamp-2">
+                    1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack - 753011
                   </p>
                 </div>
               </a>
@@ -274,20 +285,20 @@ const Services = () => {
           </div>
         </div>
 
-        {/* Why Choose Us */}
-        <div className="relative bg-white/50 backdrop-blur-sm rounded-3xl p-8 lg:p-10 border border-white/70 shadow-md overflow-hidden">
+        {/* Why Choose Us - simplified on mobile */}
+        <div className="relative bg-white lg:bg-white/50 lg:backdrop-blur-sm rounded-3xl p-6 lg:p-10 border border-gray-200 lg:border-white/70 shadow-md overflow-hidden">
           <div className="relative z-10">
-            <div className="text-center mb-10">
-              <h3 className="text-3xl font-bold mb-3">
+            <div className="text-center mb-8 lg:mb-10">
+              <h3 className="text-2xl lg:text-3xl font-bold mb-2">
                 <span className="bg-gradient-to-r from-[#2563eb] via-blue-600 to-[#06b6d4] bg-clip-text text-transparent">
                   Why Choose EzyLoan?
                 </span>
               </h3>
-              <p className="text-slate-600/80 max-w-2xl mx-auto text-lg">
-                We make borrowing simple, transparent, and hassle-free with our customer-first approach.
+              <p className="text-slate-600 max-w-2xl mx-auto text-base lg:text-lg">
+                We make borrowing simple, transparent, and hassle-free.
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
               {[
                 {
                   icon: Percent,
@@ -305,12 +316,12 @@ const Services = () => {
                   desc: "Bank-grade security and trusted by over 100,000 satisfied customers.",
                 },
               ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="text-center group p-6 rounded-2xl hover:bg-white/60 backdrop-blur-sm transition-all duration-300 border border-transparent hover:border-white/50">
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-lg">
-                    <Icon className="w-7 h-7 text-white" />
+                <div key={title} className="text-center p-4 lg:p-6 rounded-2xl bg-white/50 lg:bg-transparent">
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-br from-[#2563eb] to-[#06b6d4] rounded-2xl flex items-center justify-center mx-auto mb-3 lg:mb-5 shadow-md">
+                    <Icon className="w-5 h-5 lg:w-7 lg:h-7 text-white" />
                   </div>
-                  <h4 className="text-xl font-bold text-slate-800 mb-2">{title}</h4>
-                  <p className="text-slate-600/80">{desc}</p>
+                  <h4 className="text-base lg:text-xl font-bold text-slate-800 mb-1 lg:mb-2">{title}</h4>
+                  <p className="text-xs lg:text-sm text-slate-600">{desc}</p>
                 </div>
               ))}
             </div>
@@ -319,13 +330,9 @@ const Services = () => {
       </div>
 
       <style jsx global>{`
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         @media (max-width: 1023px) {
-          .animate-shimmer { animation: none !important; }
-          .backdrop-blur-sm, .backdrop-blur-md { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-          .shadow-lg, .shadow-xl, .shadow-2xl { box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important; }
-          .hover\\:-translate-y-1, .hover\\:scale-110, .group-hover\\:scale-110 { transform: none !important; transition: none !important; }
-          html { scroll-behavior: auto !important; }
+          .scrollbar-hide::-webkit-scrollbar { display: none; }
+          .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         }
       `}</style>
     </section>

@@ -1,10 +1,8 @@
 /* ============================================================
-   globals.css — EzyLoan Performance-Optimized
-   FIXES:
-   - Removed backdrop-filter on mobile (was causing TBT + slow paint)
-   - Removed CSS gradient on --background (was LCP blocker)
-   - Disabled heavy blur on mobile entirely
-   - Trimmed unused selectors to reduce CSS parse time
+   EzyLoan Performance-Optimized Global Styles
+   - Removed backdrop-filter on mobile
+   - Disabled heavy will-change on mobile
+   - Added contain for layout stability
    ============================================================ */
 
 @tailwind base;
@@ -13,7 +11,6 @@
 
 :root {
   --foreground-rgb: 15, 23, 42;
-  /* ✅ Solid white — no gradient, fastest possible background paint */
   --background: #ffffff;
 }
 
@@ -26,8 +23,6 @@
 }
 
 html {
-  /* ✅ FIX: scroll-behavior smooth causes jank on mobile Safari — use auto by default,
-     enable smooth only for desktop via media query */
   scroll-behavior: auto;
 }
 
@@ -40,41 +35,12 @@ html {
 body {
   color: rgb(var(--foreground-rgb));
   background: var(--background);
-  /* ✅ Inter is applied via next/font in layout.tsx — no manual font-family */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* ✅ FIX: Prevent horizontal overflow causing CLS on mobile */
   overflow-x: hidden;
 }
 
-/* ============================================================
-   GLASS EFFECTS
-   ✅ FIX: backdrop-filter ONLY on desktop — was causing huge TBT on mobile
-   ============================================================ */
-
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.glass-dark {
-  background: rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.glass-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-}
-
-.glass-btn-primary {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(29, 78, 216, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* ✅ Desktop: lighter blur (6px, not 12px+) */
+/* Desktop-only backdrop filters */
 @media (min-width: 1024px) {
   .glass,
   .glass-dark,
@@ -97,20 +63,36 @@ body {
   }
 }
 
-/* ✅ Mobile: NO backdrop-filter, NO box-shadow, NO transform — big TBT win */
+/* Mobile: NO backdrop-filter, NO transform tricks */
 @media (max-width: 1023px) {
   .glass,
   .glass-dark,
   .glass-btn,
-  .glass-btn-primary {
+  .glass-btn-primary,
+  [class*="backdrop-blur"] {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
+
+  /* Prevent will-change memory waste on mobile */
+  .will-change-transform {
+    will-change: auto !important;
+  }
+
+  /* Reduce shadow complexity */
+  .shadow-lg, .shadow-xl, .shadow-2xl {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+  }
 }
 
-/* ============================================================
-   SCROLLBAR
-   ============================================================ */
+/* Layout containment for smoother scrolling */
+.hero-section,
+#services,
+.banking-partners {
+  contain: layout style paint;
+}
+
+/* Optimized scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -121,13 +103,8 @@ body {
   background: #94a3b8;
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
 
-/* ============================================================
-   BLOG CONTENT
-   ============================================================ */
+/* Blog content */
 .blog-content h1,
 .blog-content h2,
 .blog-content h3,
@@ -172,9 +149,7 @@ body {
   margin: 1.5rem 0;
 }
 
-/* ============================================================
-   RANGE INPUT
-   ============================================================ */
+/* Range input */
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
@@ -203,34 +178,13 @@ input[type='range']::-moz-range-thumb {
   border: none;
 }
 
-/* ============================================================
-   ACCESSIBILITY
-   ============================================================ */
+/* Accessibility */
 *:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* ============================================================
-   PERFORMANCE UTILITIES
-   ✅ FIX: GPU-promoted layers only where needed
-   ============================================================ */
-
-/* Used by partner carousel and testimonials to hint GPU compositing */
-.will-change-transform {
-  will-change: transform;
-}
-
-/* ✅ FIX: Disable will-change on mobile (wastes GPU memory) */
-@media (max-width: 1023px) {
-  .will-change-transform {
-    will-change: auto;
-  }
-}
-
-/* ============================================================
-   REDUCED MOTION SUPPORT
-   ============================================================ */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
