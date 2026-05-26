@@ -3,16 +3,14 @@ import Services from '@/components/Services';
 import SEO from '@/components/SEO';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
- 
-// ✅ FIX: Removed duplicate Google Ads Script tags — they live in layout.tsx only
- 
+
 export const metadata = {
   title: 'EzyLoan - Quick & Easy Loans Online | Personal, Business, Car Loans',
   description:
     'Get loan assistance with interest rates starting from 10%* p.a. | Tenure 12-60 months | Quick approval* | Serving customers across India. *Subject to lender approval.',
   robots: 'index, follow',
 };
- 
+
 export default function Home() {
   const loanDetails = {
     interestRate: 'Starting from 10%* p.a.',
@@ -24,28 +22,26 @@ export default function Home() {
     income: '₹15,000+ per month*',
     employment: 'Salaried / Self-employed',
   };
- 
-  // ✅ FIX: organizationSchema moved to layout.tsx to avoid duplicate JSON-LD
- 
+
   return (
     <>
       <SEO
         title="EzyLoan - Quick & Easy Loans Online*"
         description="Loan assistance with interest rates starting from 10%* p.a. Subject to lender approval and credit assessment."
         canonical="/"
-        keywords={['personal loan', 'business loan', 'car loan', 'loan facilitator', 'DSA', 'NBFC partner', '10% interest rate']}
+        keywords={[
+          'personal loan', 'business loan', 'car loan',
+          'loan facilitator', 'DSA', 'NBFC partner', '10% interest rate',
+        ]}
         image="/og-home.jpg"
         pageType="financialproduct"
         loanType="Loan Facilitation"
       />
- 
+
       <main className="min-h-screen bg-white" role="main">
         <HeroSection page="home" title="Get Loan Assistance*" />
         <Services />
- 
-        {/* ✅ FIX: Eligibility Section — was causing CLS 0.776.
-            Root cause: no explicit height reserved, content painted after hydration.
-            Fix: explicit min-h + suppress dynamic className changes on SSR */}
+
         <section
           className="py-8 bg-white"
           aria-labelledby="eligibility-heading"
@@ -63,8 +59,7 @@ export default function Home() {
                 Quick pre-check • No impact on credit score*
               </p>
             </div>
- 
-            {/* ✅ FIX: Explicit min-height on grid container prevents CLS when grid renders */}
+
             <div
               className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto mt-6"
               style={{ minHeight: '120px' }}
@@ -82,7 +77,7 @@ export default function Home() {
                 <p className="text-purple-600 font-bold text-lg mt-1">{eligibility.employment}</p>
               </div>
             </div>
- 
+
             <div className="text-center mt-6">
               <Link
                 href="/apply-now"
@@ -94,8 +89,7 @@ export default function Home() {
             </div>
           </div>
         </section>
- 
-        {/* Compliance Banner */}
+
         <div
           className="px-4 py-3 bg-amber-50 border-l-4 border-amber-500 mx-auto max-w-[85rem] mt-4"
           role="note"
@@ -108,8 +102,7 @@ export default function Home() {
             </p>
           </div>
         </div>
- 
-        {/* Loan Details Banner */}
+
         <div className="px-3 sm:px-4 lg:px-6 xl:px-8 mt-4">
           <div className="max-w-[85rem] mx-auto">
             <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 sm:p-5 lg:p-6 mb-6 text-white">
@@ -136,8 +129,7 @@ export default function Home() {
             </div>
           </div>
         </div>
- 
-        {/* Footer */}
+
         <footer className="bg-white border-t border-gray-200 py-6" role="contentinfo">
           <div className="max-w-[85rem] mx-auto px-4 text-center">
             <p className="text-xs text-gray-600">
@@ -147,8 +139,13 @@ export default function Home() {
             </p>
             <p className="text-xs text-gray-500 mt-2">
               © {new Date().getFullYear()} EzyLoan. |{' '}
-              <Link href="/terms" className="hover:underline">Terms</Link> |{' '}
-              <Link href="/privacy" className="hover:underline">Privacy</Link>
+              <Link href="/terms" className="hover:underline">
+                Terms
+              </Link>{' '}
+              |{' '}
+              <Link href="/privacy" className="hover:underline">
+                Privacy
+              </Link>
             </p>
           </div>
         </footer>
