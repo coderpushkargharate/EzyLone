@@ -177,11 +177,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="/_next/image?url=%2Fhomebanner%2Fbannerimg.webp&w=640&q=75"
           media="(min-width: 769px)"
         />
- 
-        <link rel="icon" href="/favicon.webp" type="image/png" sizes="32x32" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.webp" sizes="180x180" />
-        <link rel="manifest" href="/site.webmanifest" />
- 
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+
+        {/* ✅ DNS PREFETCH */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        {/* ✅ ICON */}
+        <link rel="icon" href="/favicon.ico" />
+
+        {/* ✅ STRUCTURED DATA */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
