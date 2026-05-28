@@ -10,15 +10,14 @@
 //               so browser can allocate layout space before image loads (no CLS).
 // ✅ [TBT]      No backdrop-filter on mobile at all.
 // ✅ [CLS]      Testimonials section has fixed min-height to reserve layout space.
-// ✅ [Perf]     Banking partners carousel uses CSS animation (no RAF loop) on desktop.
+// ✅ [Perf]     Banking partners carousel uses CSS animation (no RAF loop) on all screens.
 // ✅ [JS]       Reduced state updates — merged mobile/desktop testimonial into one index.
 // ✅ [Paint]    Removed will-change from mobile elements (wastes GPU layers).
 //
-// 🆕 AUTO-SCROLL ON SMALL SCREENS:
-// - Hero banner autoplay now works on mobile (was previously disabled).
-// - Testimonials auto-scroll on mobile (horizontal scroll with wrap-around).
-// - Banking partners carousel auto-scrolls on mobile (with pause on user interaction).
-// - User interaction (manual scroll/click) temporarily pauses auto-scroll for 10 seconds.
+// 🆕 BANKING PARTNERS CAROUSEL:
+// - Now uses pure CSS marquee on BOTH desktop and mobile (identical behaviour).
+// - No JS interval, no jank – smooth infinite scroll.
+// - Logo sizes adapt: desktop 160px, mobile 112px (w-28).
 
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import axios from "axios";
@@ -292,75 +291,12 @@ const LoanTypeDropdown = memo(({
 });
 LoanTypeDropdown.displayName = "LoanTypeDropdown";
 
-// ==================== BANKING PARTNERS CAROUSEL (WITH AUTO-SCROLL ON MOBILE) ====================
+// ==================== BANKING PARTNERS CAROUSEL (CSS MARQUEE ON ALL SCREENS) ====================
 const BankingPartnersCarousel = memo(({
   bankingPartners,
 }: {
   bankingPartners: Array<{ name: string; logo: string }>;
 }) => {
-  const [isMobile, setIsMobile] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const autoScrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
-    setIsMobile(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const startAutoScroll = useCallback(() => {
-    if (!isMobile || !scrollContainerRef.current || bankingPartners.length === 0) return;
-    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current);
-    autoScrollIntervalRef.current = setInterval(() => {
-      if (isPaused) return;
-      const container = scrollContainerRef.current;
-      if (!container) return;
-      const cardWidth = 128 + 12; // w-32 (8rem = 128px) + gap-3 (12px)
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      let newScrollLeft = container.scrollLeft + cardWidth;
-      if (newScrollLeft >= maxScroll - 5) {
-        newScrollLeft = 0;
-      }
-      container.scrollTo({ left: newScrollLeft, behavior: "smooth" });
-    }, 3000); // 3 seconds per step
-  }, [isMobile, bankingPartners.length, isPaused]);
-
-  const pauseAutoScroll = useCallback(() => {
-    if (!isMobile) return;
-    setIsPaused(true);
-    if (autoScrollIntervalRef.current) {
-      clearInterval(autoScrollIntervalRef.current);
-      autoScrollIntervalRef.current = null;
-    }
-    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
-    pauseTimeoutRef.current = setTimeout(() => {
-      setIsPaused(false);
-      startAutoScroll();
-    }, 10000);
-  }, [isMobile, startAutoScroll]);
-
-  useEffect(() => {
-    if (!isMobile) return;
-    startAutoScroll();
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const handleUserScroll = () => pauseAutoScroll();
-    container.addEventListener("scroll", handleUserScroll, { passive: true });
-    container.addEventListener("touchstart", handleUserScroll, { passive: true });
-    return () => {
-      if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current);
-      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
-      if (container) {
-        container.removeEventListener("scroll", handleUserScroll);
-        container.removeEventListener("touchstart", handleUserScroll);
-      }
-    };
-  }, [isMobile, startAutoScroll, pauseAutoScroll]);
-
   if (bankingPartners.length === 0) return null;
 
   const heading = (
@@ -373,24 +309,92 @@ const BankingPartnersCarousel = memo(({
     </div>
   );
 
-  if (isMobile) {
-    return (
-      <div className="w-full px-4 py-5 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          {heading}
-          <div
-            className="overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2"
-            ref={scrollContainerRef}
-            style={{ scrollBehavior: "smooth" }}
-          >
-            <div className="flex gap-3" style={{ width: "max-content" }}>
-              {bankingPartners.map((partner, index) => (
-                <div key={`${partner.name}-${index}`} className="flex-shrink-0 w-32">
-                  <div className="h-16 bg-white rounded-xl p-1.5 flex items-center justify-center border border-gray-100 shadow-sm">
+  // Desktop & mobile both use CSS marquee – different logo sizes and spacing
+  // Desktop: each item 160px + 24px margin = 184px
+  // Mobile:  each item 112px (w-28) + 12px gap = 124px
+  const itemCount = bankingPartners.length;
+  const desktopTrackWidth = 184 * itemCount;
+  const mobileTrackWidth = 124 * itemCount;
+
+  return (
+    <div className="w-full px-4 py-5 lg:py-7">
+      <div className="max-w-7xl mx-auto">
+        {heading}
+        <div className="relative overflow-hidden py-2 lg:py-4">
+          <style>{`
+            @keyframes marquee-partners-desktop {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-${desktopTrackWidth}px); }
+            }
+            @keyframes marquee-partners-mobile {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-${mobileTrackWidth}px); }
+            }
+            .partner-marquee-desktop {
+              animation: marquee-partners-desktop 40s linear infinite;
+              will-change: transform;
+            }
+            .partner-marquee-mobile {
+              animation: marquee-partners-mobile 30s linear infinite;
+              will-change: transform;
+            }
+            .partner-marquee-desktop:hover,
+            .partner-marquee-mobile:hover {
+              animation-play-state: paused;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .partner-marquee-desktop, .partner-marquee-mobile {
+                animation: none;
+              }
+            }
+          `}</style>
+
+          {/* Desktop version (visible on lg+) */}
+          <div className="hidden lg:block">
+            <div
+              className="flex partner-marquee-desktop"
+              style={{ width: `${desktopTrackWidth * 2}px` }}
+            >
+              {[...bankingPartners, ...bankingPartners].map((partner, index) => (
+                <div
+                  key={`desktop-${partner.name}-${index}`}
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{ width: "160px", marginRight: "24px" }}
+                >
+                  <div className="w-40 h-20 bg-white/70 rounded-xl p-1 flex items-center justify-center border border-white/50 shadow-sm hover:shadow-md transition-shadow duration-300">
                     <Image
                       src={partner.logo}
                       alt={partner.name}
-                      width={100}
+                      width={120}
+                      height={60}
+                      className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                      quality={65}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile version (visible below lg) – same marquee effect */}
+          <div className="lg:hidden">
+            <div
+              className="flex partner-marquee-mobile"
+              style={{ width: `${mobileTrackWidth * 2}px` }}
+            >
+              {[...bankingPartners, ...bankingPartners].map((partner, index) => (
+                <div
+                  key={`mobile-${partner.name}-${index}`}
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{ width: "112px", marginRight: "12px" }}
+                >
+                  <div className="w-28 h-16 bg-white/70 rounded-xl p-1 flex items-center justify-center border border-white/50 shadow-sm">
+                    <Image
+                      src={partner.logo}
+                      alt={partner.name}
+                      width={80}
                       height={48}
                       className="max-w-full max-h-full object-contain"
                       loading="lazy"
@@ -402,59 +406,8 @@ const BankingPartnersCarousel = memo(({
               ))}
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
 
-  // Desktop: CSS-only marquee (no JS animation loop)
-  const itemCount = bankingPartners.length;
-  const trackWidth = 184 * itemCount;
-
-  return (
-    <div className="w-full px-4 py-5 lg:py-7">
-      <div className="max-w-7xl mx-auto">
-        {heading}
-        <div className="relative overflow-hidden py-2 lg:py-4">
-          <style>{`
-            @keyframes marquee-partners {
-              0%   { transform: translateX(0); }
-              100% { transform: translateX(-${trackWidth}px); }
-            }
-            .partner-marquee {
-              animation: marquee-partners 40s linear infinite;
-              will-change: transform;
-            }
-            .partner-marquee:hover { animation-play-state: paused; }
-            @media (prefers-reduced-motion: reduce) {
-              .partner-marquee { animation: none; }
-            }
-          `}</style>
-          <div
-            className="flex partner-marquee"
-            style={{ width: `${trackWidth * 2}px` }}
-          >
-            {[...bankingPartners, ...bankingPartners].map((partner, index) => (
-              <div
-                key={`${partner.name}-${index}`}
-                className="flex-shrink-0 flex items-center justify-center"
-                style={{ width: "160px", marginRight: "24px" }}
-              >
-                <div className="w-40 h-20 bg-white/70 rounded-xl p-1 flex items-center justify-center border border-white/50 shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <Image
-                    src={partner.logo}
-                    alt={partner.name}
-                    width={120}
-                    height={60}
-                    className="max-w-full max-h-full object-contain"
-                    loading="lazy"
-                    quality={65}
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Gradient fade edges (both screen sizes) */}
           <div className="absolute top-0 left-0 bottom-0 w-16 bg-gradient-to-r from-white/60 to-transparent pointer-events-none" />
           <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-white/60 to-transparent pointer-events-none" />
         </div>
@@ -552,7 +505,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     [bankLogos]
   );
 
-  // Media query for mobile view
+  // Media query for mobile view (used for testimonials & dropdown behaviour)
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
     setIsMobileView(mq.matches);
@@ -594,7 +547,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
   useEffect(() => { setCurrentSlide(0); }, [banners]);
 
-  // Banner autoplay (now includes mobile)
+  // Banner autoplay (includes mobile)
   useEffect(() => {
     if (banners.length <= 1 || page === "home") return;
     if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
@@ -1037,13 +990,13 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   ))}
                 </div>
                 <p className="text-gray-700 font-medium text-[11px] sm:text-xs mt-2">✅ No hidden charges</p>
-                <div className="grid grid-cols-3 gap-1.5 mt-3 w-72">
+                <div className="grid grid-cols-3 gap-1.5 mt-3 mb-3 w-72">
                   {[
                     { icon: Clock, label: "Quick Approval" },
                     { icon: Percent, label: "Lowest Rates" },
                     { icon: Shield, label: "100% Secure" },
                   ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="text-center p-2 bg-white/60 rounded-lg border border-gray-100/50">
+                    <div key={label} className="text-center p-2  bg-white/60 rounded-lg border border-gray-100/50">
                       <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
                         <Icon className="w-3.5 h-3.5 text-blue-600" />
                       </div>
@@ -1194,7 +1147,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
           {/* ========== TESTIMONIALS ========== */}
           <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full" style={{ minHeight: "160px" }}>
-            {/* Mobile: auto-scroll horizontal carousel */}
+            {/* Mobile: native horizontal scroll with auto-step (unchanged) */}
             <div className="lg:hidden overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2" ref={mobileTestimonialScrollRef}>
               <div className="flex gap-4" style={{ width: "max-content" }}>
                 {testimonials.map((testimonial, index) => (
