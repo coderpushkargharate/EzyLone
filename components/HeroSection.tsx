@@ -10,9 +10,15 @@
 //               so browser can allocate layout space before image loads (no CLS).
 // ✅ [TBT]      No backdrop-filter on mobile at all.
 // ✅ [CLS]      Testimonials section has fixed min-height to reserve layout space.
-// ✅ [Perf]     Banking partners carousel uses CSS animation (no RAF loop).
+// ✅ [Perf]     Banking partners carousel uses CSS animation (no RAF loop) on desktop.
 // ✅ [JS]       Reduced state updates — merged mobile/desktop testimonial into one index.
 // ✅ [Paint]    Removed will-change from mobile elements (wastes GPU layers).
+//
+// 🆕 AUTO-SCROLL ON SMALL SCREENS:
+// - Hero banner autoplay now works on mobile (was previously disabled).
+// - Testimonials auto-scroll on mobile (horizontal scroll with wrap-around).
+// - Banking partners carousel auto-scrolls on mobile (with pause on user interaction).
+// - User interaction (manual scroll/click) temporarily pauses auto-scroll for 10 seconds.
 
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import axios from "axios";
@@ -286,15 +292,17 @@ const LoanTypeDropdown = memo(({
 });
 LoanTypeDropdown.displayName = "LoanTypeDropdown";
 
-// ==================== BANKING PARTNERS CAROUSEL ====================
-// ✅ Pure CSS marquee — no JS animation loop, no requestAnimationFrame
-// ✅ Mobile: native horizontal scroll (no animation = no jank)
+// ==================== BANKING PARTNERS CAROUSEL (WITH AUTO-SCROLL ON MOBILE) ====================
 const BankingPartnersCarousel = memo(({
   bankingPartners,
 }: {
   bankingPartners: Array<{ name: string; logo: string }>;
 }) => {
   const [isMobile, setIsMobile] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -303,6 +311,55 @@ const BankingPartnersCarousel = memo(({
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  const startAutoScroll = useCallback(() => {
+    if (!isMobile || !scrollContainerRef.current || bankingPartners.length === 0) return;
+    if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current);
+    autoScrollIntervalRef.current = setInterval(() => {
+      if (isPaused) return;
+      const container = scrollContainerRef.current;
+      if (!container) return;
+      const cardWidth = 128 + 12; // w-32 (8rem = 128px) + gap-3 (12px)
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      let newScrollLeft = container.scrollLeft + cardWidth;
+      if (newScrollLeft >= maxScroll - 5) {
+        newScrollLeft = 0;
+      }
+      container.scrollTo({ left: newScrollLeft, behavior: "smooth" });
+    }, 3000); // 3 seconds per step
+  }, [isMobile, bankingPartners.length, isPaused]);
+
+  const pauseAutoScroll = useCallback(() => {
+    if (!isMobile) return;
+    setIsPaused(true);
+    if (autoScrollIntervalRef.current) {
+      clearInterval(autoScrollIntervalRef.current);
+      autoScrollIntervalRef.current = null;
+    }
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    pauseTimeoutRef.current = setTimeout(() => {
+      setIsPaused(false);
+      startAutoScroll();
+    }, 10000);
+  }, [isMobile, startAutoScroll]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    startAutoScroll();
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const handleUserScroll = () => pauseAutoScroll();
+    container.addEventListener("scroll", handleUserScroll, { passive: true });
+    container.addEventListener("touchstart", handleUserScroll, { passive: true });
+    return () => {
+      if (autoScrollIntervalRef.current) clearInterval(autoScrollIntervalRef.current);
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+      if (container) {
+        container.removeEventListener("scroll", handleUserScroll);
+        container.removeEventListener("touchstart", handleUserScroll);
+      }
+    };
+  }, [isMobile, startAutoScroll, pauseAutoScroll]);
 
   if (bankingPartners.length === 0) return null;
 
@@ -321,8 +378,11 @@ const BankingPartnersCarousel = memo(({
       <div className="w-full px-4 py-5 overflow-hidden">
         <div className="max-w-7xl mx-auto">
           {heading}
-          {/* Native scroll — zero JS, zero paint cost */}
-          <div className="overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2">
+          <div
+            className="overflow-x-auto scrollbar-hide pb-2 -mx-2 px-2"
+            ref={scrollContainerRef}
+            style={{ scrollBehavior: "smooth" }}
+          >
             <div className="flex gap-3" style={{ width: "max-content" }}>
               {bankingPartners.map((partner, index) => (
                 <div key={`${partner.name}-${index}`} className="flex-shrink-0 w-32">
@@ -349,7 +409,6 @@ const BankingPartnersCarousel = memo(({
 
   // Desktop: CSS-only marquee (no JS animation loop)
   const itemCount = bankingPartners.length;
-  // Each item: 160px wide + 24px gap = 184px total
   const trackWidth = 184 * itemCount;
 
   return (
@@ -371,7 +430,6 @@ const BankingPartnersCarousel = memo(({
               .partner-marquee { animation: none; }
             }
           `}</style>
-          {/* Duplicate the list so the loop is seamless */}
           <div
             className="flex partner-marquee"
             style={{ width: `${trackWidth * 2}px` }}
@@ -397,7 +455,6 @@ const BankingPartnersCarousel = memo(({
               </div>
             ))}
           </div>
-          {/* Gradient fade edges */}
           <div className="absolute top-0 left-0 bottom-0 w-16 bg-gradient-to-r from-white/60 to-transparent pointer-events-none" />
           <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-white/60 to-transparent pointer-events-none" />
         </div>
@@ -421,10 +478,11 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isLoanDropdownOpen, setIsLoanDropdownOpen] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
-  // ✅ Merged desktop+mobile testimonial index into one (saves a state + interval)
   const [testimonialIndex, setTestimonialIndex] = useState(0);
   const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const testimonialIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mobileTestimonialScrollRef = useRef<HTMLDivElement>(null);
+  const mobileAutoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const testimonials = useMemo<Testimonial[]>(() => [
     {
@@ -494,7 +552,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     [bankLogos]
   );
 
-  // ✅ Single media query listener instead of resize + debounce
+  // Media query for mobile view
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
     setIsMobileView(mq.matches);
@@ -536,18 +594,18 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
   useEffect(() => { setCurrentSlide(0); }, [banners]);
 
-  // Banner autoplay — desktop only, non-home pages
+  // Banner autoplay (now includes mobile)
   useEffect(() => {
-    if (banners.length <= 1 || isMobileView || page === "home") return;
+    if (banners.length <= 1 || page === "home") return;
     if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
     slideIntervalRef.current = setInterval(
       () => setCurrentSlide((p) => (p + 1) % banners.length),
       4000
     );
     return () => { if (slideIntervalRef.current) clearInterval(slideIntervalRef.current); };
-  }, [banners.length, isMobileView, page]);
+  }, [banners.length, page]);
 
-  // Testimonial autoplay — desktop only, home page
+  // Desktop testimonial autoplay
   useEffect(() => {
     if (page !== "home" || isMobileView) return;
     if (testimonialIntervalRef.current) clearInterval(testimonialIntervalRef.current);
@@ -562,17 +620,69 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     };
   }, [page, testimonials.length, isMobileView]);
 
-  // Pause autoplay when tab hidden
+  // Mobile testimonial auto-scroll
+  const startMobileTestimonialAutoScroll = useCallback(() => {
+    if (!mobileTestimonialScrollRef.current || page !== "home" || !isMobileView) return;
+    if (mobileAutoScrollTimeoutRef.current) clearTimeout(mobileAutoScrollTimeoutRef.current);
+    if (testimonialIntervalRef.current) clearInterval(testimonialIntervalRef.current);
+    testimonialIntervalRef.current = setInterval(() => {
+      const container = mobileTestimonialScrollRef.current;
+      if (!container) return;
+      const cardWidth = 280 + 16; // 280px card width + 16px gap
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      let newScrollLeft = container.scrollLeft + cardWidth;
+      if (newScrollLeft >= maxScroll - 5) {
+        newScrollLeft = 0;
+      }
+      container.scrollTo({ left: newScrollLeft, behavior: "smooth" });
+    }, 4500);
+  }, [page, isMobileView]);
+
+  const pauseMobileAutoScroll = useCallback(() => {
+    if (!isMobileView || page !== "home") return;
+    if (testimonialIntervalRef.current) {
+      clearInterval(testimonialIntervalRef.current);
+      testimonialIntervalRef.current = null;
+    }
+    if (mobileAutoScrollTimeoutRef.current) clearTimeout(mobileAutoScrollTimeoutRef.current);
+    mobileAutoScrollTimeoutRef.current = setTimeout(() => {
+      startMobileTestimonialAutoScroll();
+    }, 10000);
+  }, [isMobileView, page, startMobileTestimonialAutoScroll]);
+
+  useEffect(() => {
+    if (page !== "home" || !isMobileView) return;
+    startMobileTestimonialAutoScroll();
+    const container = mobileTestimonialScrollRef.current;
+    if (!container) return;
+    const handleUserScroll = () => pauseMobileAutoScroll();
+    container.addEventListener("scroll", handleUserScroll, { passive: true });
+    container.addEventListener("touchstart", handleUserScroll, { passive: true });
+    return () => {
+      container.removeEventListener("scroll", handleUserScroll);
+      container.removeEventListener("touchstart", handleUserScroll);
+      if (testimonialIntervalRef.current) clearInterval(testimonialIntervalRef.current);
+      if (mobileAutoScrollTimeoutRef.current) clearTimeout(mobileAutoScrollTimeoutRef.current);
+    };
+  }, [page, isMobileView, startMobileTestimonialAutoScroll, pauseMobileAutoScroll]);
+
+  // Pause all autoplay when tab hidden
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
         if (slideIntervalRef.current) { clearInterval(slideIntervalRef.current); slideIntervalRef.current = null; }
         if (testimonialIntervalRef.current) { clearInterval(testimonialIntervalRef.current); testimonialIntervalRef.current = null; }
+        if (mobileAutoScrollTimeoutRef.current) clearTimeout(mobileAutoScrollTimeoutRef.current);
+      } else {
+        if (banners.length > 1 && page !== "home") {
+          slideIntervalRef.current = setInterval(() => setCurrentSlide((p) => (p + 1) % banners.length), 4000);
+        }
+        if (page === "home" && isMobileView) startMobileTestimonialAutoScroll();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, []);
+  }, [banners.length, page, isMobileView, startMobileTestimonialAutoScroll]);
 
   const validateForm = useCallback(() => {
     const errors: Record<string, string> = {};
@@ -666,7 +776,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     return sl?.icon || CreditCard;
   }, []);
 
-  // Shared loan-type button className builder
   const getLoanBtnClassName = useCallback(
     (hasLoanType: boolean, hasError: boolean, isOpen: boolean, size: "sm" | "lg") => {
       const base = size === "sm"
@@ -679,15 +788,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     }, []
   );
 
-  // ============================================================
-  // SHARED FORM JSX — used in both mobile and desktop sections
-  // Avoids duplicating 200+ lines of identical form code
-  // ============================================================
   const renderForm = (size: "sm" | "lg") => {
     const isLg = size === "lg";
     return (
       <form onSubmit={handleFormSubmit} className={isLg ? "space-y-4" : "space-y-2.5"} noValidate>
-        {/* Name + Email row (mobile) or stacked (desktop) */}
         {isLg ? (
           <>
             <div className="relative">
@@ -774,7 +878,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           </>
         )}
 
-        {/* Phone */}
         <div className="relative">
           <Phone className={`absolute left-${isLg ? "3" : "2.5"} top-1/2 -translate-y-1/2 ${isLg ? "h-5 w-5" : "h-3.5 w-3.5"} text-gray-400`} />
           <input
@@ -800,7 +903,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           )}
         </div>
 
-        {/* Loan Amount */}
         <div className="relative">
           <Percent className={`absolute left-${isLg ? "3" : "2.5"} top-1/2 -translate-y-1/2 ${isLg ? "h-5 w-5" : "h-3.5 w-3.5"} text-gray-400`} />
           <input
@@ -814,7 +916,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           />
         </div>
 
-        {/* Loan Type Dropdown */}
         <div className="space-y-0.5 relative" data-loan-dropdown-trigger>
           <div className="relative">
             <button
@@ -852,7 +953,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           />
         </div>
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={isSubmitting}
@@ -889,7 +989,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-16 sm:pt-20 lg:pt-24 pb-6 overflow-hidden"
         suppressHydrationWarning
       >
-        {/* Background blobs — pointer-events:none, no paint cost */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full" />
           <div className="absolute top-40 -right-40 w-96 h-96 bg-cyan-400/10 rounded-full" />
@@ -899,14 +998,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
           {/* ========== MOBILE HERO ========== */}
           <div className="lg:hidden">
-            {/*
-              ✅ LCP IMAGE FIX:
-              - Use explicit width/height (not fill) so browser knows layout size before paint
-              - Responsive sizes attribute matches actual rendered widths
-              - priority + fetchPriority="high" ensures early fetch
-              - quality={75} — good balance for mobile hero
-              - The <link rel="preload"> in layout.tsx starts fetching this before React hydrates
-            */}
             <div
               className="relative mt-5 rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50"
               style={{ minHeight: "280px", aspectRatio: "4/3" }}
@@ -919,12 +1010,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   priority
                   fetchPriority="high"
                   fill
-                  // ✅ KEY FIX: proper sizes attribute eliminates the 276KB waste
-                  // Browser will request a correctly-sized image instead of 1024×1536
                   sizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 450px"
                   quality={75}
-                  // ✅ Remove unoptimized — let Next.js optimise + cache the image
-                  // This alone can save 200KB+ on mobile
                 />
               </div>
               <div className="relative z-10 p-4 sm:p-5">
@@ -967,7 +1054,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
 
-            {/* Mobile Form Card */}
             <div
               className="w-full bg-gradient-to-r from-blue-600/95 to-cyan-500/95 rounded-2xl p-3 sm:p-4 text-white shadow-2xl border border-white/30 relative"
               data-loan-dropdown
@@ -1036,7 +1122,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </div>
 
             <div className="relative h-[600px]">
-              {/* Desktop hero illustration */}
               <div
                 className="absolute z-10"
                 style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}
@@ -1050,11 +1135,9 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   fetchPriority="high"
                   quality={80}
                   className="object-contain"
-                  // ✅ Remove unoptimized — Next.js will cache an optimised version
                 />
               </div>
 
-              {/* Desktop Form Card */}
               <div
                 className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30"
                 style={{ right: "0.30rem" }}
@@ -1110,14 +1193,9 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           </div>
 
           {/* ========== TESTIMONIALS ========== */}
-          {/*
-            ✅ [CLS] Fixed min-height prevents layout shift when component mounts.
-            ✅ Mobile: native horizontal scroll — zero JS, zero animation cost.
-            ✅ Desktop: CSS translateX carousel — single will-change:transform layer.
-          */}
           <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full" style={{ minHeight: "160px" }}>
-            {/* Mobile: native scroll */}
-            <div className="lg:hidden overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2">
+            {/* Mobile: auto-scroll horizontal carousel */}
+            <div className="lg:hidden overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2" ref={mobileTestimonialScrollRef}>
               <div className="flex gap-4" style={{ width: "max-content" }}>
                 {testimonials.map((testimonial, index) => (
                   <div key={index} className="w-[280px] flex-shrink-0">
@@ -1163,7 +1241,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 className="flex transition-transform duration-700 ease-in-out"
                 style={{
                   transform: `translateX(-${testimonialIndex * (100 / 3)}%)`,
-                  // ✅ will-change only applied via inline style on the animated element (not global class)
                   willChange: "transform",
                 }}
               >
