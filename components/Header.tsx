@@ -317,7 +317,7 @@ const Header = memo(() => {
                 <span className="relative z-10">Apply Now</span>
                 <div className="liquid-overlay" />
                 <div className="absolute inset-0 glass-shimmer rounded-full opacity-0 group-hover:opacity-100 transition-apple" />
-              </Link>
+              </Link> &nbsp; &nbsp;
               <Link href="/emi-calculator" className="apple-glass-btn relative bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transition-apple font-medium text-base whitespace-nowrap flex items-center p-2.5 rounded-lg ml-1 overflow-hidden glass-border" aria-label="Open EMI Calculator">
                 <Calculator className="w-5 h-5 text-white" aria-hidden="true" />
                 <div className="liquid-overlay" />
