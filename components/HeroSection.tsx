@@ -1268,7 +1268,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 <p className="text-gray-700 font-medium text-[11px] sm:text-xs  mt-2">
                   ✅ No hidden charges
                 </p>
-                <div className="grid grid-cols-3 gap-1.5   w-72">
+                <div className="grid grid-cols-3 gap-1.5 mt-2  w-72">
                   {[
                     { icon: Clock, label: "Quick Approval" },
                     { icon: Percent, label: "Lowest Rates" },
@@ -1340,11 +1340,11 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   </div>
                 ))}
               </div>
-              <p className="text-gray-700 font-medium flex items-center gap-1.5">
+              <p className="text-gray-700 font-medium flex items-center gap-1.5 ">
                 <CheckCircle className="w-4 h-4 text-green-800" />
                 <span>No hidden charges</span>
               </p>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3  gap-4">
                 {[
                   { icon: Clock, label: "Quick Approval" },
                   { icon: Percent, label: "Lowest Interest Rates" },

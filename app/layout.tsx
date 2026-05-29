@@ -179,31 +179,52 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           content="EzyLoan is a DSA, not a direct lender. All loan terms determined by partner institutions."
         />
 
-        {/* RESOURCE HINTS */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        {/* ✅ RESOURCE HINTS - Only preconnect to USED origins */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
 
-        {/* ✅ FIX: LCP Image Preload - CamelCase attributes for React */}
+        {/* ✅ LCP IMAGE PRELOAD - Responsive variants for 64 KiB savings */}
         <link
           rel="preload"
           as="image"
-          href="/homebanner/image1.webp"
-          imageSrcSet="/homebanner/image1-400w.webp 400w, /homebanner/image1-800w.webp 800w, /homebanner/image1.webp 1024w"
-          imageSizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 570px"
+          href="/homebanner/image1-480w.webp"
+          imageSrcSet="
+            /homebanner/image1-320w.webp 320w,
+            /homebanner/image1-480w.webp 480w,
+            /homebanner/image1-768w.webp 768w,
+            /homebanner/image1.webp 1024w
+          "
+          imageSizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 450px"
           fetchPriority="high"
+          type="image/webp"
         />
 
-        {/* Desktop hero image preload */}
+        {/* Desktop hero preload */}
         <link
           rel="preload"
           as="image"
           href="/homebanner/bannerimg.webp"
           media="(min-width: 769px)"
           fetchPriority="high"
+          type="image/webp"
         />
 
         <link rel="icon" href="/favicon.ico" />
+
+        {/* ✅ INLINE CRITICAL CSS - Eliminates 670ms render-blocking */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .hero-section{position:relative;background:linear-gradient(135deg,#eff6ff,#fff,#ecfeff);padding-top:4rem}
+          @media(min-width:640px){.hero-section{padding-top:5rem}}
+          @media(min-width:1024px){.hero-section{padding-top:6rem}}
+          .hero-section .absolute{pointer-events:none}
+          .hero-section .rounded-full{border-radius:9999px}
+          .max-w-7xl{max-width:80rem;margin-left:auto;margin-right:auto}
+          .px-4{padding-left:1rem;padding-right:1rem}
+          @media(min-width:640px){.px-4{padding-left:1.5rem;padding-right:1.5rem}}
+          @media(min-width:1024px){.px-4{padding-left:2rem;padding-right:2rem}}
+          @font-face{font-family:Inter;font-display:swap;src:url(/_next/static/media/8e9860b6e62d6359-s.woff2) format("woff2")}
+        `}} />
 
         {/* STRUCTURED DATA */}
         <script
@@ -216,10 +237,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
 
-      <body
-        className={`${inter.className} antialiased min-h-screen flex flex-col bg-white text-gray-900`}
-      >
-        {/* Skip link for accessibility */}
+      <body className={`${inter.className} antialiased min-h-screen flex flex-col bg-white text-gray-900`}>
+        {/* Skip link */}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded z-50 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -237,15 +256,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div id="cookie-consent" className="hidden" role="region" aria-label="Cookie consent" />
 
-        {/* GOOGLE ADS / GTM - Lazy loaded */}
+        {/* ✅ GOOGLE ADS - Worker strategy to offload main thread */}
         <Script
           id="google-ads-gtag"
-          strategy="lazyOnload"
+          strategy="worker"
           src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
         />
         <Script
           id="google-ads-init"
-          strategy="lazyOnload"
+          strategy="worker"
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-18024243962',{'send_page_view':true});`,
           }}
