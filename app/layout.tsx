@@ -7,17 +7,11 @@ import VoiceAssistant from '@/components/VoiceAssistant';
 import Script from 'next/script';
 import FixedFooter from '@/components/FixedFooter';
 
-// ✅ FIX: Inter loaded via next/font — generates optimised font link tags automatically.
-//    display:'swap' prevents invisible text during font load (FCP win).
-//    preload:true ensures the woff2 is fetched early, breaking the font chain
-//    that was adding 2,906ms to the critical path.
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   preload: true,
-  // ✅ Only include the weights actually used — reduces woff2 download size
   weight: ['400', '500', '600', '700'],
-  // ✅ variable font enables all weights from one file
   variable: '--font-inter',
 });
 
@@ -173,9 +167,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-IN" className={inter.variable}>
       <head>
-        {/* ============================================================
-            GEO & COMPLIANCE META
-            ============================================================ */}
+        {/* GEO & COMPLIANCE META */}
         <meta name="geo.region" content="IN-OR" />
         <meta name="geo.placename" content="Cuttack, Odisha, India" />
         <meta name="geo.position" content="20.4618;85.8812" />
@@ -187,45 +179,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           content="EzyLoan is a DSA, not a direct lender. All loan terms determined by partner institutions."
         />
 
-        {/* ============================================================
-            RESOURCE HINTS
-            ✅ FIX: Removed preconnect to fonts.googleapis.com — it was flagged
-               as "unused" in the Lighthouse audit (next/font handles fonts itself
-               without hitting googleapis at runtime). Unused preconnects waste a
-               TCP handshake slot.
-            ✅ FIX: Added preconnect to googletagmanager ONLY (it IS used).
-            ✅ FIX: dns-prefetch for cloudinary stays (lazy-loaded images).
-            ============================================================ */}
+        {/* RESOURCE HINTS */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
 
-        {/* ============================================================
-            LCP IMAGE PRELOAD
-            ✅ FIX: Added imagesrcset + imagesizes so the browser fetches the
-               correct responsive image immediately — eliminates the 450ms
-               "Resource load delay" reported in Lighthouse LCP breakdown.
-            
-            The LCP element is the mobile hero image (image1.webp).
-            Displayed at ~189×283px on mobile (≤640px) up to ~350px on tablet.
-            Original was 1024×1536 served at 189px — 276KB wasted per load.
-            
-            You should generate these responsive variants in /public/homebanner/:
-              image1-400w.webp  (400px wide,  ~40KB)
-              image1-800w.webp  (800px wide,  ~100KB)
-              image1.webp       (1024px wide, original — fallback)
-            ============================================================ */}
+        {/* ✅ FIX: LCP Image Preload - CamelCase attributes for React */}
         <link
           rel="preload"
           as="image"
           href="/homebanner/image1.webp"
-          // @ts-expect-error — imagesrcset/imagesizes are valid but not in React types yet
-          imagesrcset="/homebanner/image1-400w.webp 400w, /homebanner/image1-800w.webp 800w, /homebanner/image1.webp 1024w"
-          imagesizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 570px"
+          imageSrcSet="/homebanner/image1-400w.webp 400w, /homebanner/image1-800w.webp 800w, /homebanner/image1.webp 1024w"
+          imageSizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 570px"
           fetchPriority="high"
         />
 
-        {/* Desktop hero image — only fetched on ≥769px screens */}
+        {/* Desktop hero image preload */}
         <link
           rel="preload"
           as="image"
@@ -236,9 +205,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <link rel="icon" href="/favicon.ico" />
 
-        {/* ============================================================
-            STRUCTURED DATA
-            ============================================================ */}
+        {/* STRUCTURED DATA */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -270,16 +237,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div id="cookie-consent" className="hidden" role="region" aria-label="Cookie consent" />
 
-        {/* ============================================================
-            GOOGLE ADS / GTM
-            ✅ FIX: strategy="lazyOnload" instead of "afterInteractive"
-               Lighthouse flagged 54.5KB of unused GTM JS on initial load.
-               lazyOnload defers until the page is fully idle — no impact on
-               conversions but removes GTM from the critical thread entirely.
-               
-               If you need conversion tracking on the apply-now page specifically,
-               keep "afterInteractive" only on that page's layout, not the root.
-            ============================================================ */}
+        {/* GOOGLE ADS / GTM - Lazy loaded */}
         <Script
           id="google-ads-gtag"
           strategy="lazyOnload"

@@ -274,3 +274,29 @@ input[type='range']::-moz-range-thumb {
     animation: none !important;
   }
 }
+
+/* Add to your globals.css for CSS-based mobile detection */
+.mobile-view-block {
+  display: block;
+}
+.desktop-view-block {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .mobile-view-block {
+    display: none;
+  }
+  .desktop-view-block {
+    display: block;
+  }
+}
+
+/* Fix scrollbar hiding for testimonial carousel */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
