@@ -110,46 +110,6 @@ body {
 }
 
 /* ============================================================
-   GLASS PRISM HOVER
-   ✅ Reusable card/CTA hover: lift + prism light sweep
-   ✅ Sweep + lift only on desktop (mobile = no extra paint)
-   ✅ prefers-reduced-motion fully respected
-   ============================================================ */
-.glass-prism {
-  position: relative;
-  overflow: hidden;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-@media (min-width: 1024px) {
-  .glass-prism::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      120deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.45) 50%,
-      transparent 70%
-    );
-    transform: translateX(-120%) skewX(-20deg);
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-    z-index: 1;
-  }
-  .glass-prism:hover::before {
-    transform: translateX(120%) skewX(-20deg);
-  }
-  .glass-prism:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.4);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .glass-prism::before { display: none; }
-  .glass-prism:hover { transform: none; }
-}
-
-/* ============================================================
    SCROLLBAR — thin, unobtrusive
    ============================================================ */
 ::-webkit-scrollbar {

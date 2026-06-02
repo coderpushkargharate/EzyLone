@@ -184,18 +184,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
 
-        {/* ✅ LCP IMAGE PRELOAD - Responsive variants for 64 KiB savings */}
+        {/* ✅ LCP IMAGE PRELOAD - mobile hero, matches the exact next/image request */}
         <link
           rel="preload"
           as="image"
-          href="/homebanner/image1-480w.webp"
-          imageSrcSet="
-            /homebanner/image1-320w.webp 320w,
-            /homebanner/image1-480w.webp 480w,
-            /homebanner/image1-768w.webp 768w,
-            /homebanner/image1.webp 1024w
-          "
-          imageSizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 450px"
+          href="/_next/image?url=%2Fhomebanner%2Fimage1.webp&w=640&q=75"
+          media="(max-width: 768px)"
           fetchPriority="high"
           type="image/webp"
         />
@@ -217,7 +211,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .hero-section{position:relative;background:linear-gradient(135deg,#eff6ff,#fff,#ecfeff);padding-top:4rem}
           @media(min-width:640px){.hero-section{padding-top:5rem}}
           @media(min-width:1024px){.hero-section{padding-top:6rem}}
-          .hero-section .absolute{pointer-events:none}
           .hero-section .rounded-full{border-radius:9999px}
           .max-w-7xl{max-width:80rem;margin-left:auto;margin-right:auto}
           .px-4{padding-left:1rem;padding-right:1rem}
