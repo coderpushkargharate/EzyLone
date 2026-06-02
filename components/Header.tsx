@@ -325,7 +325,7 @@ const Header = memo(() => {
             </nav>
 
             <button
-              className="md:hidden p-2 rounded-lg bg-white/80 text-black relative transition-apple glass-border min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="lg:hidden p-2 rounded-lg bg-white/80 text-black relative transition-apple glass-border min-w-[44px] min-h-[44px] flex items-center justify-center"
               onClick={toggleMobileMenu}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMenuOpen}
@@ -337,7 +337,7 @@ const Header = memo(() => {
           </div>
 
           {isMenuOpen && (
-            <div id="mobile-menu" className="md:hidden py-4 bg-white rounded-2xl mt-2 border border-gray-100 mx-2 animate-slide-down shadow-xl" role="dialog" aria-modal="true" aria-label="Mobile navigation menu">
+            <div id="mobile-menu" className="lg:hidden py-4 bg-white rounded-2xl mt-2 border border-gray-100 mx-2 animate-slide-down shadow-xl" role="dialog" aria-modal="true" aria-label="Mobile navigation menu">
               <nav className="flex flex-col space-y-1 px-5" role="menu" aria-label="Mobile menu">
                 <Link href="/" onClick={(e) => handleMobileLinkClick(e, "/")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Home</Link>
                 <Link href="/about" onClick={(e) => handleMobileLinkClick(e, "/about")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">About</Link>

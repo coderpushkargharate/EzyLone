@@ -47,7 +47,7 @@ export default function Home() {
           aria-labelledby="eligibility-heading"
           style={{ minHeight: '320px', contain: 'layout' }}
         >
-          <div className="max-w-7xl mx-auto px-4">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-2xl font-bold mb-2 text-center">
               <h2
                 id="eligibility-heading"
@@ -64,15 +64,15 @@ export default function Home() {
               className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto mt-6"
               style={{ minHeight: '120px' }}
             >
-              <div className="bg-blue-50 rounded-2xl p-6 text-center">
+              <div className="glass-prism bg-blue-50 rounded-2xl p-6 text-center">
                 <p className="font-semibold text-gray-700">Age</p>
                 <p className="text-blue-600 font-bold text-lg mt-1">{eligibility.age}</p>
               </div>
-              <div className="bg-green-50 rounded-2xl p-6 text-center">
+              <div className="glass-prism bg-green-50 rounded-2xl p-6 text-center">
                 <p className="font-semibold text-gray-700">Income</p>
                 <p className="text-green-600 font-bold text-lg mt-1">{eligibility.income}</p>
               </div>
-              <div className="bg-purple-50 rounded-2xl p-6 text-center">
+              <div className="glass-prism bg-purple-50 rounded-2xl p-6 text-center">
                 <p className="font-semibold text-gray-700">Employment</p>
                 <p className="text-purple-600 font-bold text-lg mt-1">{eligibility.employment}</p>
               </div>
@@ -81,7 +81,7 @@ export default function Home() {
             <div className="text-center mt-6">
               <Link
                 href="/apply-now"
-                className="inline-block bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors"
+                className="glass-prism inline-block bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors"
               >
                 Apply Now
               </Link>
@@ -90,22 +90,21 @@ export default function Home() {
           </div>
         </section>
 
-        <div
-          className="px-4 py-3 bg-amber-50 border-l-4 border-amber-500 mx-auto max-w-[85rem] mt-4"
-          role="note"
-        >
-          <div className="flex items-start">
-            <AlertCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
-            <p className="text-xs sm:text-sm text-amber-900 font-medium">
-              <strong>⚠️ Important:</strong> EzyLoan is a loan facilitation service provider (DSA),{' '}
-              <strong>not a direct lender</strong>. All loan decisions are made by partner banks/NBFCs*.
-            </p>
+        <div className="px-4 sm:px-6 lg:px-8 mt-4">
+          <div className="max-w-[85rem] mx-auto px-4 py-3 bg-amber-50 border-l-4 border-amber-500" role="note">
+            <div className="flex items-start">
+              <AlertCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
+              <p className="text-xs sm:text-sm text-amber-900 font-medium">
+                <strong>⚠️ Important:</strong> EzyLoan is a loan facilitation service provider (DSA),{' '}
+                <strong>not a direct lender</strong>. All loan decisions are made by partner banks/NBFCs*.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="px-3 sm:px-4 lg:px-6 xl:px-8 mt-4">
+        <div className="px-4 sm:px-6 lg:px-8 mt-4">
           <div className="max-w-[85rem] mx-auto">
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 sm:p-5 lg:p-6 mb-6 text-white">
+            <div className="glass-prism bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 sm:p-5 lg:p-6 mb-6 text-white">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                 <div>
                   <p className="text-xs opacity-90">Interest Rate</p>
@@ -139,11 +138,11 @@ export default function Home() {
             </p>
             <p className="text-xs text-gray-500 mt-2">
               © {new Date().getFullYear()} EzyLoan. |{' '}
-              <Link href="/terms" className="hover:underline">
+              <Link href="/terms-and-conditions" className="hover:underline">
                 Terms
               </Link>{' '}
               |{' '}
-              <Link href="/privacy" className="hover:underline">
+              <Link href="/privacy-policy" className="hover:underline">
                 Privacy
               </Link>
             </p>
