@@ -9,6 +9,7 @@ export const metadata = {
   description:
     'Get loan assistance with interest rates starting from 10%* p.a. | Tenure 12-60 months | Quick approval* | Serving customers across India. *Subject to lender approval.',
   robots: 'index, follow',
+  alternates: { canonical: '/' },
 };
 
 export default function Home() {

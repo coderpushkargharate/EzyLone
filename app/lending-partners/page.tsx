@@ -5,10 +5,11 @@ import { Metadata } from 'next';
 import { ExternalLink } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Our Banking Partners | EzyLoan',
+  title: 'Our Banking & NBFC Partners',
   description: 'EzyLoan partners with leading banks and NBFCs including ICICI, Axis, Kotak, Tata Capital, Bajaj Finance & more for personal loans, business loans & home loans.',
   keywords: 'loan partners, bank partners, EzyLoan lenders, ICICI Bank, Axis Bank, Kotak Mahindra, Tata Capital, Bajaj Finance',
   robots: 'index, follow',
+  alternates: { canonical: '/lending-partners' },
 };
 
 // Banking partners with logos and website links

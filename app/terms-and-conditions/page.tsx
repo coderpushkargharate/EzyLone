@@ -2,9 +2,10 @@ import React from "react";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Terms & Conditions | EzyLoan",
+  title: "Terms & Conditions",
   description: "Read the terms and conditions for using EzyLoan services. EzyLoan is a loan facilitation platform, not a direct lender.",
   robots: "index, follow",
+  alternates: { canonical: "/terms-and-conditions" },
 };
 
 export default function TermsPage() {

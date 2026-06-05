@@ -2,8 +2,9 @@
 import FAQSection from '@/components/FAQSection';
 
 export const metadata = {
-  title: 'FAQ - Frequently Asked Questions | EzyLoan',
+  title: 'FAQ - Frequently Asked Questions',
   description: 'Find answers to common questions about EzyLoan services, eligibility, documents, and loan process.',
+  alternates: { canonical: '/faq' },
 };
 
 export default function FAQPage() {

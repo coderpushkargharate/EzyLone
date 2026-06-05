@@ -85,10 +85,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: BASE_URL,
-    languages: { 'en-IN': BASE_URL, 'hi-IN': `${BASE_URL}/hi` },
-  },
+  // NOTE: No global `canonical` here on purpose. A canonical set in the root
+  // layout is inherited by EVERY page, making them all point to the homepage,
+  // which de-indexes them. Each page declares its own self-referencing canonical.
   verification: { google: 'c3pN2EwCNU3FYYKl5rZC633St33eRYWNDgSouS9nmI0' },
   other: {
     'financial-service-type': 'loan-facilitation',
