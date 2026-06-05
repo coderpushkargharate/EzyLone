@@ -230,7 +230,14 @@ const Header = memo(() => {
           animation: slide-down 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .transition-apple {
-          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+          /* Scope to specific props (not "all") so border-width/border-color
+             aren't animated on the non-composited path — fixes jank on scroll. */
+          transition:
+            transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+            color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .glass-border {
           border: 1px solid rgba(255, 255, 255, 0.2);

@@ -10,9 +10,14 @@ import FixedFooter from '@/components/FixedFooter';
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  preload: true,
+  // Don't preload the font: on slow 4G it competes with the LCP hero image for
+  // bandwidth. With display:swap, text paints instantly in the fallback and
+  // swaps to Inter once loaded, while the high-priority image wins the pipe.
+  preload: false,
   weight: ['400', '500', '600', '700'],
   variable: '--font-inter',
+  fallback: ['system-ui', 'arial'],
+  adjustFontFallback: true,
 });
 
 const BASE_URL = 'https://www.ezyloan.co.in';
@@ -179,31 +184,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           content="EzyLoan is a DSA, not a direct lender. All loan terms determined by partner institutions."
         />
 
-        {/* ✅ RESOURCE HINTS - Only preconnect to USED origins */}
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossOrigin="anonymous" />
+        {/* ✅ RESOURCE HINTS - dns-prefetch only (gtag loads via worker; preconnect was unused) */}
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="dns-prefetch" href="https://lh3.googleusercontent.com" />
 
-        {/* ✅ LCP IMAGE PRELOAD - mobile hero, matches the exact next/image request */}
-        <link
-          rel="preload"
-          as="image"
-          href="/_next/image?url=%2Fhomebanner%2Fimage1.webp&w=640&q=60"
-          media="(max-width: 768px)"
-          fetchPriority="high"
-          type="image/webp"
-        />
-
-        {/* Desktop hero preload - matches the next/image optimized request (sizes=570px, q=80) */}
-        <link
-          rel="preload"
-          as="image"
-          imageSrcSet="/_next/image?url=%2Fhomebanner%2Fbannerimg.webp&w=640&q=80 640w, /_next/image?url=%2Fhomebanner%2Fbannerimg.webp&w=1200&q=80 1200w"
-          imageSizes="570px"
-          media="(min-width: 769px)"
-          fetchPriority="high"
-          type="image/webp"
-        />
+        {/* LCP image preloads are emitted automatically by next/image via the
+            `priority` prop on the mobile hero <Image>, with the correct responsive
+            srcset. No manual preload needed (avoids duplicate/un-gated preloads). */}
 
         <link rel="icon" href="/favicon.ico" />
 

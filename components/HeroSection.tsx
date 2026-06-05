@@ -1238,7 +1238,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   src="/homebanner/image1.webp"
                   alt="Car Loan - Get approved in 24 hours in Odisha"
                   fill
-                  sizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 450px"
+                  sizes="(max-width: 768px) 180px, 450px"
                   quality={60}
                   className="object-contain object-right pointer-events-none"
                   priority
@@ -1375,8 +1375,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   alt="Car Loan illustration"
                   fill
                   sizes="570px"
-                  priority
-                  fetchPriority="high"
+                  loading="lazy"
                   quality={80}
                   className="object-contain pointer-events-none"
                 />
