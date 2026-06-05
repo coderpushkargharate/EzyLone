@@ -409,6 +409,7 @@ const BankingPartnersCarousel = memo(
                         width={120}
                         height={60}
                         className="object-contain"
+                        style={{ width: "auto", height: "auto" }}
                         loading="lazy"
                         quality={65}
                         onError={(e) => {
@@ -440,6 +441,7 @@ const BankingPartnersCarousel = memo(
                         width={80}
                         height={48}
                         className="object-contain"
+                        style={{ width: "auto", height: "auto" }}
                         loading="lazy"
                         quality={65}
                         onError={(e) => {
@@ -1237,8 +1239,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   alt="Car Loan - Get approved in 24 hours in Odisha"
                   fill
                   sizes="(max-width: 480px) 280px, (max-width: 768px) 380px, 450px"
-                  quality={75}
-                  className="object-contain object-right"
+                  quality={60}
+                  className="object-contain object-right pointer-events-none"
                   priority
                   fetchPriority="high"
                 />
@@ -1365,7 +1367,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
             <div className="relative h-[600px]">
               <div
-                className="absolute z-10"
+                className="absolute z-10 pointer-events-none"
                 style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}
               >
                 <Image
@@ -1376,7 +1378,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   priority
                   fetchPriority="high"
                   quality={80}
-                  className="object-contain"
+                  className="object-contain pointer-events-none"
                 />
               </div>
               <div

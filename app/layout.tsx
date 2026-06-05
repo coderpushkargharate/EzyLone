@@ -188,17 +188,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link
           rel="preload"
           as="image"
-          href="/_next/image?url=%2Fhomebanner%2Fimage1.webp&w=640&q=75"
+          href="/_next/image?url=%2Fhomebanner%2Fimage1.webp&w=640&q=60"
           media="(max-width: 768px)"
           fetchPriority="high"
           type="image/webp"
         />
 
-        {/* Desktop hero preload */}
+        {/* Desktop hero preload - matches the next/image optimized request (sizes=570px, q=80) */}
         <link
           rel="preload"
           as="image"
-          href="/homebanner/bannerimg.webp"
+          imageSrcSet="/_next/image?url=%2Fhomebanner%2Fbannerimg.webp&w=640&q=80 640w, /_next/image?url=%2Fhomebanner%2Fbannerimg.webp&w=1200&q=80 1200w"
+          imageSizes="570px"
           media="(min-width: 769px)"
           fetchPriority="high"
           type="image/webp"
@@ -230,7 +231,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
 
-      <body className={`${inter.className} antialiased min-h-screen flex flex-col bg-white text-gray-900`}>
+      <body
+        suppressHydrationWarning
+        className={`${inter.className} antialiased min-h-screen flex flex-col bg-white text-gray-900`}
+      >
         {/* Skip link */}
         <a
           href="#main-content"
