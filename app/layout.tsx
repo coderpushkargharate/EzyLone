@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import VoiceAssistant from '@/components/VoiceAssistant';
 import Script from 'next/script';
 import FixedFooter from '@/components/FixedFooter';
+import MetaPixel from '@/components/MetaPixel';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -240,15 +241,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <div id="cookie-consent" className="hidden" role="region" aria-label="Cookie consent" />
 
-        {/* ✅ GOOGLE ADS - Worker strategy to offload main thread */}
+        {/* ✅ META (FACEBOOK) PIXEL - base code + PageView, site-wide.
+            Inert until NEXT_PUBLIC_META_PIXEL_ID is set (see components/MetaPixel.tsx). */}
+        <MetaPixel />
+
+        {/* ✅ GOOGLE ADS - loaded ONCE here for the whole site.
+            `afterInteractive` keeps gtag on the main thread so window.gtag is
+            available everywhere for conversion events (apply-now, ThankYouPage,
+            hero CTA). The previous `worker` strategy needed Partytown, which is
+            not configured, so it never ran reliably. Do NOT re-add per-page
+            copies of this snippet — this is the single source of truth. */}
         <Script
           id="google-ads-gtag"
-          strategy="worker"
+          strategy="afterInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
         />
         <Script
           id="google-ads-init"
-          strategy="worker"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-18024243962',{'send_page_view':true});`,
           }}

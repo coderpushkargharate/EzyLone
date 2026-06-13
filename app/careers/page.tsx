@@ -239,11 +239,6 @@ export default function CareersPage() {
 
   return (
     <>
-      {/* Google Ads */}
-      <Script id="google-ads-gtag" strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962" />
-      <Script id="google-ads-init" strategy="afterInteractive" dangerouslySetInnerHTML={{
-        __html: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'AW-18024243962');`
-      }} />
 
       {/* ✅ ONLY Organization + Breadcrumb Schema on Listing Page */}
       {mounted && (

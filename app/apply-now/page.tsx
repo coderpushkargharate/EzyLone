@@ -8,6 +8,7 @@ import Script from "next/script";
 
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
+import { trackMetaLead } from "@/components/MetaPixel";
 import {   Truck, ArrowRight, Percent, Clock, Shield, DollarSign, FileText, AlertCircle,
   User, TrendingUp, CheckCircle, Building, Zap, Award, Bus, Car , Info, Phone, Mail, MapPin } from "lucide-react";
 
@@ -110,6 +111,9 @@ const ApplyNowPage: React.FC = () => {
           'value': 1
         });
       }
+
+      // ✅ Track conversion for Meta (Facebook) Pixel
+      trackMetaLead({ content_name: formData.loanType, currency: 'INR', value: 1 });
 
       // ✅ Redirect to Thank You page after successful submission
       router.push("/ThankYouPage");
@@ -256,24 +260,6 @@ const ApplyNowPage: React.FC = () => {
 
   return (
     <>
-      {/* ✅ GOOGLE ADS TAG - Fixed: Removed trailing spaces in URL */}
-      <Script
-        id="google-ads-gtag"
-        strategy="afterInteractive"
-        src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
-      />
-      <Script
-        id="google-ads-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-18024243962');
-          `,
-        }}
-      />
 
       {/* ✅ Structured Data for SEO - Fixed trailing spaces */}
       <Script

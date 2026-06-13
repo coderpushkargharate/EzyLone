@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { CheckCircle, Mail, Phone, Clock, Home, MessageSquare, AlertCircle } from 'lucide-react';
+import { trackMetaLead } from '@/components/MetaPixel';
 
 const ThankYouPage = () => {
   const router = useRouter();
@@ -51,6 +52,9 @@ const ThankYouPage = () => {
         'transaction_id': applicationId || ''
       });
     }
+
+    // ✅ Meta (Facebook) Pixel conversion
+    trackMetaLead({ value: 1.0, currency: 'INR' });
   }, [applicationId]);
 
   // ✅ Structured Data for ConfirmationPage - Fixed trailing spaces
@@ -92,24 +96,6 @@ const ThankYouPage = () => {
 
   return (
     <>
-      {/* ✅ GOOGLE ADS TAG - Fixed: Removed trailing spaces in URL */}
-      <Script
-        id="google-ads-gtag"
-        strategy="afterInteractive"
-        src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
-      />
-      <Script
-        id="google-ads-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-18024243962');
-          `,
-        }}
-      />
 
       {/* ✅ Structured Data for SEO */}
       <Script

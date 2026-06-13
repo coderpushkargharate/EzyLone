@@ -98,24 +98,6 @@ const NewCarLoanPage: React.FC = () => {
 
   return (
     <>
-      {/* 🔴 FIXED: Removed trailing space from Google Ads script src */}
-      <Script
-        id="google-ads-gtag"
-        strategy="afterInteractive"
-        src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
-      />
-      <Script
-        id="google-ads-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-18024243962');
-          `,
-        }}
-      />
 
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         

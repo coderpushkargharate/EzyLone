@@ -263,24 +263,6 @@ const About = () => {
 
   return (
     <>
-      {/* Google Ads Script - Next.js recommended way */}
-      <Script
-        id="google-ads-gtag"
-        strategy="afterInteractive"
-        src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
-      />
-      <Script
-        id="google-ads-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'AW-18024243962');
-`,
-        }}
-      />
       <section id="about" className="py-20 bg-gradient-to-br from-white bg-white via-blue-50/30 to-cyan-50/30 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">

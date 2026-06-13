@@ -152,11 +152,6 @@ const EMICalculatorPage: React.FC = () => {
 
   return (
     <>
-      {/* Google Ads */}
-      <Script id="google-ads-gtag" strategy="afterInteractive" src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962" />
-      <Script id="google-ads-init" strategy="afterInteractive" dangerouslySetInnerHTML={{
-        __html: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'AW-18024243962');`
-      }} />
 
       {/* ✅ Structured Data - JSON-LD ONLY (NO microdata in HTML) */}
       <Script id="calculator-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(calculatorSchema) }} />

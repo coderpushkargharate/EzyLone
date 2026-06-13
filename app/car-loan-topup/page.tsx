@@ -44,24 +44,6 @@ const CarLoanTopUp: React.FC = () => {
 
   return (
     <>
-      {/* 🔴 FIXED: Removed trailing space from Google Ads script src */}
-      <Script
-        id="google-ads-gtag"
-        strategy="afterInteractive"
-        src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
-      />
-      <Script
-        id="google-ads-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'AW-18024243962');
-          `,
-        }}
-      />
 
       <div className="min-h-screen bg-gradient-to-br bg-white from-white via-blue-50/30 to-cyan-50/30 relative overflow-hidden">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-20 sm:pt-24 lg:pt-28">
