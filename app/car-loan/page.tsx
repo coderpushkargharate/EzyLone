@@ -595,7 +595,7 @@ const NewCarLoanPage: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
                 <div className="py-1">
                   <p className="text-xs sm:text-sm text-gray-500 font-medium">Loan Amount</p>
-                  <p className="font-semibold text-sm sm:text-base md:text-lg">₹{emiExample.principal.toLocaleString()}</p>
+                  <p className="font-semibold text-sm sm:text-base md:text-lg">₹{emiExample.principal.toLocaleString('en-IN')}</p>
                 </div>
                 <div className="py-1">
                   <p className="text-xs sm:text-sm text-gray-500 font-medium">Interest Rate</p>
@@ -607,11 +607,11 @@ const NewCarLoanPage: React.FC = () => {
                 </div>
                 <div className="py-1">
                   <p className="text-xs sm:text-sm text-gray-500 font-medium">Monthly EMI</p>
-                  <p className="font-bold text-blue-600 text-sm sm:text-base md:text-lg">₹{emiExample.emi.toLocaleString()}</p>
+                  <p className="font-bold text-blue-600 text-sm sm:text-base md:text-lg">₹{emiExample.emi.toLocaleString('en-IN')}</p>
                 </div>
               </div>
               <p className="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 text-center font-medium">
-                Total Repayment: ₹{emiExample.totalAmount.toLocaleString()} | *Actual EMI may vary based on credit profile and lender terms.
+                Total Repayment: ₹{emiExample.totalAmount.toLocaleString('en-IN')} | *Actual EMI may vary based on credit profile and lender terms.
               </p>
             </div>
           </div>

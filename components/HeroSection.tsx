@@ -487,14 +487,13 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [isLoanDropdownOpen, setIsLoanDropdownOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
+  // Mirrors the Services carousel: 3 cards per view on desktop, 1 on mobile.
+  const [testimonialsPerView, setTestimonialsPerView] = useState(1);
+  const [isTestimonialPaused, setIsTestimonialPaused] = useState(false);
 
   // Refs
   const slideIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const testimonialIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null
-  );
-  const mobileTestimonialScrollRef = useRef<HTMLDivElement>(null);
-  const mobileAutoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null
   );
 
@@ -723,35 +722,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     []
   );
 
-  const startMobileTestimonialAutoScroll = useCallback(() => {
-    if (!mobileTestimonialScrollRef.current || page !== "home" || !isHydrated)
-      return;
-    if (mobileAutoScrollTimeoutRef.current)
-      clearTimeout(mobileAutoScrollTimeoutRef.current);
-    if (testimonialIntervalRef.current)
-      clearInterval(testimonialIntervalRef.current);
-    testimonialIntervalRef.current = setInterval(() => {
-      const container = mobileTestimonialScrollRef.current;
-      if (!container) return;
-      const cardWidth = 280 + 16;
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      let newScrollLeft = container.scrollLeft + cardWidth;
-      if (newScrollLeft >= maxScroll - 5) newScrollLeft = 0;
-      container.scrollTo({ left: newScrollLeft, behavior: "smooth" });
-    }, 4500);
-  }, [page, isHydrated]);
-
-  const pauseMobileAutoScroll = useCallback(() => {
-    if (!isHydrated || page !== "home") return;
-    if (testimonialIntervalRef.current)
-      clearInterval(testimonialIntervalRef.current);
-    if (mobileAutoScrollTimeoutRef.current)
-      clearTimeout(mobileAutoScrollTimeoutRef.current);
-    mobileAutoScrollTimeoutRef.current = setTimeout(
-      () => startMobileTestimonialAutoScroll(),
-      10000
-    );
-  }, [isHydrated, page, startMobileTestimonialAutoScroll]);
+  // (Testimonials use an auto-advancing transform carousel — see effects below.)
 
   // Effects
   useEffect(() => {
@@ -818,61 +789,51 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     };
   }, [banners.length, page]);
 
+  // Responsive cards-per-view (3 desktop / 1 mobile) — mirrors the Services carousel.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => {
+      setTestimonialsPerView(mq.matches ? 3 : 1);
+      setTestimonialIndex(0);
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  // Auto-advance the testimonials carousel (pauses on hover).
   useEffect(() => {
     if (page !== "home" || !isHydrated) return;
+    const maxIndex = Math.max(0, testimonials.length - testimonialsPerView);
+    if (isTestimonialPaused || maxIndex === 0) return;
     if (testimonialIntervalRef.current)
       clearInterval(testimonialIntervalRef.current);
-    const visibleCount = 3;
-    const maxIndex = Math.max(0, testimonials.length - visibleCount);
     testimonialIntervalRef.current = setInterval(
       () => setTestimonialIndex((p) => (p >= maxIndex ? 0 : p + 1)),
-      4500
+      3000
     );
     return () => {
       if (testimonialIntervalRef.current)
         clearInterval(testimonialIntervalRef.current);
     };
-  }, [page, testimonials.length, isHydrated]);
-
-  useEffect(() => {
-    if (page !== "home" || !isHydrated) return;
-    startMobileTestimonialAutoScroll();
-    const container = mobileTestimonialScrollRef.current;
-    if (!container) return;
-    const handleUserScroll = () => pauseMobileAutoScroll();
-    container.addEventListener("scroll", handleUserScroll, { passive: true });
-    container.addEventListener("touchstart", handleUserScroll, { passive: true });
-    return () => {
-      container.removeEventListener("scroll", handleUserScroll);
-      container.removeEventListener("touchstart", handleUserScroll);
-      if (testimonialIntervalRef.current)
-        clearInterval(testimonialIntervalRef.current);
-      if (mobileAutoScrollTimeoutRef.current)
-        clearTimeout(mobileAutoScrollTimeoutRef.current);
-    };
-  }, [page, isHydrated, startMobileTestimonialAutoScroll, pauseMobileAutoScroll]);
+  }, [page, isHydrated, testimonials.length, testimonialsPerView, isTestimonialPaused]);
 
   useEffect(() => {
     const handleVisibility = () => {
       if (document.hidden) {
         if (slideIntervalRef.current) clearInterval(slideIntervalRef.current);
-        if (testimonialIntervalRef.current)
-          clearInterval(testimonialIntervalRef.current);
-        if (mobileAutoScrollTimeoutRef.current)
-          clearTimeout(mobileAutoScrollTimeoutRef.current);
       } else {
         if (banners.length > 1 && page !== "home")
           slideIntervalRef.current = setInterval(
             () => setCurrentSlide((p) => (p + 1) % banners.length),
             4000
           );
-        if (page === "home" && isHydrated) startMobileTestimonialAutoScroll();
       }
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () =>
       document.removeEventListener("visibilitychange", handleVisibility);
-  }, [banners.length, page, isHydrated, startMobileTestimonialAutoScroll]);
+  }, [banners.length, page]);
 
   useEffect(() => {
     if (!isLoanDropdownOpen) return;
@@ -1164,7 +1125,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`w-full inline-flex items-center justify-center gap-2 font-bold ${
+          className={`glass-prism-btn w-full inline-flex items-center justify-center gap-2 font-bold ${
             isLg ? "py-3 text-base" : "py-2 text-xs"
           } rounded-lg disabled:opacity-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white min-h-[44px] active:scale-[0.98] transition-transform duration-100`}
         >
@@ -1440,71 +1401,26 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </a>
           </div>
 
-          {/* Testimonials */}
+          {/* Testimonials — auto-advancing carousel (same behaviour as the Services carousel) */}
           <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full" style={{ minHeight: "160px" }}>
-            {/* Mobile testimonials (horizontal scroll) */}
             <div
-              className="lg:hidden overflow-x-auto scrollbar-hide pb-4 -mx-2 px-2 mobile-view-block"
-              ref={mobileTestimonialScrollRef}
+              className="relative overflow-hidden py-2"
+              onMouseEnter={() => setIsTestimonialPaused(true)}
+              onMouseLeave={() => setIsTestimonialPaused(false)}
             >
-              <div className="flex gap-4" style={{ width: "max-content" }}>
-                {testimonials.map((testimonial, index) => (
-                  <div key={`mobile-${index}`} className="w-[280px] flex-shrink-0">
-                    <div className="glass-prism flex items-start gap-4 bg-white/70 rounded-xl py-5 px-4 h-full">
-                      <div className="flex-shrink-0">
-                        <Image
-                          src={testimonial.avatar}
-                          alt={testimonial.name}
-                          width={48}
-                          height={48}
-                          className="rounded-full object-cover border-2 border-white/60"
-                          loading="lazy"
-                          quality={65}
-                          unoptimized={testimonial.avatar.includes("googleusercontent.com")}
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                              testimonial.name
-                            )}&background=0D8ABC&color=fff&size=48`;
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1 mb-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-3.5 h-3.5 ${
-                                i < testimonial.rating
-                                  ? "text-yellow-400 fill-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-gray-700 text-sm leading-relaxed mb-2 line-clamp-3">
-                          "{testimonial.quote}"
-                        </p>
-                        <p className="text-gray-600 text-sm font-medium">
-                          – {testimonial.name}, {testimonial.location}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Desktop testimonials (carousel) */}
-            <div className="hidden lg:block relative overflow-hidden desktop-view-block">
               <div
                 className="flex transition-transform duration-700 ease-in-out"
                 style={{
-                  transform: `translateX(-${testimonialIndex * (100 / 3)}%)`,
+                  transform: `translateX(-${testimonialIndex * (100 / testimonialsPerView)}%)`,
                   willChange: "transform",
                 }}
               >
                 {testimonials.map((testimonial, index) => (
-                  <div key={`desktop-${index}`} className="w-1/3 flex-shrink-0 px-3">
+                  <div
+                    key={`testimonial-${index}`}
+                    className="flex-shrink-0 px-2 sm:px-3"
+                    style={{ width: `${100 / testimonialsPerView}%` }}
+                  >
                     <div className="glass-prism flex items-start gap-4 bg-white/70 rounded-xl p-5 h-full">
                       <div className="flex-shrink-0">
                         <Image
@@ -1547,6 +1463,23 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   </div>
                 ))}
               </div>
+            </div>
+            {/* Navigation dots */}
+            <div className="flex justify-center gap-2 mt-6">
+              {Array.from({ length: Math.max(1, testimonials.length - testimonialsPerView + 1) }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setTestimonialIndex(i)}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                  aria-current={testimonialIndex === i}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    testimonialIndex === i
+                      ? "w-8 bg-gradient-to-r from-blue-600 to-cyan-500 shadow-md"
+                      : "w-2.5 bg-slate-300 hover:bg-slate-400"
+                  }`}
+                />
+              ))}
             </div>
           </div>
         </div>
