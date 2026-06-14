@@ -177,6 +177,13 @@ a {
 }
 
 @media (min-width: 1024px) {
+  /* Frosted-glass blur — only on desktop, where there's GPU headroom. This is
+     what makes translucent (bg-white/60, bg-white/70…) cards read as real
+     "Apple glass". Opaque cards are unaffected; mobile never pays the cost. */
+  .glass-prism {
+    backdrop-filter: blur(8px) saturate(1.4);
+    -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  }
   .glass-prism:hover {
     transform: translateY(-4px);
     border-color: rgba(255, 255, 255, 0.6);
