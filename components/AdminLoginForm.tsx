@@ -41,7 +41,7 @@ export default function AdminLoginForm({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+      <div className="glass-prism bg-white/95 lg:bg-white/85 lg:backdrop-blur-xl rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Users className="h-12 w-12 text-blue-600" />
@@ -92,7 +92,7 @@ export default function AdminLoginForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-cyan-600 transition-all duration-300 disabled:opacity-50 shadow-md hover:shadow-lg"
+            className="glass-prism-btn w-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-cyan-600 transition-all duration-300 disabled:opacity-50 shadow-md hover:shadow-lg"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">

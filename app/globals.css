@@ -63,6 +63,39 @@ body {
   overflow-x: hidden;
   /* ✅ Establish containing block — helps fixed/sticky performance */
   position: relative;
+  /* Typography baseline — Inter looks best slightly tightened with
+     contextual alternates + the more legible single-storey 'a' (cv11). */
+  font-size: 16px;
+  line-height: 1.65;
+  letter-spacing: -0.011em;
+  font-feature-settings: "cv11", "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* ============================================================
+   TYPOGRAPHY BASE
+   Element-level defaults only — any explicit Tailwind utility
+   (text-*, font-*, leading-*, tracking-*) overrides these, so
+   existing designs are untouched; bare headings just look better.
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  text-wrap: balance; /* avoids lonely last words on headings */
+}
+h1 { letter-spacing: -0.025em; line-height: 1.12; }
+p {
+  text-wrap: pretty; /* nicer rag, prevents orphans */
+}
+/* Comfortable reading measure for long-form prose blocks */
+.blog-content p,
+.blog-content li {
+  max-width: 72ch;
+}
+a {
+  text-underline-offset: 0.18em;
 }
 
 /* ============================================================
@@ -106,6 +139,84 @@ body {
     background: linear-gradient(135deg, rgba(37, 99, 235, 1), rgba(29, 78, 216, 1));
     transform: translateY(-2px);
     box-shadow: 0 8px 32px rgba(37, 99, 235, 0.4);
+  }
+}
+
+/* ============================================================
+   GLASS PRISM — Apple-style "liquid glass" for cards & CTAs
+   The shared, site-wide design-system class. Layer it on top of
+   any bg-* colour (works on opaque surfaces too).
+
+   ✅ MOBILE: static frosted surface only — NO backdrop-filter and
+      NO hover transform, so paint stays cheap and scroll never janks.
+   ✅ DESKTOP (≥1024px): subtle lift + glow + edge-light on hover.
+   ✅ prefers-reduced-motion is neutralised by the blanket rule lower
+      in this file, so motion-sensitive users get the static look.
+
+   Usage:
+     • Cards / panels  → class="glass-prism ..."
+     • Buttons / CTAs  → class="glass-prism glass-prism-btn ..."
+                         (adds an overflow-clipped diagonal shine sweep)
+   ============================================================ */
+.glass-prism {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 4px 18px rgba(15, 23, 42, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
+}
+
+/* Button variant — clips the shine sweep to the element's rounded edges */
+.glass-prism-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .glass-prism:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.6);
+    box-shadow:
+      0 18px 44px rgba(37, 99, 235, 0.18),
+      0 0 0 1px rgba(255, 255, 255, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+  /* Diagonal light sweep on hover (buttons only) */
+  .glass-prism-btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 75%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.45) 50%,
+      transparent 100%
+    );
+    transform: skewX(-20deg);
+    transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .glass-prism-btn:hover::after {
+    left: 140%;
+  }
+  /* Buttons get a touch of scale on top of the lift */
+  .glass-prism-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+  }
+}
+
+/* Mobile: gentle press feedback only (no layout-shifting transforms) */
+@media (max-width: 1023px) {
+  .glass-prism:active {
+    transform: scale(0.99);
   }
 }
 

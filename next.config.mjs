@@ -23,6 +23,15 @@ const nextConfig = {
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         ],
       },
+      {
+        // Content-hashed build assets (JS/CSS/fonts) never change for a given
+        // URL — cache them for a year, immutable. Fixes "Use efficient cache
+        // lifetimes" for any first-party /_next/static request.
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
     ]
   },
 }

@@ -168,7 +168,7 @@ export default function FAQSection({
           {/* CTA */}
           <div className="text-center mt-12">
             <p className="text-gray-600 mb-4">Still have questions?</p>
-            <Link href="/contact" className="inline-flex px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all">
+            <Link href="/contact" className="glass-prism glass-prism-btn inline-flex px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all">
               Contact Support
             </Link>
             <p className="text-xs text-gray-500 mt-3">Response time: 24-48 business hours | <Link href="/loan-disclosure" className="underline">Full terms</Link></p>

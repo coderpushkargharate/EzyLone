@@ -82,7 +82,7 @@ export default function Home() {
             <div className="text-center mt-6">
               <Link
                 href="/apply-now"
-                className="glass-prism inline-block bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors"
+                className="glass-prism glass-prism-btn inline-block bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition-colors"
               >
                 Apply Now
               </Link>

@@ -1278,7 +1278,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   ].map(({ icon: Icon, label }) => (
                     <div
                       key={label}
-                      className="text-center p-2 bg-white/60 rounded-lg border border-gray-100/50"
+                      className="glass-prism text-center p-2 bg-white/60 rounded-lg"
                     >
                       <div className="w-7 h-7 bg-blue-100  rounded-full flex items-center justify-center mx-auto mb-1">
                         <Icon className="w-3.5 h-3.5 text-blue-600" />
@@ -1354,7 +1354,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
-                    className="text-center p-4 bg-white/70 rounded-xl shadow-sm border border-white/50"
+                    className="glass-prism text-center p-4 bg-white/70 rounded-xl"
                   >
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-2">
                       <Icon className="w-6 h-6 text-white" />
@@ -1414,7 +1414,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               rel="noopener noreferrer"
               className="block w-full"
             >
-              <div className="bg-white/70 rounded-2xl p-4 lg:py-0 sm:p-6 shadow-lg border border-white/50 w-full hover:shadow-xl transition-shadow duration-300 cursor-pointer group">
+              <div className="glass-prism bg-white/70 rounded-2xl p-4 lg:py-0 sm:p-6 w-full cursor-pointer group">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
                   <p className="text-gray-800 font-semibold text-center sm:text-left text-sm sm:text-base">
                     Trusted by 10,000+ Customers Across Odisha
@@ -1450,7 +1450,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               <div className="flex gap-4" style={{ width: "max-content" }}>
                 {testimonials.map((testimonial, index) => (
                   <div key={`mobile-${index}`} className="w-[280px] flex-shrink-0">
-                    <div className="flex items-start gap-4 bg-white/70 rounded-xl py-5 px-4 shadow-sm border border-white/50 h-full">
+                    <div className="glass-prism flex items-start gap-4 bg-white/70 rounded-xl py-5 px-4 h-full">
                       <div className="flex-shrink-0">
                         <Image
                           src={testimonial.avatar}
@@ -1505,7 +1505,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               >
                 {testimonials.map((testimonial, index) => (
                   <div key={`desktop-${index}`} className="w-1/3 flex-shrink-0 px-3">
-                    <div className="flex items-start gap-4 bg-white/70 rounded-xl p-5 shadow-sm border border-white/50 h-full hover:shadow-md transition-shadow">
+                    <div className="glass-prism flex items-start gap-4 bg-white/70 rounded-xl p-5 h-full">
                       <div className="flex-shrink-0">
                         <Image
                           src={testimonial.avatar}

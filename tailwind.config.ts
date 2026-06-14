@@ -50,7 +50,28 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['system-ui', 'sans-serif'], // fallback only – Inter is loaded via next/font
+        // Inter (via next/font, exposed as --font-inter on <html>) is the primary
+        // typeface, with a robust native-font fallback stack so text never reflows
+        // to a wildly different metric before Inter loads.
+        sans: [
+          'var(--font-inter)',
+          'system-ui',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+      },
+      fontSize: {
+        // Tightened, consistent type scale with sensible line-heights baked in
+        // so headings and body keep a clean vertical rhythm site-wide.
+        'display': ['clamp(2.25rem, 1.5rem + 3vw, 3.75rem)', { lineHeight: '1.08', letterSpacing: '-0.025em', fontWeight: '800' }],
+        'h1': ['clamp(1.875rem, 1.3rem + 2.2vw, 3rem)', { lineHeight: '1.12', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'h2': ['clamp(1.5rem, 1.15rem + 1.4vw, 2.25rem)', { lineHeight: '1.18', letterSpacing: '-0.018em', fontWeight: '700' }],
+        'h3': ['clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem)', { lineHeight: '1.25', letterSpacing: '-0.012em', fontWeight: '600' }],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
