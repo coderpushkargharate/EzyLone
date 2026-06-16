@@ -727,13 +727,6 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   // Effects
   useEffect(() => {
     setIsHydrated(true);
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const updateMobile = () => {
-      document.documentElement.classList.toggle("mobile-view", mq.matches);
-    };
-    updateMobile();
-    mq.addEventListener("change", updateMobile);
-    return () => mq.removeEventListener("change", updateMobile);
   }, []);
 
   useEffect(() => {
