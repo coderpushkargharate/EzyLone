@@ -1320,7 +1320,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
 
-            <div className="relative h-[600px]">
+            <div className="relative h-[600px]" style={{ position: "relative", height: "600px" }}>
               <div
                 className="absolute z-10 pointer-events-none"
                 style={{ left: "-19rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}
@@ -1330,14 +1330,15 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   alt="Car Loan illustration"
                   fill
                   sizes="570px"
-                  loading="lazy"
-                  quality={80}
+                  priority
+                  fetchPriority="high"
+                  quality={72}
                   className="object-contain pointer-events-none"
                 />
               </div>
               <div
                 className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30"
-                style={{ right: "0.30rem" }}
+                style={{ position: "absolute", top: "-30px", right: "0.30rem", width: "25rem" }}
               >
                 <div className="text-center mb-4">
                   <p className="text-lg font-bold">
