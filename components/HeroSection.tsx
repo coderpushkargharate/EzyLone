@@ -1325,13 +1325,20 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 className="absolute z-10 pointer-events-none"
                 style={{ left: "-19rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}
               >
+                {/* Desktop hero. NOT `priority` and `loading="lazy"` on purpose:
+                    `priority`/`eager` make Next emit a <link rel=preload> in
+                    <head> that fires even though this block is display:none on
+                    mobile, stealing 4G bandwidth from the real mobile LCP image
+                    (image1.webp). With `lazy`, mobile (display:none) never
+                    downloads it at all, while desktop — where it sits in the
+                    initial viewport — still loads it promptly on an unthrottled
+                    network. */}
                 <Image
                   src="/homebanner/bannerimg.webp"
                   alt="Car Loan illustration"
                   fill
                   sizes="570px"
-                  priority
-                  fetchPriority="high"
+                  loading="lazy"
                   quality={72}
                   className="object-contain pointer-events-none"
                 />

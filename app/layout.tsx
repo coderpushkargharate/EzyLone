@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import VoiceAssistant from '@/components/VoiceAssistant';
+import VoiceAssistantLoader from '@/components/VoiceAssistantLoader';
 import Script from 'next/script';
 import FixedFooter from '@/components/FixedFooter';
 import MetaPixel from '@/components/MetaPixel';
@@ -237,7 +237,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <Footer />
-        <VoiceAssistant />
+        <VoiceAssistantLoader />
         <FixedFooter />
 
         <div id="cookie-consent" className="hidden" role="region" aria-label="Cookie consent" />
@@ -247,22 +247,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MetaPixel />
 
         {/* ✅ GOOGLE ADS - loaded ONCE here for the whole site.
-            `afterInteractive` keeps gtag on the main thread so window.gtag is
-            available everywhere for conversion events (apply-now, ThankYouPage,
-            hero CTA). The previous `worker` strategy needed Partytown, which is
-            not configured, so it never ran reliably. Do NOT re-add per-page
-            copies of this snippet — this is the single source of truth. */}
-        <Script
-          id="google-ads-gtag"
-          strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
-        />
+            The inline init runs `afterInteractive` so window.gtag + dataLayer
+            exist immediately — any early conversion call just queues into
+            dataLayer. The heavy 140KB gtag.js loader is `lazyOnload` (after the
+            load event) so it stays OFF the LCP/TBT critical path; it drains the
+            queued dataLayer the moment it arrives, so conversions (apply-now,
+            ThankYouPage, hero CTA) still fire. The previous `worker` strategy
+            needed Partytown, which is not configured, so it never ran reliably.
+            Do NOT re-add per-page copies of this snippet — single source of truth. */}
         <Script
           id="google-ads-init"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}',{'send_page_view':true});`,
           }}
+        />
+        <Script
+          id="google-ads-gtag"
+          strategy="lazyOnload"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
         />
       </body>
     </html>
