@@ -15,7 +15,7 @@
 // - GPU-friendly transitions only on desktop
 
 import {
-  Phone, Mail, MapPin, Facebook, Instagram, ArrowRight,
+  Phone, Mail, MapPin, Facebook, Instagram, Linkedin, ArrowRight,
   Info, ShieldCheck, Lock, BadgeCheck,
 } from "lucide-react";
 import Link from "next/link";
@@ -58,6 +58,7 @@ const Footer = memo(() => {
   const socialLinks = useMemo(() => [
     { icon: Facebook, href: "https://www.facebook.com/people/Ezy-Loan/61555978110163/", label: "Facebook" },
     { icon: Instagram, href: "https://www.instagram.com/ezyloanofficials/", label: "Instagram" },
+    { icon: Linkedin, href: "https://www.linkedin.com/company/ezyloan", label: "LinkedIn" },
   ], []);
 
   return (
