@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Script from 'next/script';
 import { CheckCircle, Mail, Phone, Clock, Home, MessageSquare, AlertCircle } from 'lucide-react';
 import { trackMetaLead } from '@/components/MetaPixel';
+import { trackGoogleAdsConversion } from '@/lib/ads';
 
 const ThankYouPage = () => {
   const router = useRouter();
@@ -44,14 +45,8 @@ const ThankYouPage = () => {
 
   // ✅ Track conversion for Google Ads - Fixed trailing spaces
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'conversion', {
-        'send_to': 'AW-18024243962/conversion_label', // 🔑 Replace with actual conversion label
-        'value': 1.0,
-        'currency': 'INR',
-        'transaction_id': applicationId || ''
-      });
-    }
+    // Google Ads conversion (env-driven; safe no-op until the label is configured)
+    trackGoogleAdsConversion({ value: 1.0, currency: 'INR', transactionId: applicationId || undefined });
 
     // ✅ Meta (Facebook) Pixel conversion
     trackMetaLead({ value: 1.0, currency: 'INR' });

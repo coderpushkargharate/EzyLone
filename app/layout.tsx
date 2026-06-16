@@ -7,6 +7,7 @@ import VoiceAssistant from '@/components/VoiceAssistant';
 import Script from 'next/script';
 import FixedFooter from '@/components/FixedFooter';
 import MetaPixel from '@/components/MetaPixel';
+import { GOOGLE_ADS_ID } from '@/lib/ads';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -254,13 +255,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script
           id="google-ads-gtag"
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=AW-18024243962"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
         />
         <Script
           id="google-ads-init"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','AW-18024243962',{'send_page_view':true});`,
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}',{'send_page_view':true});`,
           }}
         />
       </body>

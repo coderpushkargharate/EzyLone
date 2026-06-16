@@ -11,6 +11,8 @@
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import axios from "axios";
 import Image from "next/image";
+import { trackGoogleAdsConversion } from "@/lib/ads";
+import { trackMetaLead } from "@/components/MetaPixel";
 import {
   Clock,
   Percent,
@@ -638,11 +640,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             loanType: "",
             loanAmount: "",
           });
-          if (typeof window !== "undefined" && (window as any).gtag) {
-            (window as any).gtag("event", "conversion", {
-              send_to: "AW-18024243962/your_conversion_label",
-            });
-          }
+          // Google Ads conversion (env-driven; safe no-op until the label is configured)
+          trackGoogleAdsConversion();
+          // Meta Pixel lead
+          trackMetaLead({ content_name: formData.loanType || "hero_form", currency: "INR", value: 1 });
         } else {
           throw new Error("Unexpected response");
         }

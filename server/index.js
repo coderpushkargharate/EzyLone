@@ -21,6 +21,10 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Behind Hostinger's reverse proxy — trust the first hop so req.ip reflects the
+// real client (needed for the rate limiter to key on the actual visitor).
+app.set('trust proxy', 1);
+
 // 🆕 COMPRESSION - Reduces response size by ~60%
 app.use(compression({ level: 6, threshold: 1024 }));
 
@@ -88,8 +92,10 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Forms are small JSON payloads; file uploads go through multer (multipart),
+// not this parser. A tight limit shrinks the DoS surface.
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // ===== EMAIL SERVICE =====
 const createTransporter = () => {
@@ -555,14 +561,22 @@ const JobApplication = mongoose.model('JobApplication', JobApplicationSchema);
 
 // ===== AUTH & DB HELPERS =====
 const createDefaultAdmin = async () => {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+
+  // No hardcoded credentials. Set ADMIN_USERNAME and ADMIN_PASSWORD in server/.env
+  // to bootstrap the first admin. If they're absent we skip creation rather than
+  // ship a known password in source.
+  if (!username || !password) {
+    console.warn('⚠️ ADMIN_USERNAME / ADMIN_PASSWORD not set — skipping default admin creation.');
+    return;
+  }
+
   try {
-    const adminExists = await User.findOne({ username: 'EzyLoan' });
+    const adminExists = await User.findOne({ username });
     if (!adminExists) {
-      await User.create({
-        username: 'EzyLoan',
-        password: 'Ezysunday@1'
-      });
-      console.log('✅ Default admin created');
+      await User.create({ username, password });
+      console.log('✅ Default admin created from env credentials');
     }
   } catch (error) {
     if (error.code !== 11000) {
@@ -626,6 +640,40 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// ===== SIMPLE IN-MEMORY RATE LIMITER =====
+// No external dependency. Fixed-window counter keyed by client IP. Good enough
+// to blunt login brute-force and public-form spam on a single-instance server.
+// (For multi-instance/horizontal scaling, swap to a Redis-backed limiter.)
+const rateLimit = ({ windowMs, max, message }) => {
+  const hits = new Map(); // ip -> { count, resetAt }
+  // Periodic cleanup so the Map doesn't grow unbounded.
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, rec] of hits) if (rec.resetAt <= now) hits.delete(ip);
+  }, windowMs).unref?.();
+
+  return (req, res, next) => {
+    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+    const now = Date.now();
+    const rec = hits.get(ip);
+    if (!rec || rec.resetAt <= now) {
+      hits.set(ip, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+    rec.count += 1;
+    if (rec.count > max) {
+      const retryAfter = Math.ceil((rec.resetAt - now) / 1000);
+      res.setHeader('Retry-After', retryAfter);
+      return res.status(429).json({ message: message || 'Too many requests, please try again later.' });
+    }
+    next();
+  };
+};
+
+// 5 login attempts per 15 min per IP; 20 form submissions per 10 min per IP.
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: 'Too many login attempts. Try again in 15 minutes.' });
+const formLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 20, message: 'Too many submissions. Please try again later.' });
 
 // ===== MULTER CONFIGURATION =====
 const storage = multer.memoryStorage();
@@ -865,7 +913,7 @@ app.post("/api/blogs/upload-image", authenticateToken, upload.single('image'), a
   }
 });
 
-app.get("/api/generate", async (req, res) => {
+app.get("/api/generate", authenticateToken, async (req, res) => {
   console.log("🚀 Manual generate called");
   const blog = await generateBlog();
   res.json({
@@ -875,7 +923,7 @@ app.get("/api/generate", async (req, res) => {
 });
 
 // 🔥 AUTH ROUTES
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
@@ -1008,7 +1056,7 @@ app.get('/api/contacts', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/contacts', async (req, res) => {
+app.post('/api/contacts', formLimiter, async (req, res) => {
   try {
     const { fullName, email, phoneNumber, loanType, loanAmount } = req.body;
     if (!fullName || !email || !phoneNumber || !loanType || !loanAmount) {
@@ -1049,7 +1097,7 @@ app.get('/api/loans', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/loans', async (req, res) => {
+app.post('/api/loans', formLimiter, async (req, res) => {
   try {
     const { fullName, phoneNumber, loanType, employmentType, city, pincode, cibilScore, email } = req.body;
     if (!fullName || !phoneNumber || !loanType || !employmentType || !city || !pincode || !cibilScore) {
@@ -1108,7 +1156,7 @@ app.get('/api/careers', authenticateToken, async (req, res) => {
   }
 });
 
-app.post('/api/careers', uploadResume.single('resume'), async (req, res) => {
+app.post('/api/careers', formLimiter, uploadResume.single('resume'), async (req, res) => {
   try {
     const { fullName, email, phoneNumber, jobTitle, experience, currentCTC, whyHire } = req.body;
     
