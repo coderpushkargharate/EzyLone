@@ -71,7 +71,7 @@ export default function Home() {
               </div>
               <div className="glass-prism bg-green-50 rounded-2xl p-6 text-center">
                 <p className="font-semibold text-gray-700">Income</p>
-                <p className="text-green-600 font-bold text-lg mt-1">{eligibility.income}</p>
+                <p className="text-green-700 font-bold text-lg mt-1">{eligibility.income}</p>
               </div>
               <div className="glass-prism bg-purple-50 rounded-2xl p-6 text-center">
                 <p className="font-semibold text-gray-700">Employment</p>

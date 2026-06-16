@@ -489,9 +489,11 @@ const About = () => {
                   ))}
                 </div>
               </div>
-              <div className="flex justify-center gap-2 mt-4">
+              <div className="flex justify-center gap-1 mt-4">
                 {testimonials.map((_, index) => (
-                  <button key={index} onClick={() => setCurrentTestimonialMobile(index)} className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentTestimonialMobile === index ? 'bg-gradient-to-r from-blue-600 to-cyan-500 w-6' : 'bg-gray-300/60 hover:bg-gray-400/60 backdrop-blur-sm'}`} aria-label={`Go to testimonial ${index + 1}`} />
+                  <button key={index} onClick={() => setCurrentTestimonialMobile(index)} className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1" aria-label={`Go to testimonial ${index + 1}`}>
+                    <span className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonialMobile === index ? 'bg-gradient-to-r from-blue-600 to-cyan-500 w-6' : 'w-2.5 bg-gray-300/60 backdrop-blur-sm'}`} />
+                  </button>
                 ))}
               </div>
             </div>
@@ -518,9 +520,11 @@ const About = () => {
                   ))}
                 </div>
               </div>
-              <div className="flex justify-center gap-2 mt-4">
+              <div className="flex justify-center gap-1 mt-4">
                 {Array.from({ length: Math.max(1, testimonials.length - 2) }).map((_, index) => (
-                  <button key={index} onClick={() => setCurrentTestimonialDesktop(index)} className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentTestimonialDesktop === index ? 'bg-gradient-to-r from-blue-600 to-cyan-500 w-6' : 'bg-gray-300/60 hover:bg-gray-400/60 backdrop-blur-sm'}`} aria-label={`Go to testimonials group ${index + 1}`} />
+                  <button key={index} onClick={() => setCurrentTestimonialDesktop(index)} className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1" aria-label={`Go to testimonials group ${index + 1}`}>
+                    <span className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonialDesktop === index ? 'bg-gradient-to-r from-blue-600 to-cyan-500 w-6' : 'w-2.5 bg-gray-300/60 backdrop-blur-sm'}`} />
+                  </button>
                 ))}
               </div>
             </div>

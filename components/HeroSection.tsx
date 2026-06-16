@@ -1323,7 +1323,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             <div className="relative h-[600px]">
               <div
                 className="absolute z-10 pointer-events-none"
-                style={{ left: "-19.30rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}
+                style={{ left: "-19rem", top: "-6.50rem", width: "570px", height: "570px", position: "relative" }}
               >
                 <Image
                   src="/homebanner/bannerimg.webp"
@@ -1459,7 +1459,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               </div>
             </div>
             {/* Navigation dots */}
-            <div className="flex justify-center gap-2 mt-6">
+            <div className="flex justify-center gap-1 mt-6">
               {Array.from({ length: Math.max(1, testimonials.length - testimonialsPerView + 1) }).map((_, i) => (
                 <button
                   key={i}
@@ -1467,12 +1467,16 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   onClick={() => setTestimonialIndex(i)}
                   aria-label={`Go to testimonial ${i + 1}`}
                   aria-current={testimonialIndex === i}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                    testimonialIndex === i
-                      ? "w-8 bg-gradient-to-r from-blue-600 to-cyan-500 shadow-md"
-                      : "w-2.5 bg-slate-300 hover:bg-slate-400"
-                  }`}
-                />
+                  className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1"
+                >
+                  <span
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      testimonialIndex === i
+                        ? "w-8 bg-gradient-to-r from-blue-600 to-cyan-500 shadow-md"
+                        : "w-2.5 bg-slate-300"
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           </div>
