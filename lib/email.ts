@@ -24,6 +24,58 @@ function getTransporter(): Transporter | null {
 
 const LEAD_EMAILS = ['contact@ezyloan.co.in', 'cbWR9lQS-PZAJZtsu@v1-incoming-leads.privyr.com'];
 
+// Where security/monitoring alerts are sent. Override with ALERT_EMAIL in env.
+const ALERT_EMAIL = process.env.ALERT_EMAIL || 'dibyanshassociates@gmail.com';
+
+// Per-key throttle so a flood of events (e.g. brute-force) doesn't flood the
+// inbox. At most one alert per key per window. Lives on the global to survive
+// hot-reload.
+declare global {
+  // eslint-disable-next-line no-var
+  var _alertThrottle: Map<string, number> | undefined;
+}
+const alertThrottle = global._alertThrottle || new Map<string, number>();
+global._alertThrottle = alertThrottle;
+const ALERT_WINDOW_MS = 10 * 60 * 1000; // 10 min
+
+/**
+ * Send a security/monitoring alert to ALERT_EMAIL. `key` groups similar events
+ * for throttling (e.g. 'login-fail'). `details` becomes a simple table.
+ * Fire-and-forget — never throws.
+ */
+export async function sendSecurityAlert(key: string, subject: string, details: Record<string, string>) {
+  const t = getTransporter();
+  if (!t) return;
+
+  const now = Date.now();
+  const last = alertThrottle.get(key) || 0;
+  if (now - last < ALERT_WINDOW_MS) return; // throttled
+  alertThrottle.set(key, now);
+
+  const rows = Object.entries(details)
+    .map(([k, v]) => `<tr><td style="padding:6px 12px 6px 0;font-weight:bold;">${k}</td><td>${v}</td></tr>`)
+    .join('');
+
+  try {
+    await t.sendMail({
+      from: process.env.FROM_EMAIL,
+      to: ALERT_EMAIL,
+      subject: `🔐 EzyLoan Security Alert — ${subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 640px; margin: auto; padding: 20px; color:#333;">
+          <h2 style="color:#b91c1c; border-bottom:2px solid #ef4444; padding-bottom:8px;">🔐 ${subject}</h2>
+          <table style="margin-top:16px; border-collapse:collapse;">${rows}</table>
+          <p style="color:#6b7280; font-size:12px; margin-top:20px;">
+            ⏱ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)<br>
+            Note: similar alerts are throttled to one per 10 minutes.
+          </p>
+        </div>`,
+    });
+  } catch (error) {
+    console.error('❌ Security alert email error:', error);
+  }
+}
+
 // 📧 Welcome/Confirmation Email (Contact & Loan Application submissions)
 export async function sendWelcomeEmail(customerName: string, email?: string, submissionType: 'enquiry' | 'loan' = 'enquiry') {
   const t = getTransporter();

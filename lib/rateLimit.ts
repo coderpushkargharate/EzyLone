@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendSecurityAlert } from './email';
 
 // Simple in-memory fixed-window rate limiter, keyed by client IP. No external
 // dependency — good enough to blunt login brute-force and public-form spam on a
@@ -24,7 +25,7 @@ declare global {
 const buckets = global._rateBuckets || new Map<string, Bucket>();
 global._rateBuckets = buckets;
 
-function getClientIp(req: NextRequest): string {
+export function getClientIp(req: NextRequest): string {
   const xff = req.headers.get('x-forwarded-for');
   if (xff) return xff.split(',')[0].trim();
   return req.headers.get('x-real-ip') || 'unknown';
@@ -57,6 +58,13 @@ export function checkRateLimit(
   rec.count += 1;
   if (rec.count > bucket.max) {
     const retryAfter = Math.ceil((rec.resetAt - now) / 1000);
+    // Someone is hammering this endpoint — alert (throttled inside the helper).
+    sendSecurityAlert(`ratelimit-${name}`, `Rate limit hit on "${name}"`, {
+      IP: ip,
+      Endpoint: req.nextUrl?.pathname || name,
+      'Attempts in window': String(rec.count),
+      'User agent': req.headers.get('user-agent') || 'unknown',
+    }).catch(() => {});
     return NextResponse.json(
       { message: bucket.message },
       { status: 429, headers: { 'Retry-After': String(retryAfter) } }
