@@ -1,6 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { connectDB } from '@/lib/db';
+import { Blog } from '@/lib/models/Blog';
 
 const BASE_URL = 'https://www.ezyloan.co.in';
+
+// Refresh the sitemap hourly so newly published blogs get picked up.
+export const revalidate = 3600;
 
 /**
  * Static, indexable routes.
@@ -31,12 +36,30 @@ const routes: { path: string; priority: number; changeFrequency: MetadataRoute.S
   { path: '/terms-and-conditions', priority: 0.3, changeFrequency: 'yearly' },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  return routes.map(({ path, priority, changeFrequency }) => ({
+
+  const staticEntries: MetadataRoute.Sitemap = routes.map(({ path, priority, changeFrequency }) => ({
     url: `${BASE_URL}${path}`,
     lastModified: now,
     changeFrequency,
     priority,
   }));
+
+  // Dynamic: every published blog post.
+  let blogEntries: MetadataRoute.Sitemap = [];
+  try {
+    await connectDB();
+    const blogs = await Blog.find({}, 'slug updatedAt createdAt').lean();
+    blogEntries = blogs.map((b: any) => ({
+      url: `${BASE_URL}/blog/${b.slug}`,
+      lastModified: b.updatedAt || b.createdAt || now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch {
+    // If the DB is briefly unavailable, still return the static sitemap.
+  }
+
+  return [...staticEntries, ...blogEntries];
 }
