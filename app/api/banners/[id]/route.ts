@@ -14,18 +14,19 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
   try {
     await connectDB();
-    const banner = await Banner.findById(params.id);
+    // Delete the DB record first and respond fast. The Cloudinary cleanup is
+    // slow (~5s) so we do it in the background — no need to make the admin wait.
+    const banner = await Banner.findByIdAndDelete(params.id);
     if (!banner) return NextResponse.json({ message: 'Banner not found' }, { status: 404 });
 
-    try {
-      const publicId = extractPublicIdFromUrl(banner.image);
-      await cloudinary.uploader.destroy(publicId);
-    } catch (cloudErr: any) {
-      console.warn('⚠️ Cloudinary delete failed:', cloudErr.message);
+    invalidateBannerCache();
+
+    if (banner.image?.startsWith('http')) {
+      cloudinary.uploader
+        .destroy(extractPublicIdFromUrl(banner.image))
+        .catch((e: any) => console.warn('⚠️ Cloudinary delete failed:', e.message));
     }
 
-    await Banner.findByIdAndDelete(params.id);
-    invalidateBannerCache();
     return NextResponse.json({ message: 'Banner deleted' });
   } catch (error: any) {
     console.error('Delete banner error:', error);

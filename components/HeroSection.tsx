@@ -113,6 +113,12 @@ const LOAN_TYPES = [
 ];
 
 const FALLBACK_BANNER = "/fallback-banner.jpg";
+
+// Session-lived client cache for banner data, keyed by page. Lets banners render
+// instantly when navigating between pages (no spinner / re-fetch flash) while a
+// background request revalidates. The API also caches server-side + sets
+// Cache-Control, so the network hit itself is cheap.
+const bannerClientCache = new Map<string, any[]>();
 const GOOGLE_REVIEW_LINK =
   "https://www.google.com/search?q=ezyloan#cobssid=s";
 
@@ -499,7 +505,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   );
 
   // Data
-  const testimonials = useMemo<Testimonial[]>(
+  const defaultTestimonials = useMemo<Testimonial[]>(
     () => [
       {
         name: "satyajit sethy",
@@ -546,6 +552,37 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     []
   );
 
+  // Admin-managed testimonials (from the admin panel). If any exist they replace
+  // the built-in defaults above; otherwise the defaults are shown.
+  const [adminTestimonials, setAdminTestimonials] = useState<Testimonial[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    axios
+      .get('/api/testimonials')
+      .then((r) => {
+        if (!mounted) return;
+        const list = (r.data || [])
+          .filter((t: any) => t.isActive !== false && t.quote)
+          .map((t: any) => ({
+            name: t.name,
+            location: t.location || '',
+            quote: t.quote,
+            avatar: t.avatar || '',
+            rating: t.rating || 5,
+          }));
+        setAdminTestimonials(list);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const testimonials = useMemo<Testimonial[]>(
+    () => (adminTestimonials.length ? adminTestimonials : defaultTestimonials),
+    [adminTestimonials, defaultTestimonials]
+  );
+
   const bankLogos = useMemo(
     () => [
       "/banks/AU-Small-Finance-Bank.webp",
@@ -570,9 +607,33 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     []
   );
 
+  // Admin-uploaded partner logos (Banner page="bank-partners") are appended to
+  // the built-in set, so the admin can add more logos without touching code.
+  const [adminBankLogos, setAdminBankLogos] = useState<string[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    axios
+      .get('/api/banners?page=bank-partners')
+      .then((r) => {
+        if (!mounted) return;
+        const imgs = (r.data || [])
+          .filter((b: Banner) => b.isActive && b.image?.trim())
+          .map((b: Banner) => b.image);
+        setAdminBankLogos(imgs);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const bankingPartners = useMemo(
-    () => bankLogos.map((logo, index) => ({ name: `Bank Partner ${index + 1}`, logo })),
-    [bankLogos]
+    () =>
+      [...bankLogos, ...adminBankLogos].map((logo, index) => ({
+        name: `Bank Partner ${index + 1}`,
+        logo,
+      })),
+    [bankLogos, adminBankLogos]
   );
 
   // Helper functions
@@ -737,7 +798,14 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     let isMounted = true;
     const fetchBanners = async () => {
       try {
-        setIsLoading(true);
+        // Show cached banners immediately (instant), then revalidate in the bg.
+        const cached = bannerClientCache.get(page);
+        if (cached) {
+          setBanners(cached);
+          setIsLoading(false);
+        } else {
+          setIsLoading(true);
+        }
         setError(null);
         const response = await axios.get(
           `/api/banners?page=${encodeURIComponent(page)}`
@@ -746,11 +814,11 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         const validBanners = (response.data || [])
           .filter((b: Banner) => b.isActive && b.image?.trim())
           .map((b: Banner) => ({ ...b, image: getValidImageUrl(b.image) }));
+        bannerClientCache.set(page, validBanners);
         setBanners(validBanners);
       } catch {
-        if (isMounted)
+        if (isMounted && !bannerClientCache.get(page))
           setError("Failed to load banners. Please refresh the page.");
-        setBanners([]);
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -1420,14 +1488,14 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                     <div className="glass-prism flex items-start gap-4 bg-white/70 rounded-xl p-5 h-full">
                       <div className="flex-shrink-0">
                         <Image
-                          src={testimonial.avatar}
+                          src={testimonial.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=0D8ABC&color=fff&size=48`}
                           alt={testimonial.name}
                           width={48}
                           height={48}
                           className="rounded-full object-cover border-2 border-white/60"
                           loading="lazy"
                           quality={65}
-                          unoptimized={testimonial.avatar.includes("googleusercontent.com")}
+                          unoptimized={!testimonial.avatar || testimonial.avatar.includes("googleusercontent.com") || testimonial.avatar.includes("ui-avatars.com")}
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                               testimonial.name

@@ -20,14 +20,38 @@ const Services = () => {
   const [isDesktop, setIsDesktop] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const services = useMemo(() => [
-    { icon: Car, title: "Used Car BT", description: "Save more with our Used Car Balance Transfer, offering lower EMIs and better rates.", image: "/homebanners/2aaab97b-68e4-48f1-b5cb-4c8593864d29.webp", link: "/car-loan-balance-transfer", applyLink: "/apply-now?loan=used-car-bt", highlights: ["Lower EMIs", "Better Rates", "Quick Processing"] },
-    { icon: Car, title: "Used Car Refinance", description: "Refinance your used car loan with us and enjoy better rates and flexible terms.", image: "/homebanners/00aa3850-ba76-4749-9c73-7f4edc3ce7cf.webp", link: "/car-loan-refinance", applyLink: "/apply-now?loan=used-car-refinance", highlights: ["Better Rates", "Flexible Terms", "Top-up Available"] },
-    { icon: Car, title: "New Car Loan", description: "Drive your dream car today with our competitive rates and flexible repayment options.", image: "/homebanners/usedcarrefrance.webp", link: "/car-loan", applyLink: "/apply-now?loan=new-car-loan", highlights: ["Up to 100% Funding", "Quick Approval", "Low Rates"] },
-    { icon: Building2, title: "Commercial Vehicle Loan", description: "Get behind the wheel of your dream vehicle with our easy and quick loan approval process.", image: "/homebanners/618797752_122285828318199270_8453964291894126689_n.webp", link: "/commercial-vehicle-loan", applyLink: "/apply-now?loan=commercial-vehicle-loan", highlights: ["High Loan Amount", "Flexible Tenure", "Tax Benefits"] },
-    { icon: User, title: "Personal Loan", description: "Fulfill your dreams with our hassle-free Personal Loan, designed to meet your needs.", image: "/homebanners/image.webp", link: "/personal-loan", applyLink: "/apply-now?loan=personal-loan", highlights: ["Up to ₹25 Lakh", "Low Interest Rates", "Minimal Docs"] },
-    { icon: Building2, title: "Property Loan", description: "Expand your business with our tailored Property Loan, designed for growth.", image: "/homebanners/634044681_122289263786199270_3408391623228588228_n.webp", link: "/property-loan", applyLink: "/apply-now?loan=property-loan", highlights: ["Up to ₹3 Crore", "Lowest EMIs", "Long Tenure"] },
-  ], []);
+  // Admin-uploaded images (Banner page="loan-options") override the default card
+  // images in order: 1st uploaded → 1st card, 2nd → 2nd card, etc. Cards with no
+  // matching upload keep their built-in image.
+  const [optionImages, setOptionImages] = useState<string[]>([]);
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/banners?page=loan-options")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (!mounted) return;
+        const imgs = (data || [])
+          .filter((b: any) => b.isActive && b.image?.trim())
+          .map((b: any) => b.image as string);
+        setOptionImages(imgs);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const services = useMemo(() => {
+    const base = [
+      { icon: Car, title: "Used Car BT", description: "Save more with our Used Car Balance Transfer, offering lower EMIs and better rates.", image: "/homebanners/2aaab97b-68e4-48f1-b5cb-4c8593864d29.webp", link: "/car-loan-balance-transfer", applyLink: "/apply-now?loan=used-car-bt", highlights: ["Lower EMIs", "Better Rates", "Quick Processing"] },
+      { icon: Car, title: "Used Car Refinance", description: "Refinance your used car loan with us and enjoy better rates and flexible terms.", image: "/homebanners/00aa3850-ba76-4749-9c73-7f4edc3ce7cf.webp", link: "/car-loan-refinance", applyLink: "/apply-now?loan=used-car-refinance", highlights: ["Better Rates", "Flexible Terms", "Top-up Available"] },
+      { icon: Car, title: "New Car Loan", description: "Drive your dream car today with our competitive rates and flexible repayment options.", image: "/homebanners/usedcarrefrance.webp", link: "/car-loan", applyLink: "/apply-now?loan=new-car-loan", highlights: ["Up to 100% Funding", "Quick Approval", "Low Rates"] },
+      { icon: Building2, title: "Commercial Vehicle Loan", description: "Get behind the wheel of your dream vehicle with our easy and quick loan approval process.", image: "/homebanners/618797752_122285828318199270_8453964291894126689_n.webp", link: "/commercial-vehicle-loan", applyLink: "/apply-now?loan=commercial-vehicle-loan", highlights: ["High Loan Amount", "Flexible Tenure", "Tax Benefits"] },
+      { icon: User, title: "Personal Loan", description: "Fulfill your dreams with our hassle-free Personal Loan, designed to meet your needs.", image: "/homebanners/image.webp", link: "/personal-loan", applyLink: "/apply-now?loan=personal-loan", highlights: ["Up to ₹25 Lakh", "Low Interest Rates", "Minimal Docs"] },
+      { icon: Building2, title: "Property Loan", description: "Expand your business with our tailored Property Loan, designed for growth.", image: "/homebanners/634044681_122289263786199270_3408391623228588228_n.webp", link: "/property-loan", applyLink: "/apply-now?loan=property-loan", highlights: ["Up to ₹3 Crore", "Lowest EMIs", "Long Tenure"] },
+    ];
+    return base.map((s, i) => (optionImages[i] ? { ...s, image: optionImages[i] } : s));
+  }, [optionImages]);
 
   const cardsPerView = 4;
   const maxIndex = services.length - cardsPerView;

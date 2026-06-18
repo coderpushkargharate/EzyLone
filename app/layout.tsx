@@ -1,11 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import VoiceAssistantLoader from '@/components/VoiceAssistantLoader';
+import ConditionalHeader from '@/components/ConditionalHeader';
+import ConditionalFooter from '@/components/ConditionalFooter';
 import Script from 'next/script';
-import FixedFooter from '@/components/FixedFooter';
 import MetaPixel from '@/components/MetaPixel';
 import { GOOGLE_ADS_ID } from '@/lib/ads';
 
@@ -232,13 +230,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to main content
         </a>
 
-        <Header />
+        <ConditionalHeader />
         <main id="main-content" className="flex-grow min-h-[calc(100vh-400px)]" role="main">
           {children}
         </main>
-        <Footer />
-        <VoiceAssistantLoader />
-        <FixedFooter />
+        <ConditionalFooter />
 
         <div id="cookie-consent" className="hidden" role="region" aria-label="Cookie consent" />
 

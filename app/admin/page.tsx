@@ -149,29 +149,35 @@ function AdminDashboard({
     totalBanners: 0,
     totalBlogs: 0
   });
+  // Raw data kept for the analytics charts on the overview page.
+  const [analyticsData, setAnalyticsData] = useState<{ loans: any[]; contacts: any[] }>({ loans: [], contacts: [] });
   const [banners, setBanners] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [loans, setLoans] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [testimonials, setTestimonials] = useState<any[]>([]);
   const [selectedPage, setSelectedPage] = useState<string>('home');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any | null>(null);
   const [selectedLoan, setSelectedLoan] = useState<any | null>(null);
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
+  const [selectedTestimonial, setSelectedTestimonial] = useState<any | null>(null);
   const [loading, setLoading] = useState({
     banners: false,
     contacts: false,
     loans: false,
-    blogs: false
+    blogs: false,
+    testimonials: false
   });
 
-  // Menu items configuration - Added Blogs
+  // Menu items configuration
   const menuItems = [
     { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview },
     { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager },
     { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager },
     { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager },
-    { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager }
+    { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager },
+    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager }
   ];
 
   // Fetch dashboard stats
@@ -187,6 +193,7 @@ function AdminDashboard({
     else if (currentPage === 'contacts' && contacts.length === 0) fetchContacts();
     else if (currentPage === 'loans' && loans.length === 0) fetchLoans();
     else if (currentPage === 'blogs' && blogs.length === 0) fetchBlogs();
+    else if (currentPage === 'testimonials' && testimonials.length === 0) fetchTestimonials();
   }, [currentPage]);
 
   const fetchDashboardStats = async () => {
@@ -205,6 +212,7 @@ function AdminDashboard({
         totalBanners: bannersRes.data.length,
         totalBlogs: blogsRes.data.length
       });
+      setAnalyticsData({ loans: loansRes.data, contacts: contactsRes.data });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     }
@@ -263,10 +271,55 @@ function AdminDashboard({
     }
   };
 
+  // Testimonials
+  const fetchTestimonials = async () => {
+    setLoading(prev => ({ ...prev, testimonials: true }));
+    try {
+      const response = await axios.get(`/api/testimonials`);
+      setTestimonials(response.data);
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+      alert('Failed to load testimonials. Please try again.');
+    } finally {
+      setLoading(prev => ({ ...prev, testimonials: false }));
+    }
+  };
+
+  const handleCreateTestimonial = async (formData: FormData) => {
+    try {
+      await axios.post(`/api/testimonials`, formData);
+      fetchTestimonials();
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, message: error.response?.data?.message || 'Failed to create testimonial' };
+    }
+  };
+
+  const handleUpdateTestimonial = async (id: string, formData: FormData) => {
+    try {
+      await axios.put(`/api/testimonials/${id}`, formData);
+      fetchTestimonials();
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, message: error.response?.data?.message || 'Failed to update testimonial' };
+    }
+  };
+
+  const handleDeleteTestimonial = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this testimonial?')) return;
+    try {
+      await axios.delete(`/api/testimonials/${id}`);
+      fetchTestimonials();
+    } catch (error) {
+      console.error('Error deleting testimonial:', error);
+      alert('Failed to delete testimonial. Please try again.');
+    }
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file');
       return;
@@ -303,8 +356,12 @@ function AdminDashboard({
     try {
       await axios.delete(`/api/banners/${bannerId}`);
       fetchBanners();
-      alert('Banner deleted successfully!');
-    } catch (error) {
+    } catch (error: any) {
+      // 404 = already deleted (e.g. a double-click); just refresh, no error.
+      if (error?.response?.status === 404) {
+        fetchBanners();
+        return;
+      }
       console.error('Error deleting banner:', error);
       alert('Failed to delete banner. Please try again.');
     }
@@ -462,6 +519,7 @@ function AdminDashboard({
           <CurrentComponent
             // Dashboard props
             stats={dashboardStats}
+            analytics={analyticsData}
             // Banners props
             banners={banners}
             selectedPage={selectedPage}
@@ -491,6 +549,14 @@ function AdminDashboard({
             onUpdateBlog={handleUpdateBlog}
             onDeleteBlog={handleDeleteBlog}
             loadingBlogs={loading.blogs}
+            // Testimonials props
+            testimonials={testimonials}
+            selectedTestimonial={selectedTestimonial}
+            setSelectedTestimonial={setSelectedTestimonial}
+            onCreateTestimonial={handleCreateTestimonial}
+            onUpdateTestimonial={handleUpdateTestimonial}
+            onDeleteTestimonial={handleDeleteTestimonial}
+            loadingTestimonials={loading.testimonials}
           />
         </div>
       </div>
@@ -498,8 +564,67 @@ function AdminDashboard({
   );
 }
 
+// Lightweight dependency-free horizontal bar chart.
+function MiniBarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  if (data.length === 0) return <p className="text-sm text-gray-400">No data yet</p>;
+  return (
+    <div className="space-y-3">
+      {data.map((d) => (
+        <div key={d.label}>
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-gray-700">{d.label}</span>
+            <span className="font-semibold text-gray-900">{d.value}</span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-2.5">
+            <div className={`${d.color} h-2.5 rounded-full transition-all`} style={{ width: `${(d.value / max) * 100}%` }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Dashboard Overview Component
-function DashboardOverview({ stats }: { stats: any }) {
+function DashboardOverview({ stats, analytics }: { stats: any; analytics?: { loans: any[]; contacts: any[] } }) {
+  const loans = analytics?.loans || [];
+  const contacts = analytics?.contacts || [];
+
+  // Loan applications by status
+  const statusData = [
+    { label: 'Approved', value: loans.filter((l) => l.status === 'approved').length, color: 'bg-green-500' },
+    { label: 'Pending', value: loans.filter((l) => l.status === 'pending').length, color: 'bg-yellow-500' },
+    { label: 'Rejected', value: loans.filter((l) => l.status === 'rejected').length, color: 'bg-red-500' },
+  ];
+
+  // Loan applications by type (top entries)
+  const typeCounts: Record<string, number> = {};
+  loans.forEach((l) => { const k = l.loanType || 'Other'; typeCounts[k] = (typeCounts[k] || 0) + 1; });
+  const typeData = Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([label, value]) => ({ label, value, color: 'bg-blue-500' }));
+
+  // Leads (contacts + loans) per month — last 6 months
+  const now = new Date();
+  const months: { key: string; label: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleString('en-US', { month: 'short' }) });
+  }
+  const monthIndex = (dateStr: string) => { const d = new Date(dateStr); return `${d.getFullYear()}-${d.getMonth()}`; };
+  const monthlyData = months.map((m) => ({
+    label: m.label,
+    value:
+      loans.filter((l) => l.createdAt && monthIndex(l.createdAt) === m.key).length +
+      contacts.filter((c) => c.createdAt && monthIndex(c.createdAt) === m.key).length,
+    color: 'bg-indigo-500',
+  }));
+
+  // Approval rate (of decided applications)
+  const decided = statusData[0].value + statusData[2].value;
+  const approvalRate = decided > 0 ? Math.round((statusData[0].value / decided) * 100) : 0;
+
   const statCards = [
     { title: 'Total Contacts', value: stats.totalContacts, color: 'bg-blue-500', icon: <MessageSquare className="h-8 w-8" /> },
     { title: 'Loan Applications', value: stats.totalLoanApplications, color: 'bg-green-500', icon: <FileText className="h-8 w-8" /> },
@@ -529,6 +654,26 @@ function DashboardOverview({ stats }: { stats: any }) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Analytics charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">Applications by Status</h4>
+          <MiniBarChart data={statusData} />
+          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+            <span className="text-sm text-gray-600">Approval rate</span>
+            <span className="text-lg font-bold text-green-600">{approvalRate}%</span>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">Applications by Loan Type</h4>
+          <MiniBarChart data={typeData} />
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">Leads — Last 6 Months</h4>
+          <MiniBarChart data={monthlyData} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -601,7 +746,9 @@ function BannersManager({
     { value: 'car-refinance', label: 'Car Refinance' }, { value: 'used-car-refinance', label: 'Used Car Refinance' },
     { value: 'car-balance-transfer', label: 'Car Balance Transfer' }, { value: 'car-top-up', label: 'Car Top-Up Loan' },
     { value: 'new-car-loan', label: 'New Car Loan' }, { value: 'personal-loan', label: 'Personal Loan' },
-    { value: 'property-loan', label: 'Property Loan' }, { value: 'commercial-vehicle-loan', label: 'Commercial Vehicle Loan' }
+    { value: 'property-loan', label: 'Property Loan' }, { value: 'commercial-vehicle-loan', label: 'Commercial Vehicle Loan' },
+    { value: 'bank-partners', label: 'Trusted Banking & NBFC Partners (logos)' },
+    { value: 'loan-options', label: 'Instant Loan Options (card images)' }
   ];
 
   const filteredBanners = banners.filter(banner => banner.page === selectedPage);
@@ -667,25 +814,104 @@ function BannersManager({
 }
 
 // Contacts Manager Component
+// Reusable search + filter + date-range bar for the list managers.
+function ListFilters({
+  search, setSearch, fromDate, setFromDate, toDate, setToDate,
+  types, typeFilter, setTypeFilter, statuses, statusFilter, setStatusFilter, onClear,
+}: {
+  search: string; setSearch: (v: string) => void;
+  fromDate: string; setFromDate: (v: string) => void;
+  toDate: string; setToDate: (v: string) => void;
+  types?: string[]; typeFilter?: string; setTypeFilter?: (v: string) => void;
+  statuses?: string[]; statusFilter?: string; setStatusFilter?: (v: string) => void;
+  onClear: () => void;
+}) {
+  const cls = 'px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm';
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-4 mb-4 border border-gray-100 flex flex-wrap gap-3 items-end">
+      <div className="flex-1 min-w-[200px]">
+        <label className="block text-xs font-medium text-gray-600 mb-1">Search</label>
+        <input className={`${cls} w-full`} placeholder="Name, phone, email, city..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      </div>
+      {statuses && setStatusFilter && (
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+          <select className={cls} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="all">All</option>
+            {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
+      )}
+      {types && setTypeFilter && (
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Loan Type</label>
+          <select className={cls} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+            <option value="all">All</option>
+            {types.map((t) => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+      )}
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+        <input type="date" className={cls} value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+        <input type="date" className={cls} value={toDate} onChange={(e) => setToDate(e.target.value)} />
+      </div>
+      <button onClick={onClear} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm">Clear</button>
+    </div>
+  );
+}
+
+// Shared date-range predicate (inclusive of the whole "to" day).
+function inDateRange(createdAt: string | undefined, fromDate: string, toDate: string): boolean {
+  if (!fromDate && !toDate) return true;
+  if (!createdAt) return false;
+  const d = new Date(createdAt);
+  if (fromDate && d < new Date(fromDate)) return false;
+  if (toDate && d > new Date(toDate + 'T23:59:59')) return false;
+  return true;
+}
+
 function ContactsManager({ contacts, selectedContact, setSelectedContact, onDeleteContact, loadingContacts }: {
   contacts: any[]; selectedContact: any | null; setSelectedContact: (contact: any | null) => void;
   onDeleteContact: (contactId: string) => void; loadingContacts: boolean;
 }) {
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const loanTypes = Array.from(new Set(contacts.map((c) => c.loanType).filter(Boolean))) as string[];
+  const filtered = contacts.filter((c) => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q || [c.fullName, c.email, c.phoneNumber, c.loanType, c.city].some((v) => String(v || '').toLowerCase().includes(q));
+    const matchesType = typeFilter === 'all' || c.loanType === typeFilter;
+    return matchesSearch && matchesType && inDateRange(c.createdAt, fromDate, toDate);
+  });
+
   return (
     <div>
       <div className="mb-6"><h3 className="text-2xl font-bold text-gray-800 mb-2">Contact Messages</h3><p className="text-gray-600">Manage customer inquiries and contact messages</p></div>
+      <ListFilters
+        search={search} setSearch={setSearch}
+        fromDate={fromDate} setFromDate={setFromDate} toDate={toDate} setToDate={setToDate}
+        types={loanTypes} typeFilter={typeFilter} setTypeFilter={setTypeFilter}
+        onClear={() => { setSearch(''); setTypeFilter('all'); setFromDate(''); setToDate(''); }}
+      />
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">All Contacts ({contacts.length})</h4></div>
+        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">Showing {filtered.length} of {contacts.length}</h4></div>
         <div className="overflow-x-auto">
           {loadingContacts ? (
             <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>
-          ) : contacts.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="text-center py-12"><MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-500 text-lg">No contact messages found</p></div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50"><tr><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Info</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Loan Details</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr></thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {contacts.map((contact) => (
+                {filtered.map((contact) => (
                   <tr key={contact._id} className="hover:bg-gray-50">
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap"><div><p className="font-medium text-gray-900">{contact.fullName}</p><p className="text-sm text-gray-500">{contact.email}</p><p className="text-sm text-gray-500">{contact.phoneNumber}</p></div></td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden md:table-cell"><div><p className="text-sm text-gray-900">{contact.loanType}</p><p className="text-sm text-gray-500">{contact.loanAmount}</p></div></td>
@@ -726,19 +952,41 @@ function LoansManager({ loans, selectedLoan, setSelectedLoan, onStatusUpdate, on
   loans: any[]; selectedLoan: any | null; setSelectedLoan: (loan: any | null) => void;
   onStatusUpdate: (loanId: string, status: string) => void; onDeleteLoan: (loanId: string) => void; loadingLoans: boolean;
 }) {
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+
+  const loanTypes = Array.from(new Set(loans.map((l) => l.loanType).filter(Boolean))) as string[];
+  const filtered = loans.filter((l) => {
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q || [l.fullName, l.phoneNumber, l.email, l.city, l.pincode, l.loanType].some((v) => String(v || '').toLowerCase().includes(q));
+    const matchesType = typeFilter === 'all' || l.loanType === typeFilter;
+    const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
+    return matchesSearch && matchesType && matchesStatus && inDateRange(l.createdAt, fromDate, toDate);
+  });
+
   return (
     <div>
       <div className="mb-6"><h3 className="text-2xl font-bold text-gray-800 mb-2">Loan Applications</h3><p className="text-gray-600">Manage and review loan applications</p></div>
+      <ListFilters
+        search={search} setSearch={setSearch}
+        fromDate={fromDate} setFromDate={setFromDate} toDate={toDate} setToDate={setToDate}
+        types={loanTypes} typeFilter={typeFilter} setTypeFilter={setTypeFilter}
+        statuses={['pending', 'approved', 'rejected']} statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        onClear={() => { setSearch(''); setTypeFilter('all'); setStatusFilter('all'); setFromDate(''); setToDate(''); }}
+      />
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">All Applications ({loans.length})</h4></div>
+        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">Showing {filtered.length} of {loans.length}</h4></div>
         <div className="overflow-x-auto">
-          {loadingLoans ? (<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>) : loans.length === 0 ? (
+          {loadingLoans ? (<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>) : filtered.length === 0 ? (
             <div className="text-center py-12"><FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-500 text-lg">No loan applications found</p></div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50"><tr><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Loan Details</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr></thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {loans.map((loan) => (
+                {filtered.map((loan) => (
                   <tr key={loan._id} className="hover:bg-gray-50">
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap"><div><p className="font-medium text-gray-900">{loan.fullName}</p><p className="text-sm text-gray-500">{loan.phoneNumber}</p><p className="text-sm text-gray-500 hidden md:block">{loan.city}, {loan.pincode}</p></div></td>
                     <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden md:table-cell"><div><p className="text-sm text-gray-900">{loan.loanType}</p><p className="text-sm text-gray-500">{loan.employmentType}</p><p className="text-sm text-gray-500">CIBIL: {loan.cibilScore}</p></div></td>
@@ -1067,6 +1315,169 @@ function BlogsManager({
                 ))}
               </tbody>
             </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Testimonials Manager Component
+function TestimonialsManager({
+  testimonials, selectedTestimonial, setSelectedTestimonial, onCreateTestimonial, onUpdateTestimonial, onDeleteTestimonial, loadingTestimonials
+}: {
+  testimonials: any[]; selectedTestimonial: any | null; setSelectedTestimonial: (t: any | null) => void;
+  onCreateTestimonial: (data: FormData) => Promise<{ success: boolean; message?: string }>;
+  onUpdateTestimonial: (id: string, data: FormData) => Promise<{ success: boolean; message?: string }>;
+  onDeleteTestimonial: (id: string) => void; loadingTestimonials: boolean;
+}) {
+  const [form, setForm] = useState({ name: '', location: '', quote: '', rating: 5 });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (selectedTestimonial) {
+      setForm({
+        name: selectedTestimonial.name || '',
+        location: selectedTestimonial.location || '',
+        quote: selectedTestimonial.quote || '',
+        rating: selectedTestimonial.rating || 5,
+      });
+      setPreview(selectedTestimonial.avatar || '');
+      setIsEditing(true);
+    } else {
+      setForm({ name: '', location: '', quote: '', rating: 5 });
+      setPreview('');
+      setIsEditing(false);
+    }
+    setAvatarFile(null);
+    setError('');
+  }, [selectedTestimonial]);
+
+  const handleAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please select an image'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image should be less than 5MB'); return; }
+    setAvatarFile(file);
+    setPreview(URL.createObjectURL(file));
+    e.target.value = '';
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.quote.trim()) { setError('Name and quote are required'); return; }
+    setIsSubmitting(true);
+    setError('');
+
+    const fd = new FormData();
+    fd.append('name', form.name);
+    fd.append('location', form.location);
+    fd.append('quote', form.quote);
+    fd.append('rating', String(form.rating));
+    if (avatarFile) fd.append('avatarFile', avatarFile);
+
+    const res = isEditing && selectedTestimonial
+      ? await onUpdateTestimonial(selectedTestimonial._id, fd)
+      : await onCreateTestimonial(fd);
+
+    if (res.success) {
+      setSelectedTestimonial(null);
+      setForm({ name: '', location: '', quote: '', rating: 5 });
+      setAvatarFile(null);
+      setPreview('');
+      setIsEditing(false);
+    } else {
+      setError(res.message || 'Failed to save testimonial');
+    }
+    setIsSubmitting(false);
+  };
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold text-gray-800 mb-2">Testimonials</h3>
+        <p className="text-gray-600">Customer reviews shown on the website hero section</p>
+      </div>
+
+      {/* Form */}
+      <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6 border border-gray-100">
+        <h4 className="text-lg font-semibold text-gray-800 mb-4">{isEditing ? '✏️ Edit Testimonial' : '➕ Add Testimonial'}</h4>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Customer name" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+              <input type="text" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="City" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Review / Quote *</label>
+            <textarea value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} required rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="What the customer said..." />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+              <select value={form.rating} onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                {[5, 4, 3, 2, 1].map((r) => <option key={r} value={r}>{'★'.repeat(r)} ({r})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Photo</label>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer">
+                  <Upload className="h-4 w-4 mr-2" /> Choose Photo
+                  <input type="file" accept="image/*" onChange={handleAvatar} className="hidden" />
+                </label>
+                {preview && <img src={preview} alt="Preview" className="w-12 h-12 rounded-full object-cover border border-gray-200" />}
+              </div>
+            </div>
+          </div>
+          {error && <div className="bg-red-50 text-red-800 p-3 rounded-lg text-sm border border-red-200">{error}</div>}
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+              {isSubmitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : <><Save className="h-4 w-4" /> {isEditing ? 'Update' : 'Add'} Testimonial</>}
+            </button>
+            {isEditing && <button type="button" onClick={() => setSelectedTestimonial(null)} className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">Cancel</button>}
+          </div>
+        </form>
+      </div>
+
+      {/* List */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">All Testimonials ({testimonials.length})</h4></div>
+        <div className="p-4 md:p-6">
+          {loadingTestimonials ? (
+            <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>
+          ) : testimonials.length === 0 ? (
+            <div className="text-center py-12"><Users className="h-16 w-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-500 text-lg">No testimonials yet</p><p className="text-gray-400 mt-2">Add your first one above</p></div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {testimonials.map((t) => (
+                <div key={t._id} className="border border-gray-200 rounded-lg p-4 flex gap-3">
+                  {t.avatar
+                    ? <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    : <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold flex-shrink-0">{t.name?.[0]?.toUpperCase() || '?'}</div>}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium text-gray-900 truncate">{t.name}</p>
+                      <div className="flex space-x-1 flex-shrink-0">
+                        <button onClick={() => setSelectedTestimonial(t)} className="text-indigo-600 hover:text-indigo-800 p-1 hover:bg-indigo-50 rounded-full" title="Edit"><Edit className="h-4 w-4" /></button>
+                        <button onClick={() => onDeleteTestimonial(t._id)} className="text-red-600 hover:text-red-800 p-1 hover:bg-red-50 rounded-full" title="Delete"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-yellow-500">{'★'.repeat(t.rating || 5)}<span className="text-gray-400">{t.location ? ` · ${t.location}` : ''}</span></p>
+                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">{t.quote}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>

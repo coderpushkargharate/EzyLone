@@ -19,6 +19,7 @@ const BannerSchema = new Schema<IBanner>(
         'home', 'about', 'contact', 'apply', 'car-refinance', 'used-car-refinance',
         'car-balance-transfer', 'car-top-up', 'new-car-loan', 'personal-loan',
         'property-loan', 'commercial-vehicle-loan', 'blog',
+        'bank-partners', 'loan-options',
       ],
     },
     order: { type: Number, default: 0 },
