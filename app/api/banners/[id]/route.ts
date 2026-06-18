@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Banner } from '@/lib/models/Banner';
-import { cloudinary, extractPublicIdFromUrl } from '@/lib/cloudinary';
+import { destroyImageByUrl } from '@/lib/cloudinary';
 import { verifyAuth, unauthorized } from '@/lib/auth';
 import { invalidateBannerCache } from '@/lib/bannerCache';
 
@@ -22,9 +22,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     invalidateBannerCache();
 
     if (banner.image?.startsWith('http')) {
-      cloudinary.uploader
-        .destroy(extractPublicIdFromUrl(banner.image))
-        .catch((e: any) => console.warn('⚠️ Cloudinary delete failed:', e.message));
+      destroyImageByUrl(banner.image).catch((e: any) =>
+        console.warn('⚠️ Cloudinary delete failed:', e.message)
+      );
     }
 
     return NextResponse.json({ message: 'Banner deleted' });

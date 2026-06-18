@@ -9,6 +9,16 @@ cloudinary.config({
 
 export { cloudinary };
 
+/** Delete an image asset given its secure URL. Returns a promise (fire-and-forget ok). */
+export function destroyImageByUrl(url: string) {
+  return cloudinary.uploader.destroy(extractPublicIdFromUrl(url));
+}
+
+/** Delete a raw asset (e.g. resume PDF) by its public_id. */
+export function destroyRaw(publicId: string) {
+  return cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+}
+
 /** Upload a Buffer to Cloudinary via an upload stream. */
 export function uploadBuffer(buffer: Buffer, options: UploadApiOptions): Promise<UploadApiResponse> {
   return new Promise((resolve, reject) => {

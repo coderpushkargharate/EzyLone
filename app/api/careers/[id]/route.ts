@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { JobApplication } from '@/lib/models/JobApplication';
-import { cloudinary } from '@/lib/cloudinary';
+import { destroyRaw } from '@/lib/cloudinary';
 import { verifyAuth, unauthorized } from '@/lib/auth';
 
 export const runtime = 'nodejs';
@@ -18,7 +18,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     if (application.resumePublicId) {
       try {
-        await cloudinary.uploader.destroy(application.resumePublicId, { resource_type: 'raw' });
+        await destroyRaw(application.resumePublicId);
       } catch (err: any) {
         console.warn('⚠️ Cloudinary resume delete failed:', err.message);
       }
