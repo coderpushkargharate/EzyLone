@@ -25,8 +25,6 @@ import {
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
 
-const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || 'http://127.0.0.1:3001';
-
 // TypeScript Interfaces
 interface User {
   username: string;
@@ -72,38 +70,30 @@ export default function AdminApp() {
   const router = useRouter();
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
+    // Auth is held in an httpOnly cookie (sent automatically on same-origin
+    // requests). Verify it server-side; the stored `user` is display-only.
     const savedUser = localStorage.getItem('user');
-    
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-      setCurrentPage('dashboard');
-      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
-      
-      axios.get(`${SERVER_HOST}/api/auth/verify`)
-        .catch(() => {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setCurrentPage('login');
-        });
-    } else {
-      setCurrentPage('login');
-    }
+
+    axios.get('/api/auth/verify')
+      .then(() => {
+        if (savedUser) setUser(JSON.parse(savedUser));
+        setCurrentPage('dashboard');
+      })
+      .catch(() => {
+        localStorage.removeItem('user');
+        setCurrentPage('login');
+      });
   }, []);
 
   const handleLogin = async (credentials: LoginCredentials) => {
     try {
-      const response = await axios.post<LoginResponse>(`${SERVER_HOST}/api/auth/login`, credentials);
-      const { token, user } = response.data;
-      
-      localStorage.setItem('token', token);
+      const response = await axios.post<LoginResponse>('/api/auth/login', credentials);
+      const { user } = response.data;
+
       localStorage.setItem('user', JSON.stringify(user));
-      setToken(token);
       setUser(user);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setCurrentPage('dashboard');
-      
+
       return { success: true };
     } catch (error: any) {
       return {
@@ -113,10 +103,13 @@ export default function AdminApp() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/auth/logout');
+    } catch {
+      // ignore — clear local state regardless
+    }
     localStorage.removeItem('user');
-    delete axios.defaults.headers.common['Authorization'];
     setUser(null);
     setToken(null);
     setCurrentPage('login');
@@ -199,10 +192,10 @@ function AdminDashboard({
   const fetchDashboardStats = async () => {
     try {
       const [contactsRes, loansRes, bannersRes, blogsRes] = await Promise.all([
-        axios.get(`${SERVER_HOST}/api/contacts`),
-        axios.get(`${SERVER_HOST}/api/loans`),
-        axios.get(`${SERVER_HOST}/api/banners`),
-        axios.get(`${SERVER_HOST}/api/blogs`)
+        axios.get(`/api/contacts`),
+        axios.get(`/api/loans`),
+        axios.get(`/api/banners`),
+        axios.get(`/api/blogs`)
       ]);
       
       setDashboardStats({
@@ -220,7 +213,7 @@ function AdminDashboard({
   const fetchBanners = async () => {
     setLoading(prev => ({ ...prev, banners: true }));
     try {
-      const response = await axios.get(`${SERVER_HOST}/api/banners`);
+      const response = await axios.get(`/api/banners`);
       setBanners(response.data);
     } catch (error) {
       console.error('Error fetching banners:', error);
@@ -233,7 +226,7 @@ function AdminDashboard({
   const fetchContacts = async () => {
     setLoading(prev => ({ ...prev, contacts: true }));
     try {
-      const response = await axios.get(`${SERVER_HOST}/api/contacts`);
+      const response = await axios.get(`/api/contacts`);
       setContacts(response.data);
     } catch (error) {
       console.error('Error fetching contacts:', error);
@@ -246,7 +239,7 @@ function AdminDashboard({
   const fetchLoans = async () => {
     setLoading(prev => ({ ...prev, loans: true }));
     try {
-      const response = await axios.get(`${SERVER_HOST}/api/loans`);
+      const response = await axios.get(`/api/loans`);
       setLoans(response.data);
     } catch (error) {
       console.error('Error fetching loans:', error);
@@ -260,7 +253,7 @@ function AdminDashboard({
   const fetchBlogs = async () => {
     setLoading(prev => ({ ...prev, blogs: true }));
     try {
-      const response = await axios.get(`${SERVER_HOST}/api/blogs`);
+      const response = await axios.get(`/api/blogs`);
       setBlogs(response.data);
     } catch (error) {
       console.error('Error fetching blogs:', error);
@@ -290,7 +283,7 @@ function AdminDashboard({
     formData.append('page', selectedPage);
     
     try {
-      await axios.post(`${SERVER_HOST}/api/banners`, formData, {
+      await axios.post(`/api/banners`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       fetchBanners();
@@ -308,7 +301,7 @@ function AdminDashboard({
     if (!window.confirm('Are you sure you want to delete this banner?')) return;
     
     try {
-      await axios.delete(`${SERVER_HOST}/api/banners/${bannerId}`);
+      await axios.delete(`/api/banners/${bannerId}`);
       fetchBanners();
       alert('Banner deleted successfully!');
     } catch (error) {
@@ -321,7 +314,7 @@ function AdminDashboard({
     if (!window.confirm('Are you sure you want to delete this contact?')) return;
     
     try {
-      await axios.delete(`${SERVER_HOST}/api/contacts/${contactId}`);
+      await axios.delete(`/api/contacts/${contactId}`);
       fetchContacts();
       alert('Contact deleted successfully!');
     } catch (error) {
@@ -332,7 +325,7 @@ function AdminDashboard({
 
   const handleStatusUpdate = async (loanId: string, status: string) => {
     try {
-      await axios.put(`${SERVER_HOST}/api/loans/${loanId}/status`, { status });
+      await axios.put(`/api/loans/${loanId}/status`, { status });
       fetchLoans();
       alert(`Loan application ${status} successfully!`);
     } catch (error) {
@@ -345,7 +338,7 @@ function AdminDashboard({
     if (!window.confirm('Are you sure you want to delete this loan application?')) return;
     
     try {
-      await axios.delete(`${SERVER_HOST}/api/loans/${loanId}`);
+      await axios.delete(`/api/loans/${loanId}`);
       fetchLoans();
       alert('Loan application deleted successfully!');
     } catch (error) {
@@ -357,7 +350,7 @@ function AdminDashboard({
   // 🔥 NEW: Blog CRUD Functions
   const handleCreateBlog = async (blogData: BlogFormData) => {
     try {
-      await axios.post(`${SERVER_HOST}/api/blogs`, blogData);
+      await axios.post(`/api/blogs`, blogData);
       fetchBlogs();
       alert('Blog created successfully!');
       return { success: true };
@@ -369,7 +362,7 @@ function AdminDashboard({
 
   const handleUpdateBlog = async (blogId: string, blogData: Partial<BlogFormData>) => {
     try {
-      await axios.put(`${SERVER_HOST}/api/blogs/${blogId}`, blogData);
+      await axios.put(`/api/blogs/${blogId}`, blogData);
       fetchBlogs();
       alert('Blog updated successfully!');
       return { success: true };
@@ -383,7 +376,7 @@ function AdminDashboard({
     if (!window.confirm('Are you sure you want to delete this blog?')) return;
     
     try {
-      await axios.delete(`${SERVER_HOST}/api/blogs/${blogId}`);
+      await axios.delete(`/api/blogs/${blogId}`);
       fetchBlogs();
       alert('Blog deleted successfully!');
     } catch (error) {
@@ -654,7 +647,7 @@ function BannersManager({
               {filteredBanners.map((banner) => (
                 <div key={banner._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                   <div className="relative h-40 md:h-48 overflow-hidden">
-                    <img src={banner.image.startsWith('http') ? banner.image : `${SERVER_HOST}${banner.image}`} alt="Banner" className="w-full h-full object-cover" onError={(e) => { const target = e.target as HTMLImageElement; target.onerror = null; target.src = 'https://via.placeholder.com/400x200?text=Image+Not+Found'; }} />
+                    <img src={banner.image} alt="Banner" className="w-full h-full object-cover" onError={(e) => { const target = e.target as HTMLImageElement; target.onerror = null; target.src = 'https://via.placeholder.com/400x200?text=Image+Not+Found'; }} />
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between">
@@ -884,18 +877,14 @@ function BlogsManager({
     uploadFormData.append('page', 'blog'); // Use 'blog' as page identifier
     
     try {
-      const response = await axios.post(`${SERVER_HOST}/api/banners`, uploadFormData, {
+      const response = await axios.post(`/api/banners`, uploadFormData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       // The banners endpoint returns the created banner object
       // Extract the image URL from the response
       const uploadedBanner = response.data;
-      const imageUrl = uploadedBanner.image?.startsWith('http') 
-        ? uploadedBanner.image 
-        : `${SERVER_HOST}${uploadedBanner.image}`;
-      
-      return imageUrl;
+      return uploadedBanner.image;
     } catch (error) {
       console.error('Error uploading blog image:', error);
       throw new Error('Failed to upload image. Please try again.');

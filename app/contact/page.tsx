@@ -7,8 +7,6 @@ import axios from 'axios';
 import Script from 'next/script';
 import HeroSection from '@/components/HeroSection';
 
-const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || 'http://127.0.0.1:3001';
-
 // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
 const handleRedirect = (e: React.MouseEvent, url: string) => {
   e.preventDefault();
@@ -50,7 +48,7 @@ const Contact = () => {
     if (!validateForm()) { setSubmitMessage('❌ Please correct the errors above before submitting.'); return; }
     setIsSubmitting(true); setSubmitMessage('');
     try {
-      await axios.post(`${SERVER_HOST}/api/contacts`, formData, { headers: { 'Content-Type': 'application/json' } });
+      await axios.post('/api/contacts', formData, { headers: { 'Content-Type': 'application/json' } });
       setSubmitMessage('✅ Thank you! Your message has been sent successfully. We will get back to you within 24-48 business hours.');
       setFormData({ fullName: '', email: '', phoneNumber: '', loanType: '', loanAmount: '', message: '' });
       setFormErrors({});

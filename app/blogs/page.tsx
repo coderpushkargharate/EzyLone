@@ -11,9 +11,6 @@ interface Blog {
   createdAt: string;
 }
 
-// ✅ Use environment variable with fallback (matches your Contact page pattern)
-const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_HOST || 'http://127.0.0.1:3001';
-
 export default function Blogs() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +20,7 @@ export default function Blogs() {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/api/blogs`, {
+        const res = await fetch('/api/blogs', {
           cache: 'no-store', // ✅ Prevents stale data in production
           next: { revalidate: 3600 } // ✅ Optional: ISR revalidation every 1 hour
         });

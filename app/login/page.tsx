@@ -4,17 +4,15 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import AdminLoginForm, { LoginCredentials } from '@/components/AdminLoginForm';
 
-const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || 'http://127.0.0.1:3001';
-
 export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (credentials: LoginCredentials) => {
     try {
-      const response = await axios.post(`${SERVER_HOST}/api/auth/login`, credentials);
-      localStorage.setItem('token', response.data.token);
+      // Same-origin call; the server sets an httpOnly auth cookie in the response.
+      const response = await axios.post('/api/auth/login', credentials);
+      // Keep a non-sensitive copy of the user for display in the dashboard.
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       router.push('/admin');
       return { success: true };
     } catch (error: any) {

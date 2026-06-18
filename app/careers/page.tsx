@@ -165,8 +165,7 @@ export default function CareersPage() {
       const validationError = validateForm(formData);
       if (validationError) throw new Error(validationError);
 
-      const API_URL = process.env.NEXT_PUBLIC_SERVER_HOST || "http://127.0.0.1:3001";
-      const response = await fetch(`${API_URL}/api/careers`, {
+      const response = await fetch('/api/careers', {
         method: "POST",
         body: formData,
       });

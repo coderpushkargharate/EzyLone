@@ -112,7 +112,6 @@ const LOAN_TYPES = [
   },
 ];
 
-const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || "http://127.0.0.1:3001";
 const FALLBACK_BANNER = "/fallback-banner.jpg";
 const GOOGLE_REVIEW_LINK =
   "https://www.google.com/search?q=ezyloan#cobssid=s";
@@ -581,8 +580,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     (url: string): string => {
       if (!url?.trim()) return FALLBACK_BANNER;
       const trimmed = url.trim();
-      if (trimmed.startsWith("/") && SERVER_HOST && !trimmed.startsWith("//"))
-        return `${SERVER_HOST.replace(/\/+$/, "")}${trimmed}`;
+      // Banners are served same-origin now (Cloudinary URLs or /uploads/...),
+      // so relative "/..." paths resolve directly — no host prefix needed.
       if (trimmed.startsWith("//")) return `https:${trimmed}`;
       return trimmed;
     },
@@ -616,7 +615,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       setFormErrors({});
       try {
         const response = await axios.post(
-          `${SERVER_HOST}/api/contacts`,
+          `/api/contacts`,
           {
             ...formData,
             page: page === "home" ? "home" : page,
@@ -735,18 +734,13 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       setIsLoading(false);
       return;
     }
-    if (!SERVER_HOST) {
-      setError("Backend URL not configured");
-      setIsLoading(false);
-      return;
-    }
     let isMounted = true;
     const fetchBanners = async () => {
       try {
         setIsLoading(true);
         setError(null);
         const response = await axios.get(
-          `${SERVER_HOST}/api/banners?page=${encodeURIComponent(page)}`
+          `/api/banners?page=${encodeURIComponent(page)}`
         );
         if (!isMounted) return;
         const validBanners = (response.data || [])

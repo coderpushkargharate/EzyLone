@@ -12,8 +12,6 @@ import { trackMetaLead } from "@/components/MetaPixel";
 import {   Truck, ArrowRight, Percent, Clock, Shield, DollarSign, FileText, AlertCircle,
   User, TrendingUp, CheckCircle, Building, Zap, Award, Bus, Car , Info, Phone, Mail, MapPin } from "lucide-react";
 
-// Next.js requires NEXT_PUBLIC_ prefix for client-side env vars
-const SERVER_HOST = process.env.NEXT_PUBLIC_SERVER_HOST || 'http://127.0.0.1:3001';
 const BASE_URL = 'https://www.ezyloan.co.in'; // ✅ Fixed: No trailing spaces
 
 const ApplyNowPage: React.FC = () => {
@@ -99,7 +97,7 @@ const ApplyNowPage: React.FC = () => {
     setSubmitMessage("");
 
     try {
-      await axios.post(`${SERVER_HOST}/api/loans`, formData, {
+      await axios.post('/api/loans', formData, {
         headers: { 'Content-Type': 'application/json' }
       });
 

@@ -17,9 +17,6 @@ interface BlogPost {
   tags?: string[];
 }
 
-// ✅ Use environment variable (matches your Contact page pattern)
-const API_BASE_URL = process.env.NEXT_PUBLIC_SERVER_HOST || 'http://127.0.0.1:3001';
-
 export default function BlogDetails() {
   const { slug } = useParams();
   const router = useRouter();
@@ -41,7 +38,7 @@ export default function BlogDetails() {
         setLoading(true);
         setError(null);
         
-        const res = await fetch(`${API_BASE_URL}/api/blog/${slug}`, {
+        const res = await fetch(`/api/blog/${slug}`, {
           cache: 'no-store',
           headers: {
             'Content-Type': 'application/json',
