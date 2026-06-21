@@ -33,7 +33,12 @@ export async function POST(req: NextRequest) {
     }
 
     await connectDB();
-    const loanApplication = await LoanApplication.create(body);
+    // Whitelist fields explicitly — never spread the raw body into create(), or
+    // a caller could set server-controlled fields like `status` (e.g. ship an
+    // already-"approved" application straight into the admin dashboard).
+    const loanApplication = await LoanApplication.create({
+      fullName, email, phoneNumber, loanType, employmentType, city, pincode, cibilScore,
+    });
 
     await Promise.all([
       sendWelcomeEmail(fullName, email, 'loan'),

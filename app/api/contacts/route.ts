@@ -27,13 +27,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { fullName, email, phoneNumber, loanType, loanAmount } = body;
+    const { fullName, email, phoneNumber, loanType, loanAmount, message } = body;
     if (!fullName || !email || !phoneNumber || !loanType || !loanAmount) {
       return NextResponse.json({ message: 'All fields required' }, { status: 400 });
     }
 
     await connectDB();
-    const contact = await Contact.create(body);
+    // Whitelist fields explicitly rather than spreading the raw body (see loans route).
+    const contact = await Contact.create({
+      fullName, email, phoneNumber, loanType, loanAmount, message,
+    });
 
     await Promise.all([
       sendWelcomeEmail(fullName, email, 'enquiry'),
