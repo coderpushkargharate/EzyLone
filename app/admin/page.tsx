@@ -280,7 +280,12 @@ function AdminDashboard({
   const fetchTestimonials = async () => {
     setLoading(prev => ({ ...prev, testimonials: true }));
     try {
-      const response = await axios.get(`/api/testimonials`);
+      // Bust the browser HTTP cache (the public GET sets max-age=300) so the
+      // admin always sees the live list — otherwise a just-deleted testimonial
+      // can reappear from cache and trigger a 404 delete.
+      const response = await axios.get(`/api/testimonials?_t=${Date.now()}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       setTestimonials(response.data);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
@@ -312,12 +317,24 @@ function AdminDashboard({
 
   const handleDeleteTestimonial = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this testimonial?')) return;
+
+    // Optimistically drop it so it disappears immediately and can't be
+    // clicked/deleted twice while the request is in flight.
+    setTestimonials(prev => prev.filter((t: any) => t._id !== id));
+
     try {
       await axios.delete(`/api/testimonials/${id}`);
       fetchTestimonials();
-    } catch (error) {
+    } catch (error: any) {
+      // 404 = already deleted (e.g. a double-click); the row is already gone,
+      // so just reconcile with a fresh fetch — no error popup.
+      if (error?.response?.status === 404) {
+        fetchTestimonials();
+        return;
+      }
       console.error('Error deleting testimonial:', error);
       alert('Failed to delete testimonial. Please try again.');
+      fetchTestimonials();
     }
   };
 
