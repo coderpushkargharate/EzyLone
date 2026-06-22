@@ -1,10 +1,22 @@
 import { v2 as cloudinary, UploadApiOptions, UploadApiResponse } from 'cloudinary';
+import dns from 'dns';
+
+// On VPS hosts the IPv6 route to Cloudinary/Mongo is often broken or very slow,
+// which makes Node hang on the AAAA address until it times out (499 TimeoutError).
+// Preferring IPv4 avoids that dead path. Safe: it still falls back to IPv6.
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch {
+  /* older Node without this API — ignore */
+}
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
+  // Give slow VPS↔Cloudinary links more room before giving up (ms).
+  timeout: 120000,
 });
 
 export { cloudinary };
@@ -22,7 +34,7 @@ export function destroyRaw(publicId: string) {
 /** Upload a Buffer to Cloudinary via an upload stream. */
 export function uploadBuffer(buffer: Buffer, options: UploadApiOptions): Promise<UploadApiResponse> {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+    const stream = cloudinary.uploader.upload_stream({ timeout: 120000, ...options }, (error, result) => {
       if (error || !result) reject(error || new Error('Upload failed'));
       else resolve(result);
     });

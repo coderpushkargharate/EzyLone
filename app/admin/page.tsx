@@ -347,8 +347,8 @@ function AdminDashboard({
       return;
     }
     
-    if (file.size > 20 * 1024 * 1024) {
-      alert('File size should be less than 20MB');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size should be less than 5MB');
       return;
     }
 
@@ -1131,8 +1131,8 @@ function BlogsManager({
       return;
     }
     
-    if (file.size > 20 * 1024 * 1024) {
-      alert('File size should be less than 20MB');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size should be less than 5MB');
       return;
     }
 
@@ -1389,7 +1389,7 @@ function TestimonialsManager({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { alert('Please select an image'); return; }
-    if (file.size > 20 * 1024 * 1024) { alert('Image should be less than 20MB'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image should be less than 5MB'); return; }
     setAvatarFile(file);
     setPreview(URL.createObjectURL(file));
     e.target.value = '';
