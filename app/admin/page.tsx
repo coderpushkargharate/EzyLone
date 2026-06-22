@@ -221,7 +221,12 @@ function AdminDashboard({
   const fetchBanners = async () => {
     setLoading(prev => ({ ...prev, banners: true }));
     try {
-      const response = await axios.get(`/api/banners`);
+      // Bust the browser HTTP cache (the public GET sets max-age=300) so the
+      // admin always sees the live list — otherwise a just-deleted banner can
+      // reappear from cache and trigger repeated 404 deletes.
+      const response = await axios.get(`/api/banners?_t=${Date.now()}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+      });
       setBanners(response.data);
     } catch (error) {
       console.error('Error fetching banners:', error);
@@ -325,11 +330,11 @@ function AdminDashboard({
       return;
     }
     
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size should be less than 5MB');
+    if (file.size > 20 * 1024 * 1024) {
+      alert('File size should be less than 20MB');
       return;
     }
-    
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append('image', file);
@@ -352,18 +357,24 @@ function AdminDashboard({
 
   const handleDeleteBanner = async (bannerId: string) => {
     if (!window.confirm('Are you sure you want to delete this banner?')) return;
-    
+
+    // Optimistically drop it from the list so it disappears immediately and
+    // can't be clicked again while the request is in flight.
+    setBanners(prev => prev.filter((b: any) => b._id !== bannerId));
+
     try {
       await axios.delete(`/api/banners/${bannerId}`);
       fetchBanners();
     } catch (error: any) {
-      // 404 = already deleted (e.g. a double-click); just refresh, no error.
+      // 404 = already gone (stale list / double-click); the server has cleared
+      // its cache, so a fresh fetch reconciles the list. No error to the user.
       if (error?.response?.status === 404) {
         fetchBanners();
         return;
       }
       console.error('Error deleting banner:', error);
       alert('Failed to delete banner. Please try again.');
+      fetchBanners();
     }
   };
 
@@ -1103,11 +1114,11 @@ function BlogsManager({
       return;
     }
     
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size should be less than 5MB');
+    if (file.size > 20 * 1024 * 1024) {
+      alert('File size should be less than 20MB');
       return;
     }
-    
+
     setImageFile(file);
     
     // Create preview URL
@@ -1361,7 +1372,7 @@ function TestimonialsManager({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { alert('Please select an image'); return; }
-    if (file.size > 5 * 1024 * 1024) { alert('Image should be less than 5MB'); return; }
+    if (file.size > 20 * 1024 * 1024) { alert('Image should be less than 20MB'); return; }
     setAvatarFile(file);
     setPreview(URL.createObjectURL(file));
     e.target.value = '';

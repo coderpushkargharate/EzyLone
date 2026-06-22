@@ -17,7 +17,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     // Delete the DB record first and respond fast. The Cloudinary cleanup is
     // slow (~5s) so we do it in the background — no need to make the admin wait.
     const banner = await Banner.findByIdAndDelete(params.id);
-    if (!banner) return NextResponse.json({ message: 'Banner not found' }, { status: 404 });
+    if (!banner) {
+      // Already gone from the DB but may still be in the in-memory cache (which
+      // is why the admin list kept showing it). Clear the cache so the stale
+      // banner disappears on the next fetch instead of looping 404s.
+      invalidateBannerCache();
+      return NextResponse.json({ message: 'Banner already deleted' }, { status: 404 });
+    }
 
     invalidateBannerCache();
 
