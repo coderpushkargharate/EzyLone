@@ -552,13 +552,18 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     []
   );
 
-  // Admin-managed testimonials (from the admin panel). If any exist they replace
-  // the built-in defaults above; otherwise the defaults are shown.
+  // Admin-managed testimonials (from the admin panel). These are shown in
+  // addition to the built-in defaults below — newly added ones appear first and
+  // the earlier/default testimonials are kept.
   const [adminTestimonials, setAdminTestimonials] = useState<Testimonial[]>([]);
   useEffect(() => {
     let mounted = true;
     axios
-      .get('/api/testimonials')
+      // Cache-buster so the public list reflects admin adds/deletes right away
+      // instead of serving the 5-min cached response.
+      .get(`/api/testimonials?_t=${Date.now()}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+      })
       .then((r) => {
         if (!mounted) return;
         const list = (r.data || [])
@@ -578,8 +583,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     };
   }, []);
 
+  // Show admin-added testimonials first, then the built-in defaults, so adding
+  // new ones never hides the earlier testimonials.
   const testimonials = useMemo<Testimonial[]>(
-    () => (adminTestimonials.length ? adminTestimonials : defaultTestimonials),
+    () => [...adminTestimonials, ...defaultTestimonials],
     [adminTestimonials, defaultTestimonials]
   );
 
