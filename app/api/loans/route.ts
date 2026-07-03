@@ -40,10 +40,16 @@ export async function POST(req: NextRequest) {
       fullName, email, phoneNumber, loanType, employmentType, city, pincode, cibilScore,
     });
 
-    await Promise.all([
-      sendWelcomeEmail(fullName, email, 'loan'),
-      sendLoanAdminNotification(body),
-    ]);
+    // The application is already saved above. A mail failure must NOT turn a
+    // captured application into a 500 the applicant reads as "failed".
+    try {
+      await Promise.all([
+        sendWelcomeEmail(fullName, email, 'loan'),
+        sendLoanAdminNotification(body),
+      ]);
+    } catch (mailErr) {
+      console.error('Loan notification email failed (application still saved):', mailErr);
+    }
 
     return NextResponse.json({ message: 'Loan submitted', loanApplication }, { status: 201 });
   } catch (error: any) {

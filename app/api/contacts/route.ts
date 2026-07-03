@@ -28,20 +28,31 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { fullName, email, phoneNumber, loanType, loanAmount, message } = body;
-    if (!fullName || !email || !phoneNumber || !loanType || !loanAmount) {
-      return NextResponse.json({ message: 'All fields required' }, { status: 400 });
+    // loanAmount is intentionally NOT required here: the hero form marks it
+    // "(Optional)". Requiring it silently rejected (400) every lead that left it
+    // blank, which the user only saw as a generic "Something went wrong".
+    if (!fullName || !email || !phoneNumber || !loanType) {
+      return NextResponse.json({ message: 'Name, email, phone and loan type are required' }, { status: 400 });
     }
 
     await connectDB();
     // Whitelist fields explicitly rather than spreading the raw body (see loans route).
     const contact = await Contact.create({
-      fullName, email, phoneNumber, loanType, loanAmount, message,
+      fullName, email, phoneNumber, loanType,
+      loanAmount: loanAmount || 'Not specified',
+      message,
     });
 
-    await Promise.all([
-      sendWelcomeEmail(fullName, email, 'enquiry'),
-      sendContactAdminNotification(body),
-    ]);
+    // The lead is already saved above. A mail failure (SMTP down, bad address)
+    // must NOT turn a captured lead into a 500 the visitor reads as "failed".
+    try {
+      await Promise.all([
+        sendWelcomeEmail(fullName, email, 'enquiry'),
+        sendContactAdminNotification(body),
+      ]);
+    } catch (mailErr) {
+      console.error('Contact notification email failed (lead still saved):', mailErr);
+    }
 
     return NextResponse.json({ message: 'Contact submitted', contact }, { status: 201 });
   } catch (error: any) {

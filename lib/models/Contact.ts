@@ -17,7 +17,9 @@ const ContactSchema = new Schema<IContact>(
     email: { type: String, required: true },
     phoneNumber: { type: String, required: true },
     loanType: { type: String, required: true },
-    loanAmount: { type: String, required: true },
+    // Optional on the form ("Loan Amount (Optional)"); defaults keep the admin
+    // view tidy when a lead leaves it blank.
+    loanAmount: { type: String, default: 'Not specified' },
     message: { type: String },
   },
   { timestamps: true }
