@@ -1,8 +1,40 @@
 import HeroSection from '@/components/HeroSection';
 import Services from '@/components/Services';
-import SEO from '@/components/SEO';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
+
+const BASE_URL = 'https://www.ezyloan.co.in';
+
+// FinancialProduct structured data for the homepage. Previously this lived in a
+// <SEO> component built on `next/head`, which is a Pages-Router API and renders
+// nothing in the App Router — so this schema was silently missing. Emitting it
+// here as a real <script> makes it actually appear in the page HTML.
+const financialProductSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FinancialProduct',
+  name: 'Loan Facilitation - EzyLoan',
+  description:
+    'Loan assistance with interest rates starting from 10%* p.a. Subject to lender approval and credit assessment.',
+  provider: {
+    '@type': 'FinancialService',
+    name: 'EzyLoan (Dibyansh Associates)',
+    url: BASE_URL,
+    logo: `${BASE_URL}/logo.webp`,
+  },
+  areaServed: 'IN',
+  availableLanguage: ['English', 'Hindi'],
+  offers: {
+    '@type': 'Offer',
+    url: `${BASE_URL}/`,
+    priceCurrency: 'INR',
+    priceSpecification: {
+      '@type': 'PriceSpecification',
+      priceCurrency: 'INR',
+      price: 0,
+      description: 'Free loan facilitation service. No upfront fees.',
+    },
+  },
+};
 
 export const metadata = {
   title: 'EzyLoan - Quick & Easy Loans Online | Personal, Business, Car Loans',
@@ -26,17 +58,9 @@ export default function Home() {
 
   return (
     <>
-      <SEO
-        title="EzyLoan - Quick & Easy Loans Online*"
-        description="Loan assistance with interest rates starting from 10%* p.a. Subject to lender approval and credit assessment."
-        canonical="/"
-        keywords={[
-          'personal loan', 'business loan', 'car loan',
-          'loan facilitator', 'DSA', 'NBFC partner', '10% interest rate',
-        ]}
-        image="/og-home.jpg"
-        pageType="financialproduct"
-        loanType="Loan Facilitation"
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(financialProductSchema) }}
       />
 
       <main className="min-h-screen bg-white" role="main">

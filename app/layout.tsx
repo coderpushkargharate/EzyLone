@@ -204,7 +204,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           .px-4{padding-left:1rem;padding-right:1rem}
           @media(min-width:640px){.px-4{padding-left:1.5rem;padding-right:1.5rem}}
           @media(min-width:1024px){.px-4{padding-left:2rem;padding-right:2rem}}
-          @font-face{font-family:Inter;font-display:swap;src:url(/_next/static/media/8e9860b6e62d6359-s.woff2) format("woff2")}
         `}} />
 
         {/* STRUCTURED DATA */}
