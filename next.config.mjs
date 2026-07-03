@@ -12,6 +12,20 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.pexels.com' },
     ],
   },
+  // Consolidate the apex domain onto the canonical www host so Google doesn't
+  // index ezyloan.co.in and www.ezyloan.co.in as duplicates. Every canonical tag
+  // in the app already points at www.ezyloan.co.in. (If your DNS/host already
+  // forces www at the platform level, this rule simply never fires — harmless.)
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'ezyloan.co.in' }],
+        destination: 'https://www.ezyloan.co.in/:path*',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
