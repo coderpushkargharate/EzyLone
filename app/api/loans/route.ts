@@ -4,6 +4,7 @@ import { LoanApplication } from '@/lib/models/LoanApplication';
 import { verifyAuth, unauthorized } from '@/lib/auth';
 import { formRateLimit } from '@/lib/rateLimit';
 import { sendWelcomeEmail, sendLoanAdminNotification } from '@/lib/email';
+import { syncLeadToCrm } from '@/lib/crm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -50,6 +51,17 @@ export async function POST(req: NextRequest) {
     } catch (mailErr) {
       console.error('Loan notification email failed (application still saved):', mailErr);
     }
+
+    // Mirror the application into EzyLoanCrm. Non-blocking + never throws — a
+    // CRM outage never affects the applicant (data already saved above).
+    await syncLeadToCrm({
+      name: fullName,
+      email,
+      phone: phoneNumber,
+      message: `Loan Type: ${loanType} | Employment: ${employmentType} | ` +
+        `City: ${city} | Pincode: ${pincode} | CIBIL: ${cibilScore}`,
+      source: 'Website Apply Now',
+    });
 
     return NextResponse.json({ message: 'Loan submitted', loanApplication }, { status: 201 });
   } catch (error: any) {

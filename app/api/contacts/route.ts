@@ -4,6 +4,7 @@ import { Contact } from '@/lib/models/Contact';
 import { verifyAuth, unauthorized } from '@/lib/auth';
 import { formRateLimit } from '@/lib/rateLimit';
 import { sendWelcomeEmail, sendContactAdminNotification } from '@/lib/email';
+import { syncLeadToCrm } from '@/lib/crm';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -53,6 +54,17 @@ export async function POST(req: NextRequest) {
     } catch (mailErr) {
       console.error('Contact notification email failed (lead still saved):', mailErr);
     }
+
+    // Mirror the lead into EzyLoanCrm. Non-blocking + never throws — same
+    // guarantee as the email step: a CRM outage never affects the visitor.
+    await syncLeadToCrm({
+      name: fullName,
+      email,
+      phone: phoneNumber,
+      message: `Loan Type: ${loanType} | Amount: ${loanAmount || 'Not specified'}` +
+        (message ? ` | Message: ${message}` : ''),
+      source: 'Website Contact Form',
+    });
 
     return NextResponse.json({ message: 'Contact submitted', contact }, { status: 201 });
   } catch (error: any) {
