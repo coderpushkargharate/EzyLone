@@ -5,6 +5,7 @@ import { verifyAuth, unauthorized } from '@/lib/auth';
 import { formRateLimit } from '@/lib/rateLimit';
 import { sendWelcomeEmail, sendLoanAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
+import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -62,6 +63,11 @@ export async function POST(req: NextRequest) {
         `City: ${city} | Pincode: ${pincode} | CIBIL: ${cibilScore}`,
       source: 'Website Apply Now',
     });
+
+    // Send a WhatsApp confirmation to the applicant. Fire-and-forget + never
+    // throws — same guarantee as email/CRM above (application already saved).
+    // Picks template vs free-text automatically based on env (sandbox/production).
+    await sendLeadConfirmationWhatsApp(phoneNumber, fullName);
 
     return NextResponse.json({ message: 'Loan submitted', loanApplication }, { status: 201 });
   } catch (error: any) {

@@ -409,14 +409,13 @@ const BankingPartnersCarousel = memo(
                     className="flex-shrink-0 flex items-center justify-center"
                     style={{ width: "160px", marginRight: "24px" }}
                   >
-                    <div className="w-40 h-20 bg-white/70 rounded-xl p-1 flex items-center justify-center border border-white/50 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div className="w-40 h-20 bg-white rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
                       <Image
                         src={partner.logo}
                         alt={partner.name}
                         width={120}
                         height={60}
-                        className="object-contain"
-                        style={{ width: "auto", height: "auto" }}
+                        className="w-full h-full object-contain"
                         loading="lazy"
                         quality={65}
                         onError={(e) => {
@@ -441,14 +440,13 @@ const BankingPartnersCarousel = memo(
                     className="flex-shrink-0 flex items-center justify-center"
                     style={{ width: "112px", marginRight: "12px" }}
                   >
-                    <div className="w-28 h-16 bg-white/70 rounded-xl p-1 flex items-center justify-center border border-white/50 shadow-sm">
+                    <div className="w-28 h-16 bg-white rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm">
                       <Image
                         src={partner.logo}
                         alt={partner.name}
                         width={80}
                         height={48}
-                        className="object-contain"
-                        style={{ width: "auto", height: "auto" }}
+                        className="w-full h-full object-contain"
                         loading="lazy"
                         quality={65}
                         onError={(e) => {
@@ -595,7 +593,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       "/banks/AU-Small-Finance-Bank.webp",
       "/banks/Axis_Bank_logo.svg.webp",
       "/banks/Bajaj-Finsery-Logo.webp",
-      "/banks/chola-logo-removebg-preview.webp",
+      "/banks/chola-logo-removebg-preview.jpg",
       "/banks/Tata-Capital.webp",
       "/banks/HDB.webp",
       "/banks/boi.webp",
@@ -603,7 +601,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       "/banks/ICICI-Bank-logo.webp",
       "/banks/IDFC-logo.webp",
       "/banks/Kotak_Mahindra_Bank_logo.webp",
-      "/banks/Mahindra_Finance_Logo.webp",
+      "/banks/Mahindra_Finance_Logo.jpg",
       "/banks/Piramal-Logo.webp",
       "/banks/esaf-seeklogo.webp",
       "/banks/aditya_birla_camptal-removebg-preview.webp",

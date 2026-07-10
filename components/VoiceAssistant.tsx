@@ -24,7 +24,7 @@ const VoiceAssistant: React.FC = () => {
     <>
       <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
         <div className="relative flex flex-col items-center space-y-3">
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-3 mb-10">
             <button
               onClick={() => window.location.href = '/emi-calculator'}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:scale-110 border-2 border-white/20"

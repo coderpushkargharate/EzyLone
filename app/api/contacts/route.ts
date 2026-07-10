@@ -5,6 +5,7 @@ import { verifyAuth, unauthorized } from '@/lib/auth';
 import { formRateLimit } from '@/lib/rateLimit';
 import { sendWelcomeEmail, sendContactAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
+import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -65,6 +66,11 @@ export async function POST(req: NextRequest) {
         (message ? ` | Message: ${message}` : ''),
       source: 'Website Contact Form',
     });
+
+    // Send a WhatsApp confirmation to the lead. Fire-and-forget + never throws —
+    // same guarantee as email/CRM above (lead already saved). Picks template vs
+    // free-text automatically based on env (sandbox vs production sender).
+    await sendLeadConfirmationWhatsApp(phoneNumber, fullName);
 
     return NextResponse.json({ message: 'Contact submitted', contact }, { status: 201 });
   } catch (error: any) {
