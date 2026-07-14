@@ -96,20 +96,20 @@ const VoiceAssistant: React.FC = () => {
               aria-label={action.label}
               className={`group flex h-12 w-max items-center overflow-hidden rounded-l-full bg-gradient-to-r ${action.gradient} shadow-lg transition-shadow duration-300 hover:shadow-xl`}
             >
-              {/* Label — collapses to 0 width, expands to content on hover */}
-              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr]">
-                <span className="overflow-hidden">
-                  <span className="block whitespace-nowrap pl-4 pr-2 text-sm font-semibold text-white">
-                    {action.label}
-                  </span>
-                </span>
-              </span>
-
-              {/* Icon circle — pinned right, inverts to white on hover */}
+              {/* Icon circle — leads on the left, inverts to white on hover */}
               <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-white">
                 <action.Icon
                   className={`h-5 w-5 text-white transition-colors duration-300 ${action.iconHover}`}
                 />
+              </span>
+
+              {/* Label — collapses to 0 width, expands after the icon on hover */}
+              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr]">
+                <span className="overflow-hidden">
+                  <span className="block whitespace-nowrap pl-1 pr-4 text-sm font-semibold text-white">
+                    {action.label}
+                  </span>
+                </span>
               </span>
             </button>
           </div>

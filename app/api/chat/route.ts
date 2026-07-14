@@ -5,7 +5,7 @@ import { buildSystemPrompt, llmReply } from '@/lib/chatbot/llm';
 import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
 import { syncLeadToCrm } from '@/lib/crm';
-import { sendLoanAdminNotification } from '@/lib/email';
+import { sendLoanAdminNotification, sendWelcomeEmail } from '@/lib/email';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
@@ -25,6 +25,7 @@ interface ChatBody {
 // DB/mail/CRM/Twilio hiccup never breaks the chat reply — the lead is saved first.
 async function captureLead(lead: LeadData) {
   const fullName = lead.name || 'Ezy AI Lead';
+  const email = lead.email || undefined;
   const phoneNumber = lead.phone || '';
   const loanType = lead.loanType || 'General enquiry';
   const employmentType = lead.employment || 'Not specified';
@@ -36,7 +37,7 @@ async function captureLead(lead: LeadData) {
   try {
     await connectDB();
     await LoanApplication.create({
-      fullName, email: undefined, phoneNumber, loanType, employmentType, city, pincode, cibilScore,
+      fullName, email, phoneNumber, loanType, employmentType, city, pincode, cibilScore,
     });
   } catch (e) {
     console.error('Chat lead DB save failed:', e);
@@ -45,16 +46,28 @@ async function captureLead(lead: LeadData) {
   // 2) Notify the admin/lead inbox by email (same template as Apply Now).
   try {
     await sendLoanAdminNotification({
-      fullName, email: '', phoneNumber, loanType, employmentType, city, pincode, cibilScore,
+      fullName, email: email || '', phoneNumber, loanType, employmentType, city, pincode, cibilScore,
     });
   } catch (e) {
     console.error('Chat lead admin email failed (lead still saved):', e);
+  }
+
+  // 2b) Confirmation email to the visitor — same welcome template as the
+  // Apply Now / Contact forms. Only when we captured an email (guarded so it
+  // never breaks the chat reply). sendWelcomeEmail itself no-ops without email.
+  if (email) {
+    try {
+      await sendWelcomeEmail(fullName, email, 'loan');
+    } catch (e) {
+      console.error('Chat lead welcome email failed (lead still saved):', e);
+    }
   }
 
   // 3) Mirror into the CRM (Privyr etc.) — carries the richer chat context.
   try {
     await syncLeadToCrm({
       name: fullName,
+      email,
       phone: phoneNumber,
       message: lead.message,
       source: lead.source,

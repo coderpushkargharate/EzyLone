@@ -27,6 +27,7 @@ export interface ChatState {
 
 export interface LeadData {
   name?: string;
+  email?: string;
   phone?: string;
   city?: string;
   loanType?: string;
@@ -338,6 +339,21 @@ function leadFlow(raw: string, state: ChatState): EngineResult {
     const digits = (raw.match(/\d/g) || []).join('');
     if (digits.length < 10) return { reply: 'Please share a valid 10-digit mobile number.', state };
     d.phone = digits.slice(-10);
+    return {
+      reply: 'And your *email address*? We’ll send you a confirmation there. (or type “skip”)',
+      state: { flow: 'lead', step: 5, data: d },
+    };
+  }
+
+  // step 5 → email (asked right after the mobile number)
+  if (step === 5) {
+    if (!hasWord(text, ['skip', 'no', 'nahi', 'later'])) {
+      const email = raw.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { reply: 'Please share a valid email like name@example.com, or type “skip”.', state };
+      }
+      d.email = email;
+    }
     if (d.city) { // came from eligibility, city already known → skip
       return askLoanTypeOrFinish(d);
     }
@@ -369,6 +385,7 @@ function askLoanTypeOrFinish(d: Record<string, any>): EngineResult {
 function finishLead(d: Record<string, any>): EngineResult {
   const lead: LeadData = {
     name: d.name,
+    email: d.email,
     phone: d.phone,
     city: d.city,
     loanType: d.loanType,
