@@ -96,7 +96,7 @@ const ChatBot: React.FC = () => {
         <button
           onClick={() => setOpen(true)}
           aria-label="Chat with Ezy AI"
-          className="fixed bottom-24 right-4 z-[9998] flex items-center gap-2 rounded-full bg-gradient-to-r from-[#2563eb] to-[#06b6d4] px-4 py-3 text-white shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl md:bottom-6 md:right-6"
+          className="fixed bottom-24 right-4 z-[9998] flex origin-right items-center gap-2 rounded-full bg-gradient-to-r from-[#2563eb] to-[#06b6d4] px-4 py-3 text-white shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl md:bottom-6 md:right-6"
         >
           <MessageSquare className="h-6 w-6" />
           <span className="hidden text-sm font-semibold sm:inline">Chat with us</span>
