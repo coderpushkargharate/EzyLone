@@ -37,16 +37,16 @@ const ACTIONS: Array<{
     id: 'calculator',
     label: 'EMI Calculator',
     Icon: Calculator,
-    gradient: 'from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700',
-    iconHover: 'group-hover:text-purple-700',
+    gradient: 'from-purple-600/80 to-indigo-600/80 hover:from-purple-700/80 hover:to-indigo-700/80',
+    iconHover: 'group-hover:text-purple-700 group-focus:text-purple-700 group-active:text-purple-700',
     onClick: () => (window.location.href = '/emi-calculator'),
   },
   {
     id: 'facebook',
     label: 'Facebook',
     Icon: FacebookIcon,
-    gradient: 'from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900',
-    iconHover: 'group-hover:text-blue-700',
+    gradient: 'from-blue-600/80 to-blue-800/80 hover:from-blue-700/80 hover:to-blue-900/80',
+    iconHover: 'group-hover:text-blue-700 group-focus:text-blue-700 group-active:text-blue-700',
     onClick: () => window.open('https://www.facebook.com/ezyloan.co.in/', '_blank'),
   },
   {
@@ -54,16 +54,16 @@ const ACTIONS: Array<{
     label: 'Instagram',
     Icon: InstagramIcon,
     gradient:
-      'from-purple-500 via-pink-500 to-orange-400 hover:from-purple-600 hover:via-pink-600 hover:to-orange-500',
-    iconHover: 'group-hover:text-pink-600',
+      'from-purple-500/80 via-pink-500/80 to-orange-400/80 hover:from-purple-600/80 hover:via-pink-600/80 hover:to-orange-500/80',
+    iconHover: 'group-hover:text-pink-600 group-focus:text-pink-600 group-active:text-pink-600',
     onClick: () => window.open('https://www.instagram.com/ezyloanofficials/', '_blank'),
   },
   {
     id: 'phone',
     label: 'Call Us',
     Icon: Phone,
-    gradient: 'from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700',
-    iconHover: 'group-hover:text-teal-700',
+    gradient: 'from-green-600/80 to-teal-600/80 hover:from-green-700/80 hover:to-teal-700/80',
+    iconHover: 'group-hover:text-teal-700 group-focus:text-teal-700 group-active:text-teal-700',
     desktopOnly: true,
     onClick: () => window.open('tel:+916372977626', '_blank'),
   },
@@ -71,8 +71,8 @@ const ACTIONS: Array<{
     id: 'whatsapp',
     label: 'WhatsApp',
     Icon: WhatsAppIcon,
-    gradient: 'from-green-500 to-green-700 hover:from-green-600 hover:to-green-800',
-    iconHover: 'group-hover:text-green-600',
+    gradient: 'from-green-500/80 to-green-700/80 hover:from-green-600/80 hover:to-green-800/80',
+    iconHover: 'group-hover:text-green-600 group-focus:text-green-600 group-active:text-green-600',
     desktopOnly: true,
     onClick: () => window.open('https://wa.me/916372977626', '_blank'),
   },
@@ -93,14 +93,14 @@ const VoiceAssistant: React.FC = () => {
   // ✅ Return a placeholder during SSR to prevent hydration mismatch
   if (!isClient) {
     return (
-      <div className="fixed bottom-44 right-0 md:bottom-28 z-50">
+      <div className="fixed bottom-36 right-0 md:bottom-28 z-50">
         <div className="w-12 h-12 rounded-l-full bg-gray-200 animate-pulse" />
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-44 right-0 md:bottom-28 z-50">
+    <div className="fixed bottom-36 right-0 md:bottom-28 z-50">
       <div className="flex flex-col items-end gap-3">
         {ACTIONS.map((action, i) => (
           <div
@@ -110,22 +110,23 @@ const VoiceAssistant: React.FC = () => {
             } ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
             style={{ transitionDelay: `${i * 60}ms` }}
           >
+            {/* group = expand on hover (desktop) AND on focus/active (mobile tap) */}
             <button
               onClick={action.onClick}
               aria-label={action.label}
-              className={`group flex h-12 w-max items-center overflow-hidden rounded-l-full bg-gradient-to-r ${action.gradient} shadow-lg transition-shadow duration-300 hover:shadow-xl`}
+              className={`group flex h-12 w-max items-center overflow-hidden rounded-l-full border border-white/25 bg-gradient-to-r ${action.gradient} shadow-lg backdrop-blur-md transition-shadow duration-300 hover:shadow-xl focus:outline-none`}
             >
-              {/* Icon circle — leads on the left, inverts to white on hover */}
-              <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-white">
+              {/* Icon circle — leads on the left, inverts to white on hover/tap */}
+              <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-white group-focus:bg-white group-active:bg-white">
                 <action.Icon
                   className={`h-5 w-5 text-white transition-colors duration-300 ${action.iconHover}`}
                 />
               </span>
 
-              {/* Label — collapses to 0 width, expands after the icon on hover */}
-              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr]">
+              {/* Label — collapses to 0 width, expands after the icon on hover/tap */}
+              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus:grid-cols-[1fr] group-active:grid-cols-[1fr]">
                 <span className="overflow-hidden">
-                  <span className="block whitespace-nowrap pl-1 pr-4 text-sm font-semibold text-white">
+                  <span className="block whitespace-nowrap pl-1 pr-4 text-sm font-semibold text-white drop-shadow-sm">
                     {action.label}
                   </span>
                 </span>
