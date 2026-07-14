@@ -314,15 +314,30 @@ function startLead(state: ChatState, loanType?: string): EngineResult {
 }
 function leadFlow(raw: string, state: ChatState): EngineResult {
   const d = state.data!;
-  let step = state.step || 1;
+  // Use ?? not ||: step 0 (the eligibility confirm gate) is valid and must NOT
+  // fall back to 1, or the "Yes, call me" tap gets captured as the name.
+  let step = state.step ?? 1;
   const text = norm(raw);
 
-  // step 0 is a "confirm" gate coming out of eligibility.
+  // step 0 is a "confirm" gate coming out of eligibility. The visitor taps a
+  // quick reply here ("Yes, call me" / "Loan products") — we must NOT consume
+  // that tap as the name, so each branch returns and waits for the next reply.
   if (step === 0) {
+    if (has(text, ['product', 'products'])) {
+      return {
+        reply:
+          `Here’s what we offer at ${COMPANY.name}:\n\n` +
+          PRODUCTS.map((p) => `• *${p.name}* — ${p.summary}`).join('\n') +
+          `\n\nWhich one interests you?`,
+        quickReplies: ['New Car Loan', 'Personal Loan', 'Loan Against Property', 'Check eligibility'],
+        state: {},
+      };
+    }
     if (has(text, ['no', 'not now', 'later', 'nahi'])) {
       return { reply: 'No problem! I’m here whenever you need. Anything else I can help with?', quickReplies: DEFAULT_QUICK, state: {} };
     }
-    step = 1; // fall through to asking name
+    // Confirmed (e.g. "Yes, call me") → ask for the name and wait for the reply.
+    return startLead({ data: d }, d.loanType);
   }
 
   if (step === 1) {
