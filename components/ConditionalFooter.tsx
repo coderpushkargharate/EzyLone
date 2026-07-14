@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Footer from '@/components/Footer';
 import VoiceAssistantLoader from '@/components/VoiceAssistantLoader';
+import ChatBotLoader from '@/components/ChatBotLoader';
 import FixedFooter from '@/components/FixedFooter';
 
 // Hide the public footer + floating widgets on the admin/login dashboard.
@@ -15,6 +16,7 @@ export default function ConditionalFooter() {
     <>
       <Footer />
       <VoiceAssistantLoader />
+      <ChatBotLoader />
       <FixedFooter />
     </>
   );

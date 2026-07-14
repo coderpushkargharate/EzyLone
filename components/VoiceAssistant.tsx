@@ -14,7 +14,7 @@ const VoiceAssistant: React.FC = () => {
   // ✅ FIX: Return null during SSR to prevent hydration mismatch
   if (!isClient) {
     return (
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+      <div className="fixed bottom-44 right-4 md:bottom-28 md:right-5 z-50">
         <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 animate-pulse" />
       </div>
     );
@@ -22,7 +22,7 @@ const VoiceAssistant: React.FC = () => {
 
   return (
     <>
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+      <div className="fixed bottom-44 right-4 md:bottom-28 md:right-5 z-50">
         <div className="relative flex flex-col items-center space-y-3">
           <div className="flex flex-col space-y-3 mb-10">
             <button
