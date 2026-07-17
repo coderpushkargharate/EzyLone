@@ -1,142 +1,405 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Phone, Calculator } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Real official brand logos (single-path SVGs, fill = currentColor so they
-// inherit the button's text colour and the hover colour-invert). Inline to
-// avoid pulling in an icon package.
-const WhatsAppIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-  </svg>
-);
-const FacebookIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-  </svg>
-);
-const InstagramIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.012-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-  </svg>
-);
+// Premium icons
+import { FaWhatsapp, FaFacebookF, FaInstagram } from 'react-icons/fa';
+import { FiPhoneCall } from 'react-icons/fi';
+import { HiOutlineCalculator } from 'react-icons/hi';
+import { IoArrowUp } from 'react-icons/io5';
+import { MdClose } from 'react-icons/md';
+import { BsGrid3X3GapFill } from 'react-icons/bs';
 
-// Each floating action. `gradient` + `iconHover` are written as full literal
-// class strings so Tailwind's JIT picks them up.
+// EzyLone contact number (used for both Call + WhatsApp).
+const PHONE = '916372977626';
+const WA_TEXT = 'Hi,%20I%27m%20interested%20in%20a%20loan%20from%20EzyLoan';
+
 const ACTIONS: Array<{
   id: string;
   label: string;
-  Icon: React.ComponentType<{ className?: string }>;
-  gradient: string;
-  iconHover: string;
-  desktopOnly?: boolean;
-  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  type: 'calculator' | 'tel' | 'external';
+  url?: string;
+  priority?: 'high' | 'normal';
 }> = [
+  {
+    id: 'whatsapp',
+    label: 'WhatsApp',
+    icon: FaWhatsapp,
+    type: 'external',
+    url: `https://wa.me/${PHONE}?text=${WA_TEXT}`,
+    priority: 'high',
+  },
+  {
+    id: 'call',
+    label: 'Call Us',
+    icon: FiPhoneCall,
+    type: 'tel',
+    url: `tel:+${PHONE}`,
+    priority: 'high',
+  },
   {
     id: 'calculator',
     label: 'EMI Calculator',
-    Icon: Calculator,
-    gradient: 'from-purple-600/80 to-indigo-600/80 hover:from-purple-700/80 hover:to-indigo-700/80',
-    iconHover: 'group-hover:text-purple-700 group-focus:text-purple-700 group-active:text-purple-700',
-    onClick: () => (window.location.href = '/emi-calculator'),
+    icon: HiOutlineCalculator,
+    type: 'calculator',
+    priority: 'normal',
   },
   {
     id: 'facebook',
     label: 'Facebook',
-    Icon: FacebookIcon,
-    gradient: 'from-blue-600/80 to-blue-800/80 hover:from-blue-700/80 hover:to-blue-900/80',
-    iconHover: 'group-hover:text-blue-700 group-focus:text-blue-700 group-active:text-blue-700',
-    onClick: () => window.open('https://www.facebook.com/ezyloan.co.in/', '_blank'),
+    icon: FaFacebookF,
+    type: 'external',
+    url: 'https://www.facebook.com/ezyloan.co.in/',
+    priority: 'normal',
   },
   {
     id: 'instagram',
     label: 'Instagram',
-    Icon: InstagramIcon,
-    gradient:
-      'from-purple-500/80 via-pink-500/80 to-orange-400/80 hover:from-purple-600/80 hover:via-pink-600/80 hover:to-orange-500/80',
-    iconHover: 'group-hover:text-pink-600 group-focus:text-pink-600 group-active:text-pink-600',
-    onClick: () => window.open('https://www.instagram.com/ezyloanofficials/', '_blank'),
-  },
-  {
-    id: 'phone',
-    label: 'Call Us',
-    Icon: Phone,
-    gradient: 'from-green-600/80 to-teal-600/80 hover:from-green-700/80 hover:to-teal-700/80',
-    iconHover: 'group-hover:text-teal-700 group-focus:text-teal-700 group-active:text-teal-700',
-    desktopOnly: true,
-    onClick: () => window.open('tel:+916372977626', '_blank'),
-  },
-  {
-    id: 'whatsapp',
-    label: 'WhatsApp',
-    Icon: WhatsAppIcon,
-    gradient: 'from-green-500/80 to-green-700/80 hover:from-green-600/80 hover:to-green-800/80',
-    iconHover: 'group-hover:text-green-600 group-focus:text-green-600 group-active:text-green-600',
-    desktopOnly: true,
-    onClick: () => window.open('https://wa.me/916372977626', '_blank'),
+    icon: FaInstagram,
+    type: 'external',
+    url: 'https://www.instagram.com/ezyloanofficials/',
+    priority: 'normal',
   },
 ];
 
-const VoiceAssistant: React.FC = () => {
-  const [isClient, setIsClient] = useState(false);
-  const [mounted, setMounted] = useState(false);
+interface StickyActionsProps {
+  showScrollTop?: boolean;
+}
 
-  // ✅ Mark component as client-side only to avoid SSR issues
+export default function VoiceAssistant({ showScrollTop = true }: StickyActionsProps) {
+  const [showButtons, setShowButtons] = useState(false);
+  const [showScrollTopBtn, setShowScrollTopBtn] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Brand Colors
+  const BRAND_PRIMARY = '#005E60';
+  const BRAND_SECONDARY = '#8B0000';
+  const BRAND_GOLD = '#C9A84C';
+  const BRAND_LIGHT = '#F5F0EB';
+  const BRAND_DARK = '#1A1A1A';
+
   useEffect(() => {
-    setIsClient(true);
-    // Trigger the staggered slide-in shortly after mount.
-    const t = setTimeout(() => setMounted(true), 200);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setShowButtons(true), 300);
+    return () => clearTimeout(timer);
   }, []);
 
-  // ✅ Return a placeholder during SSR to prevent hydration mismatch
-  if (!isClient) {
-    return (
-      <div className="fixed bottom-36 right-0 md:bottom-28 z-50">
-        <div className="w-12 h-12 rounded-l-full bg-gray-200 animate-pulse" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTopBtn(window.scrollY > 400);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleAction = (action: typeof ACTIONS[0]) => {
+    if (action.type === 'calculator') {
+      // EzyLone has a dedicated EMI page (no modal) — navigate there.
+      window.location.href = '/emi-calculator';
+    } else if (action.type === 'tel') {
+      if (action.url) window.location.href = action.url;
+    } else if (action.type === 'external') {
+      if (action.url) window.open(action.url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Get high priority actions (WhatsApp & Call)
+  const highPriorityActions = ACTIONS.filter(a => a.priority === 'high');
+  const normalActions = ACTIONS.filter(a => a.priority === 'normal');
 
   return (
-    <div className="fixed bottom-36 right-0 md:bottom-28 z-50">
-      <div className="flex flex-col items-end gap-3">
-        {ACTIONS.map((action, i) => (
-          <div
-            key={action.id}
-            className={`flex justify-end transition-all duration-500 ease-out ${
-              action.desktopOnly ? 'hidden sm:flex' : ''
-            } ${mounted ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}
-            style={{ transitionDelay: `${i * 60}ms` }}
+    <>
+      {/* Mobile Version */}
+      {isMobile && (
+        <>
+          {/* Mobile Bottom Dock — labeled pills for primary actions + a More toggle */}
+          <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-2xl md:hidden"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
-            {/* group = expand on hover (desktop) AND on focus/active (mobile tap) */}
-            <button
-              onClick={action.onClick}
-              aria-label={action.label}
-              className={`group flex h-12 w-max items-center overflow-hidden rounded-l-full border border-white/25 bg-gradient-to-r ${action.gradient} shadow-lg backdrop-blur-md transition-shadow duration-300 hover:shadow-xl focus:outline-none`}
-            >
-              {/* Icon circle — leads on the left, inverts to white on hover/tap */}
-              <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-white group-focus:bg-white group-active:bg-white">
-                <action.Icon
-                  className={`h-5 w-5 text-white transition-colors duration-300 ${action.iconHover}`}
-                />
-              </span>
+            <div className="flex items-center gap-2 max-w-md mx-auto px-3 py-2.5">
+              {/* Primary actions — full-width colored pills */}
+              {highPriorityActions.map((action) => {
+                const Icon = action.icon;
+                const isWhatsApp = action.id === 'whatsapp';
+                const bg = isWhatsApp ? BRAND_PRIMARY : BRAND_SECONDARY;
+                return (
+                  <motion.button
+                    key={action.id}
+                    onClick={() => handleAction(action)}
+                    whileTap={{ scale: 0.96 }}
+                    className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-white font-semibold text-[13px] shadow-md active:shadow-sm transition-shadow"
+                    style={{ backgroundColor: bg, boxShadow: `0 4px 14px -4px ${bg}99` }}
+                  >
+                    <Icon className="w-[18px] h-[18px]" />
+                    <span>{isWhatsApp ? 'WhatsApp' : 'Call Now'}</span>
+                  </motion.button>
+                );
+              })}
 
-              {/* Label — collapses to 0 width, expands after the icon on hover/tap */}
-              <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover:grid-cols-[1fr] group-focus:grid-cols-[1fr] group-active:grid-cols-[1fr]">
-                <span className="overflow-hidden">
-                  <span className="block whitespace-nowrap pl-1 pr-4 text-sm font-semibold text-white drop-shadow-sm">
-                    {action.label}
-                  </span>
-                </span>
-              </span>
-            </button>
+              {/* More toggle */}
+              <motion.button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                whileTap={{ scale: 0.92 }}
+                aria-label="More options"
+                className="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center shadow-md transition-colors"
+                style={{
+                  backgroundColor: isMobileMenuOpen ? BRAND_SECONDARY : BRAND_LIGHT,
+                  color: isMobileMenuOpen ? '#FFFFFF' : BRAND_PRIMARY,
+                }}
+              >
+                {isMobileMenuOpen ? (
+                  <MdClose className="w-5 h-5" />
+                ) : (
+                  <BsGrid3X3GapFill className="w-5 h-5" />
+                )}
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Mobile Expanded Menu - Themed */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed bottom-24 left-4 right-4 z-[99] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 md:hidden"
+              >
+                <div className="grid grid-cols-3 gap-3">
+                  {normalActions.map((action) => {
+                    const Icon = action.icon;
+                    return (
+                      <motion.button
+                        key={action.id}
+                        onClick={() => {
+                          handleAction(action);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                      >
+                        <div
+                          className="w-12 h-12 rounded-full flex items-center justify-center shadow-md"
+                          style={{
+                            backgroundColor: BRAND_LIGHT,
+                            color: BRAND_PRIMARY
+                          }}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <span className="text-[11px] font-medium text-gray-700">{action.label}</span>
+                      </motion.button>
+                    );
+                  })}
+
+                  {/* Scroll to Top in Mobile Menu - Brand themed */}
+                  {showScrollTop && showScrollTopBtn && (
+                    <motion.button
+                      onClick={() => {
+                        scrollToTop();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200"
+                    >
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center shadow-md"
+                        style={{
+                          backgroundColor: BRAND_LIGHT,
+                          color: BRAND_PRIMARY
+                        }}
+                      >
+                        <IoArrowUp className="w-5 h-5" />
+                      </div>
+                      <span className="text-[11px] font-medium text-gray-700">Top</span>
+                    </motion.button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+
+      {/* Desktop Version - Unified Brand Design */}
+      {!isMobile && (
+        <>
+          <div className="fixed right-0 bottom-24 z-[100] flex flex-col gap-3 items-end pr-0 hidden md:flex">
+            <AnimatePresence>
+              {showButtons && ACTIONS.map((action, index) => {
+                const Icon = action.icon;
+                const isHovered = hoveredId === action.id;
+                const isHighPriority = action.priority === 'high';
+                const isWhatsApp = action.id === 'whatsapp';
+                const isCall = action.id === 'call';
+
+                // Determine background color based on action type
+                let bgColor = BRAND_PRIMARY;
+                if (isWhatsApp) bgColor = BRAND_PRIMARY;
+                else if (isCall) bgColor = BRAND_SECONDARY;
+                else if (action.id === 'calculator') bgColor = BRAND_GOLD;
+                else bgColor = BRAND_DARK;
+
+                return (
+                  <motion.div
+                    key={action.id}
+                    initial={{ scale: 0, x: 50, opacity: 0 }}
+                    animate={{ scale: 1, x: 0, opacity: 1 }}
+                    exit={{ scale: 0, x: 50, opacity: 0 }}
+                    transition={{ delay: 0.1 + index * 0.05, type: "spring", stiffness: 400, damping: 25 }}
+                    onMouseEnter={() => setHoveredId(action.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onClick={() => handleAction(action)}
+                    className="relative cursor-pointer"
+                    aria-label={action.label}
+                  >
+                    <motion.div
+                      className="relative flex items-center gap-2 overflow-hidden h-12"
+                      style={{
+                        backgroundColor: bgColor,
+                        borderRadius: '999px 0 0 999px',
+                        boxShadow: isHovered
+                          ? `0 10px 25px -5px ${BRAND_PRIMARY}80, 0 0 0 2px ${BRAND_GOLD}50`
+                          : '0 4px 12px -2px rgba(0,0,0,0.15)',
+                      }}
+                      animate={{ width: isHovered ? 130 : 48 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <motion.div
+                        className="w-12 h-12 flex items-center justify-center flex-shrink-0 z-10"
+                        animate={{
+                          backgroundColor: isHovered ? '#FFFFFF' : 'rgba(255,255,255,0)',
+                          borderRadius: '50%'
+                        }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <motion.div
+                          animate={{ color: isHovered ? bgColor : '#FFFFFF' }}
+                          transition={{ duration: 0.3 }}
+                          className="flex items-center justify-center"
+                        >
+                          <Icon className="w-5 h-5" />
+                        </motion.div>
+                      </motion.div>
+
+                      <motion.div className="h-full flex items-center pr-4 overflow-hidden whitespace-nowrap">
+                        <motion.span
+                          className="text-[13px] font-semibold text-white tracking-wide drop-shadow-sm"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={isHovered ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+                          transition={{ duration: 0.25, delay: 0.05, ease: "easeOut" }}
+                        >
+                          {action.label}
+                        </motion.span>
+                      </motion.div>
+
+                      {isHighPriority && !isHovered && (
+                        <motion.div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            borderRadius: '999px 0 0 999px',
+                            border: `2px solid ${BRAND_GOLD}`,
+                            opacity: 0.3
+                          }}
+                          animate={{
+                            scale: [1, 1.1, 1],
+                            opacity: [0.3, 0, 0.3],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      )}
+                    </motion.div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
-export default VoiceAssistant;
+          {/* Scroll to Top - Brand themed */}
+          <AnimatePresence>
+            {showScrollTop && showScrollTopBtn && (
+              <motion.div
+                initial={{ scale: 0, x: 50, opacity: 0 }}
+                animate={{ scale: 1, x: 0, opacity: 1 }}
+                exit={{ scale: 0, x: 50, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="fixed right-0 bottom-6 z-[100] hidden md:block"
+              >
+                <motion.div
+                  onMouseEnter={() => setHoveredId('scroll-top')}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onClick={scrollToTop}
+                  className="relative cursor-pointer"
+                  aria-label="Scroll to top"
+                >
+                  <motion.div
+                    className="relative flex items-center gap-2 overflow-hidden h-12"
+                    style={{
+                      backgroundColor: BRAND_PRIMARY,
+                      borderRadius: '999px 0 0 999px',
+                      boxShadow: hoveredId === 'scroll-top'
+                        ? `0 10px 25px -5px ${BRAND_PRIMARY}80, 0 0 0 2px ${BRAND_GOLD}50`
+                        : '0 4px 12px -2px rgba(0,0,0,0.15)',
+                    }}
+                    animate={{ width: hoveredId === 'scroll-top' ? 120 : 48 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <motion.div
+                      className="w-12 h-12 flex items-center justify-center flex-shrink-0 z-10"
+                      animate={{
+                        backgroundColor: hoveredId === 'scroll-top' ? '#FFFFFF' : 'rgba(255,255,255,0)',
+                        borderRadius: '50%'
+                      }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                    >
+                      <motion.div
+                        animate={{ color: hoveredId === 'scroll-top' ? BRAND_PRIMARY : '#FFFFFF' }}
+                        transition={{ duration: 0.3 }}
+                        className="flex items-center justify-center"
+                      >
+                        <IoArrowUp className="w-5 h-5" />
+                      </motion.div>
+                    </motion.div>
+
+                    <motion.div className="h-full flex items-center pr-4 overflow-hidden whitespace-nowrap">
+                      <motion.span
+                        className="text-[13px] font-semibold text-white tracking-wide drop-shadow-sm"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={hoveredId === 'scroll-top' ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+                        transition={{ duration: 0.25, delay: 0.05, ease: "easeOut" }}
+                      >
+                        Back to Top
+                      </motion.span>
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
+    </>
+  );
+}
