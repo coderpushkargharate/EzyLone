@@ -4,3 +4,11 @@ dist/
 build/
 .env
 .env*.local
+.env*.local.bak
+
+# TypeScript incremental build cache — machine-specific, never commit.
+*.tsbuildinfo
+
+# EzyLoanCrm is a self-contained app with its OWN git repo — the parent
+# EzyLone repo must not track or compile it (see tsconfig "exclude" too).
+EzyLoanCrm/
