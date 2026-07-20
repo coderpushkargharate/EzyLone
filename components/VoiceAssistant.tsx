@@ -131,7 +131,7 @@ export default function VoiceAssistant({ showScrollTop = true }: StickyActionsPr
                 onMouseEnter={() => setHoveredId(action.id)}
                 onMouseLeave={() => setHoveredId(null)}
                 onClick={() => handleAction(action)}
-                className="relative cursor-pointer"
+                className={`relative cursor-pointer ${isHighPriority ? 'hidden md:block' : ''}`}
                 aria-label={action.label}
               >
                 <motion.div
