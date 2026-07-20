@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.112.3",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
