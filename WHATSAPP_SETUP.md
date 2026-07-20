@@ -117,6 +117,31 @@ Phir dev/prod server **restart** karo. Bas — ho gaya.
 
 ---
 
+## Phase 7 — AI auto-reply (Ezy AI bot, website jaisa)
+
+Ab WhatsApp ka auto-reply ek **static message nahi** — website wale chatbot (Ezy AI)
+ka **poora dimaag** hai. User jo bhi pooche, bot wahi rule-engine + Claude se jawab
+deta hai (products, EMI, eligibility, lead capture — sab), aur har number ki baat-cheet
+**yaad** rakhta hai (multi-turn flows chalte hain). Lead complete hote hi wahi pipeline
+chalti hai jo website chat ki hai (DB + admin email + CRM + WhatsApp confirmation),
+CRM me source = **"Ezy AI WhatsApp"**.
+
+Iske liye env me (sirf yeh 2, dono optional lekin recommended):
+
+```env
+# Smart, ChatGPT-jaise jawab ke liye (na ho to rule-engine se hi jawab dega):
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-haiku-4-5
+
+# DATABASE_URL pehle se set hai — isi se har number ki conversation memory chalti hai.
+# (DB na mile to bot phir bhi jawab dega, bas memory ke bina — single-turn.)
+```
+
+> Sab pehle se code me ready hai. Bas key add karke server restart. Twilio Console ka
+> webhook (Phase 5) same rehta hai — `/api/whatsapp/webhook`.
+
+---
+
 ## Test karke confirm karna
 
 1. Kisi bhi number se website form bharo → log me `✅ WhatsApp queued …` dikhega aur
