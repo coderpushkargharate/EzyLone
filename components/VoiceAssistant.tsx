@@ -104,9 +104,71 @@ export default function VoiceAssistant({ showScrollTop = true }: StickyActionsPr
 
   return (
     <>
-      {/* Unified right-side vertical logo stack — identical layout on mobile and desktop */}
-      <div className="fixed right-0 bottom-24 z-[100] flex flex-col gap-3 items-end pr-0">
+      {/* Unified right-side vertical column — sits above the chat launcher so
+          nothing overlaps. On mobile it clears the bottom action bar + chat FAB
+          (bottom-44); on desktop it sits just above the chat FAB (bottom-24). */}
+      <div className="fixed right-0 bottom-44 md:bottom-24 z-[100] flex flex-col gap-3 items-end pr-0">
         <AnimatePresence>
+          {/* Scroll to Top — top of the stack, desktop only. As the first (top)
+              child of a bottom-anchored column it grows the stack upward, so the
+              logos below never shift. */}
+          {showScrollTop && showScrollTopBtn && (
+            <motion.div
+              key="scroll-top"
+              initial={{ scale: 0, x: 50, opacity: 0 }}
+              animate={{ scale: 1, x: 0, opacity: 1 }}
+              exit={{ scale: 0, x: 50, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              onMouseEnter={() => setHoveredId('scroll-top')}
+              onMouseLeave={() => setHoveredId(null)}
+              onClick={scrollToTop}
+              className="relative cursor-pointer hidden md:block"
+              aria-label="Scroll to top"
+            >
+              <motion.div
+                className="relative flex items-center gap-2 overflow-hidden h-12"
+                style={{
+                  backgroundColor: BRAND_PRIMARY,
+                  borderRadius: '999px 0 0 999px',
+                  boxShadow: hoveredId === 'scroll-top'
+                    ? `0 10px 25px -5px ${BRAND_PRIMARY}80, 0 0 0 2px ${BRAND_ACCENT}50`
+                    : '0 4px 12px -2px rgba(0,0,0,0.15)',
+                }}
+                animate={{ width: hoveredId === 'scroll-top' ? 120 : 48 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <motion.div
+                  className="w-12 h-12 flex items-center justify-center flex-shrink-0 z-10"
+                  animate={{
+                    backgroundColor: hoveredId === 'scroll-top' ? '#FFFFFF' : 'rgba(255,255,255,0)',
+                    borderRadius: '50%'
+                  }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <motion.div
+                    animate={{ color: hoveredId === 'scroll-top' ? BRAND_PRIMARY : '#FFFFFF' }}
+                    transition={{ duration: 0.3 }}
+                    className="flex items-center justify-center"
+                  >
+                    <IoArrowUp className="w-5 h-5" />
+                  </motion.div>
+                </motion.div>
+
+                <motion.div className="h-full flex items-center pr-4 overflow-hidden whitespace-nowrap">
+                  <motion.span
+                    className="text-[13px] font-semibold text-white tracking-wide drop-shadow-sm"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={hoveredId === 'scroll-top' ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+                    transition={{ duration: 0.25, delay: 0.05, ease: "easeOut" }}
+                  >
+                    Back to Top
+                  </motion.span>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+
           {showButtons && ACTIONS.map((action, index) => {
             const Icon = action.icon;
             const isHovered = hoveredId === action.id;
@@ -200,69 +262,6 @@ export default function VoiceAssistant({ showScrollTop = true }: StickyActionsPr
           })}
         </AnimatePresence>
       </div>
-
-      {/* Scroll to Top - Brand themed */}
-      <AnimatePresence>
-        {showScrollTop && showScrollTopBtn && (
-          <motion.div
-            initial={{ scale: 0, x: 50, opacity: 0 }}
-            animate={{ scale: 1, x: 0, opacity: 1 }}
-            exit={{ scale: 0, x: 50, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="fixed right-0 bottom-6 z-[100] hidden md:block"
-          >
-            <motion.div
-              onMouseEnter={() => setHoveredId('scroll-top')}
-              onMouseLeave={() => setHoveredId(null)}
-              onClick={scrollToTop}
-              className="relative cursor-pointer"
-              aria-label="Scroll to top"
-            >
-              <motion.div
-                className="relative flex items-center gap-2 overflow-hidden h-12"
-                style={{
-                  backgroundColor: BRAND_PRIMARY,
-                  borderRadius: '999px 0 0 999px',
-                  boxShadow: hoveredId === 'scroll-top'
-                    ? `0 10px 25px -5px ${BRAND_PRIMARY}80, 0 0 0 2px ${BRAND_ACCENT}50`
-                    : '0 4px 12px -2px rgba(0,0,0,0.15)',
-                }}
-                animate={{ width: hoveredId === 'scroll-top' ? 120 : 48 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <motion.div
-                  className="w-12 h-12 flex items-center justify-center flex-shrink-0 z-10"
-                  animate={{
-                    backgroundColor: hoveredId === 'scroll-top' ? '#FFFFFF' : 'rgba(255,255,255,0)',
-                    borderRadius: '50%'
-                  }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <motion.div
-                    animate={{ color: hoveredId === 'scroll-top' ? BRAND_PRIMARY : '#FFFFFF' }}
-                    transition={{ duration: 0.3 }}
-                    className="flex items-center justify-center"
-                  >
-                    <IoArrowUp className="w-5 h-5" />
-                  </motion.div>
-                </motion.div>
-
-                <motion.div className="h-full flex items-center pr-4 overflow-hidden whitespace-nowrap">
-                  <motion.span
-                    className="text-[13px] font-semibold text-white tracking-wide drop-shadow-sm"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={hoveredId === 'scroll-top' ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-                    transition={{ duration: 0.25, delay: 0.05, ease: "easeOut" }}
-                  >
-                    Back to Top
-                  </motion.span>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 }
