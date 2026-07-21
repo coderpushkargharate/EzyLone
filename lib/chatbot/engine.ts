@@ -75,6 +75,20 @@ function withNotice(reply: string): string {
   return `${reply}\n\n_${COMPLIANCE_NOTICE}_`;
 }
 
+// Single source for the "here's everything we offer" reply — lists ALL products
+// with a summary AND exposes every product name as a tappable quick reply, so no
+// service is ever hidden behind a scroll or a "which one?" guess.
+function productListResult(): EngineResult {
+  return {
+    reply:
+      `Here’s everything we offer at ${COMPANY.name}:\n\n` +
+      PRODUCTS.map((p) => `• *${p.name}* — ${p.summary}`).join('\n') +
+      `\n\nTap a loan to know more, or ask me to check eligibility.`,
+    quickReplies: [...PRODUCTS.map((p) => p.name), 'Check eligibility'],
+    state: {},
+  };
+}
+
 // EMI = P·r·(1+r)^n / ((1+r)^n − 1)
 function calcEmi(principal: number, annualRate: number, months: number) {
   const r = annualRate / 12 / 100;
@@ -176,15 +190,8 @@ export function runEngine(rawMessage: string, prevState: ChatState = {}): Engine
   }
 
   // Product list
-  if (has(text, ['product', 'products', 'loan', 'loans', 'options', 'offer', 'services', 'kya milta'])) {
-    return {
-      reply:
-        `Here’s what we offer at ${COMPANY.name}:\n\n` +
-        PRODUCTS.map((p) => `• *${p.name}* — ${p.summary}`).join('\n') +
-        `\n\nWhich one interests you?`,
-      quickReplies: ['New Car Loan', 'Personal Loan', 'Loan Against Property', 'Check eligibility'],
-      state: {},
-    };
+  if (has(text, ['product', 'products', 'loan', 'loans', 'options', 'offer', 'services', 'service', 'kya milta', 'sab', 'all'])) {
+    return productListResult();
   }
 
   // FAQ match
@@ -324,14 +331,7 @@ function leadFlow(raw: string, state: ChatState): EngineResult {
   // that tap as the name, so each branch returns and waits for the next reply.
   if (step === 0) {
     if (has(text, ['product', 'products'])) {
-      return {
-        reply:
-          `Here’s what we offer at ${COMPANY.name}:\n\n` +
-          PRODUCTS.map((p) => `• *${p.name}* — ${p.summary}`).join('\n') +
-          `\n\nWhich one interests you?`,
-        quickReplies: ['New Car Loan', 'Personal Loan', 'Loan Against Property', 'Check eligibility'],
-        state: {},
-      };
+      return productListResult();
     }
     if (has(text, ['no', 'not now', 'later', 'nahi'])) {
       return { reply: 'No problem! I’m here whenever you need. Anything else I can help with?', quickReplies: DEFAULT_QUICK, state: {} };
@@ -392,7 +392,7 @@ function askLoanTypeOrFinish(d: Record<string, any>): EngineResult {
   if (d.loanType && d.loanType !== 'General enquiry') return finishLead(d);
   return {
     reply: 'Which loan are you interested in?',
-    quickReplies: ['New Car Loan', 'Personal Loan', 'Loan Against Property', 'Commercial Vehicle Loan'],
+    quickReplies: PRODUCTS.map((p) => p.name),
     state: { flow: 'lead', step: 4, data: d },
   };
 }
