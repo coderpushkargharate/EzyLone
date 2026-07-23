@@ -42,29 +42,39 @@ interface Brain {
   loadedAt: number;
 }
 
-// The compiled KB is cached in memory so we don't re-read Mongo and re-run the
-// maths on every message. TTL is short; writes call invalidateBrain() to force a
-// rebuild on the next query so a freshly-taught answer takes effect immediately.
-let brainCache: Brain | null = null;
+// The compiled KB is cached in memory (per channel) so we don't re-read Mongo and
+// re-run the maths on every message. TTL is short; writes call invalidateBrain()
+// to force a rebuild on the next query so a freshly-taught answer takes effect
+// immediately.
+export type BrainChannel = 'web' | 'whatsapp';
+const brainCache: Record<string, Brain | undefined> = {};
 const BRAIN_TTL_MS = 60 * 1000;
 
 export function invalidateBrain(): void {
-  brainCache = null;
+  brainCache.web = undefined;
+  brainCache.whatsapp = undefined;
 }
 
-async function getBrain(): Promise<Brain> {
-  if (brainCache && Date.now() - brainCache.loadedAt < BRAIN_TTL_MS) {
-    return brainCache;
+// Mongo filter that scopes entries to a channel. An entry counts for a channel
+// when its channel is 'both', matches the channel, or is missing (legacy = both).
+export function channelFilter(channel: BrainChannel): Record<string, unknown> {
+  return { $or: [{ channel: { $in: ['both', channel] } }, { channel: { $exists: false } }] };
+}
+
+async function getBrain(channel: BrainChannel = 'web'): Promise<Brain> {
+  const cached = brainCache[channel];
+  if (cached && Date.now() - cached.loadedAt < BRAIN_TTL_MS) {
+    return cached;
   }
   await connectDB();
-  let docs = await KnowledgeEntry.find({ enabled: true }).lean();
+  let docs = await KnowledgeEntry.find({ enabled: true, ...channelFilter(channel) }).lean();
 
   // First-ever use: seed from the built-in FAQ/product knowledge so the bot is
   // useful immediately, then re-read. Idempotent (seedKnowledgeBase no-ops once
   // anything exists), so this branch runs at most once in the lifetime of the DB.
   if (docs.length === 0) {
     await seedKnowledgeBase();
-    docs = await KnowledgeEntry.find({ enabled: true }).lean();
+    docs = await KnowledgeEntry.find({ enabled: true, ...channelFilter(channel) }).lean();
   }
 
   // Each entry's "document" = its question + variants + keywords, tokenized.
@@ -81,8 +91,9 @@ async function getBrain(): Promise<Brain> {
     vec: tfidfVector(perEntryTokens[i], idf),
   }));
 
-  brainCache = { entries, idf, loadedAt: Date.now() };
-  return brainCache;
+  const brain: Brain = { entries, idf, loadedAt: Date.now() };
+  brainCache[channel] = brain;
+  return brain;
 }
 
 export interface MatchResult {
@@ -94,8 +105,8 @@ export interface MatchResult {
 
 // Score a message against every enabled entry and return the best. Returns null
 // only when the KB is empty. Callers compare `.score` against HIGH_CONFIDENCE.
-export async function matchKnowledge(message: string): Promise<MatchResult | null> {
-  const brain = await getBrain();
+export async function matchKnowledge(message: string, channel: BrainChannel = 'web'): Promise<MatchResult | null> {
+  const brain = await getBrain(channel);
   if (brain.entries.length === 0) return null;
 
   const queryTokens = tokenize(message);

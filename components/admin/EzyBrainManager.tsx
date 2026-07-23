@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
-  Brain, Plus, Trash2, Edit, Save, X, GraduationCap, RefreshCw, Check,
+  Brain, Plus, Trash2, Edit, Save, X, GraduationCap, RefreshCw, Check, MessageCircle,
 } from 'lucide-react';
 
 // Ezy AI — "Brain" manager. Two tabs:
@@ -10,6 +10,13 @@ import {
 //   • Needs Training — real visitor questions the bot couldn't confidently answer;
 //     teach an answer in one click and it becomes a new knowledge entry.
 // All answering happens with the site's own algorithm — no external AI API.
+//
+// The SAME component powers two admin sections via the `scope` prop:
+//   • scope="web"      → "Ezy AI Brain"      (website chat; new entries = shared 'both')
+//   • scope="whatsapp" → "WhatsApp AI Brain" (WhatsApp auto-replies; new entries = 'whatsapp')
+// Each brain shows its own entries (shared 'both' entries appear in both).
+
+type Scope = 'web' | 'whatsapp';
 
 interface KEntry {
   _id: string;
@@ -18,6 +25,7 @@ interface KEntry {
   keywords: string[];
   answer: string;
   category: string;
+  channel?: string;
   enabled: boolean;
   hits: number;
   updatedAt: string;
@@ -30,6 +38,7 @@ interface ChatLog {
   source: string;
   matched: boolean;
   score: number;
+  channel?: string;
   createdAt: string;
 }
 
@@ -39,19 +48,26 @@ interface FormState {
   keywords: string;
   answer: string;
   category: string;
+  channel: string;
   enabled: boolean;
 }
 
 const EMPTY_FORM: FormState = {
-  question: '', variants: '', keywords: '', answer: '', category: 'General', enabled: true,
+  question: '', variants: '', keywords: '', answer: '', category: 'General', channel: 'both', enabled: true,
 };
 
-export default function EzyBrainManager() {
+export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
+  const isWa = scope === 'whatsapp';
+  // A brand-new entry defaults to this channel for the current brain.
+  const defaultChannel = isWa ? 'whatsapp' : 'both';
+
   const [tab, setTab] = useState<'kb' | 'training'>('kb');
   const [entries, setEntries] = useState<KEntry[]>([]);
   const [logs, setLogs] = useState<ChatLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+  // Needs-Training channel filter. The WhatsApp brain is locked to WhatsApp logs.
+  const [logChannel, setLogChannel] = useState<'all' | 'web' | 'whatsapp'>(isWa ? 'whatsapp' : 'all');
 
   // Add/edit form
   const [showForm, setShowForm] = useState(false);
@@ -62,7 +78,7 @@ export default function EzyBrainManager() {
   const fetchEntries = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/admin/knowledge?_t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
+      const res = await axios.get(`/api/admin/knowledge?scope=${scope}&_t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
       setEntries(res.data);
     } catch {
       alert('Failed to load knowledge base.');
@@ -74,7 +90,7 @@ export default function EzyBrainManager() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/admin/chatlogs?status=unanswered&_t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
+      const res = await axios.get(`/api/admin/chatlogs?status=unanswered&channel=${logChannel}&_t=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache' } });
       setLogs(res.data);
     } catch {
       alert('Failed to load training questions.');
@@ -86,11 +102,12 @@ export default function EzyBrainManager() {
   useEffect(() => {
     if (tab === 'kb') fetchEntries();
     else fetchLogs();
-  }, [tab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, logChannel]);
 
   const openAdd = (prefill?: Partial<FormState>) => {
     setEditingId(null);
-    setForm({ ...EMPTY_FORM, ...prefill });
+    setForm({ ...EMPTY_FORM, channel: defaultChannel, ...prefill });
     setShowForm(true);
   };
 
@@ -102,6 +119,7 @@ export default function EzyBrainManager() {
       keywords: (e.keywords || []).join(', '),
       answer: e.answer,
       category: e.category || 'General',
+      channel: e.channel || 'both',
       enabled: e.enabled,
     });
     setShowForm(true);
@@ -191,10 +209,14 @@ export default function EzyBrainManager() {
   return (
     <div>
       <div className="mb-6 flex items-center gap-3">
-        <Brain className="h-7 w-7 text-blue-600" />
+        {isWa ? <MessageCircle className="h-7 w-7 text-green-600" /> : <Brain className="h-7 w-7 text-blue-600" />}
         <div>
-          <h3 className="text-2xl font-bold text-gray-800">Ezy AI Brain</h3>
-          <p className="text-gray-600 text-sm">Train the chatbot from your own database — no external AI API.</p>
+          <h3 className="text-2xl font-bold text-gray-800">{isWa ? 'WhatsApp AI Brain' : 'Ezy AI Brain'}</h3>
+          <p className="text-gray-600 text-sm">
+            {isWa
+              ? 'Train what your WhatsApp bot auto-replies — from your own database, no external AI API.'
+              : 'Train the chatbot from your own database — no external AI API.'}
+          </p>
         </div>
       </div>
 
@@ -237,6 +259,9 @@ export default function EzyBrainManager() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-gray-900">{e.question}</span>
                         <span className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700">{e.category}</span>
+                        {(e.channel || 'both') === 'whatsapp' && <span className="px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-700">WhatsApp only</span>}
+                        {(e.channel || 'both') === 'web' && <span className="px-2 py-0.5 text-xs rounded-full bg-indigo-50 text-indigo-700">Website only</span>}
+                        {(e.channel || 'both') === 'both' && <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">Shared</span>}
                         {!e.enabled && <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500">Disabled</span>}
                         <span className="text-xs text-gray-400">· served {e.hits}×</span>
                       </div>
@@ -258,9 +283,29 @@ export default function EzyBrainManager() {
       {/* ── Needs Training tab ─────────────────────────────────────────────── */}
       {tab === 'training' && (
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-600">Questions the bot couldn’t confidently answer. Teach an answer and it learns instantly.</p>
-            <button onClick={() => fetchLogs()} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm flex items-center gap-1"><RefreshCw className="h-4 w-4" /> Refresh</button>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <p className="text-sm text-gray-600">
+              {isWa
+                ? 'WhatsApp questions the bot couldn’t confidently answer. Teach an answer and it auto-replies next time.'
+                : 'Questions the bot couldn’t confidently answer. Teach an answer and it learns instantly.'}
+            </p>
+            <div className="flex items-center gap-2">
+              {/* Channel filter — hidden in the WhatsApp brain (locked to WhatsApp). */}
+              {!isWa && (
+                <div className="flex rounded-md overflow-hidden border border-gray-200">
+                  {(['all', 'web', 'whatsapp'] as const).map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setLogChannel(c)}
+                      className={`px-3 py-1.5 text-xs font-medium capitalize ${logChannel === c ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      {c === 'all' ? 'All' : c === 'web' ? 'Website' : 'WhatsApp'}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <button onClick={() => fetchLogs()} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm flex items-center gap-1"><RefreshCw className="h-4 w-4" /> Refresh</button>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100">
             {loading ? (
@@ -272,7 +317,12 @@ export default function EzyBrainManager() {
                 {logs.map((l) => (
                   <div key={l._id} className="p-4 flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900">{l.question}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-gray-900">{l.question}</p>
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${l.channel === 'whatsapp' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700'}`}>
+                          {l.channel === 'whatsapp' ? 'WhatsApp' : 'Website'}
+                        </span>
+                      </div>
                       <p className="text-xs text-gray-400 mt-1">
                         {new Date(l.createdAt).toLocaleString()} · best match {(l.score * 100).toFixed(0)}% · {l.source}
                       </p>
@@ -320,7 +370,15 @@ export default function EzyBrainManager() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                   <input className={input} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="General" />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-gray-700 mt-6">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Where it applies</label>
+                  <select className={input} value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })}>
+                    <option value="both">Both (Website + WhatsApp)</option>
+                    <option value="whatsapp">WhatsApp only</option>
+                    <option value="web">Website only</option>
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-gray-700 mt-6 whitespace-nowrap">
                   <input type="checkbox" checked={form.enabled} onChange={(e) => setForm({ ...form, enabled: e.target.checked })} /> Enabled
                 </label>
               </div>

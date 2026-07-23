@@ -26,6 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (body.variants !== undefined) update.variants = toList(body.variants);
     if (body.keywords !== undefined) update.keywords = toList(body.keywords);
     if (body.category !== undefined) update.category = String(body.category).trim() || 'General';
+    if (body.channel !== undefined && ['both', 'web', 'whatsapp'].includes(body.channel)) update.channel = body.channel;
     if (body.enabled !== undefined) update.enabled = !!body.enabled;
 
     await connectDB();

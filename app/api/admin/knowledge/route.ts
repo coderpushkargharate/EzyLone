@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { KnowledgeEntry } from '@/lib/models/KnowledgeEntry';
 import { verifyAuth, unauthorized } from '@/lib/auth';
-import { invalidateBrain, seedKnowledgeBase } from '@/lib/chatbot/knowledgeBase';
+import { invalidateBrain, seedKnowledgeBase, channelFilter } from '@/lib/chatbot/knowledgeBase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     await seedKnowledgeBase(); // no-op once any entry exists
-    const entries = await KnowledgeEntry.find().sort({ updatedAt: -1 }).lean();
+    // scope=web|whatsapp shows that brain's entries (incl. shared 'both'); all = everything.
+    const scope = req.nextUrl.searchParams.get('scope');
+    const filter = scope === 'web' || scope === 'whatsapp' ? channelFilter(scope) : {};
+    const entries = await KnowledgeEntry.find(filter).sort({ updatedAt: -1 }).lean();
     return NextResponse.json(entries);
   } catch (error: any) {
     return NextResponse.json({ message: 'Error fetching knowledge', error: error.message }, { status: 500 });
@@ -40,12 +43,14 @@ export async function POST(req: NextRequest) {
     }
 
     await connectDB();
+    const channel = ['both', 'web', 'whatsapp'].includes(body.channel) ? body.channel : 'both';
     const entry = await KnowledgeEntry.create({
       question,
       answer,
       variants: toList(body.variants),
       keywords: toList(body.keywords),
       category: String(body.category || 'General').trim() || 'General',
+      channel,
       enabled: body.enabled !== false,
     });
     invalidateBrain(); // new answer takes effect on the next question

@@ -14,7 +14,9 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const status = req.nextUrl.searchParams.get('status') || 'all';
-    const filter = status === 'unanswered' ? { matched: false, resolved: false } : {};
+    const channel = req.nextUrl.searchParams.get('channel') || 'all'; // 'web' | 'whatsapp' | 'all'
+    const filter: Record<string, unknown> = status === 'unanswered' ? { matched: false, resolved: false } : {};
+    if (channel === 'web' || channel === 'whatsapp') filter.channel = channel;
     const logs = await ChatLog.find(filter).sort({ createdAt: -1 }).limit(500).lean();
     return NextResponse.json(logs);
   } catch (error: any) {

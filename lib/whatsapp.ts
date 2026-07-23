@@ -11,8 +11,20 @@
 // sender would need an approved template for business-initiated messages.
 
 import crypto from 'crypto';
+import { metaConfigured, sendMetaText, sendMetaTemplate } from './whatsappMeta';
 
 const TWILIO_SANDBOX_FROM = 'whatsapp:+14155238886';
+
+// Which provider actually sends. 'meta' = official WhatsApp Cloud API (direct,
+// cheaper); 'twilio' = the original path. Auto-selects Meta when its keys are
+// present, unless WHATSAPP_PROVIDER pins one explicitly. Owner switches by just
+// adding the META_* env keys — no code change.
+export function whatsappProvider(): 'meta' | 'twilio' {
+  const pinned = (process.env.WHATSAPP_PROVIDER || '').toLowerCase();
+  if (pinned === 'meta') return 'meta';
+  if (pinned === 'twilio') return 'twilio';
+  return metaConfigured() ? 'meta' : 'twilio';
+}
 
 interface TwilioConfig {
   accountSid: string;
@@ -142,6 +154,20 @@ export async function sendWhatsAppMessage(toPhone: string | undefined | null, bo
 }
 
 /**
+ * Provider-aware free-text send, used by the inbound webhook to deliver the
+ * bot's auto-reply. On Meta the reply is a normal Graph API POST; on Twilio the
+ * webhook returns TwiML instead, so this Twilio branch is only a manual/testing
+ * path. Valid because the user just messaged us (24h window is open).
+ */
+export async function sendWhatsAppFreeText(toPhone: string | undefined | null, body: string): Promise<void> {
+  if (whatsappProvider() === 'meta') {
+    await sendMetaText(toPhone, body);
+    return;
+  }
+  await sendWhatsAppMessage(toPhone, body);
+}
+
+/**
  * Send an approved WhatsApp template (Content API). Required for business-initiated
  * messages from a production sender. `contentSid` is the approved template's
  * HX… SID; `variables` maps the template's numbered placeholders, e.g. { '1': name }.
@@ -187,8 +213,25 @@ export async function sendLeadConfirmationWhatsApp(
   toPhone: string | undefined | null,
   name: string,
 ): Promise<void> {
-  const templateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID;
   const firstName = (name || '').trim().split(/\s+/)[0] || 'there';
+
+  // ── Meta Cloud API path ───────────────────────────────────────────────────
+  // A form-submit message is business-initiated → needs an approved template.
+  if (whatsappProvider() === 'meta') {
+    const tplName = process.env.META_WHATSAPP_TEMPLATE_NAME;
+    const tplLang = process.env.META_WHATSAPP_TEMPLATE_LANG || 'en';
+    if (tplName) {
+      await sendMetaTemplate(toPhone, tplName, tplLang, [firstName]);
+    } else {
+      console.warn(
+        '⚠️ Meta WhatsApp active but META_WHATSAPP_TEMPLATE_NAME is unset — a form-submit ' +
+          'message is business-initiated and needs an approved template. Skipping send.',
+      );
+    }
+    return;
+  }
+
+  const templateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID;
 
   // Preferred path: an approved template. Works in sandbox AND production, and is
   // the ONLY thing that delivers outside the 24-hour window (the normal case).

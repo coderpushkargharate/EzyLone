@@ -21,11 +21,13 @@ import {
   Edit,
   Save,
   Loader2,
-  Brain
+  Brain,
+  MessageCircle
 } from 'lucide-react';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
 import EzyBrainManager from '@/components/admin/EzyBrainManager';
+import WhatsAppBrainManager from '@/components/admin/WhatsAppBrainManager';
 
 // TypeScript Interfaces
 interface User {
@@ -180,7 +182,8 @@ function AdminDashboard({
     { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager },
     { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager },
     { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager },
-    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager }
+    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager },
+    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager }
   ];
 
   // Fetch dashboard stats

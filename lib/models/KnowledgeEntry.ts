@@ -16,6 +16,7 @@ export interface IKnowledgeEntry extends Document {
   keywords: string[];        // extra matching hints (synonyms, short tokens)
   answer: string;            // the reply to send (Markdown allowed)
   category?: string;         // grouping in the admin panel (e.g. "Rates", "Eligibility")
+  channel: string;           // 'both' | 'web' | 'whatsapp' — which brain uses this entry
   enabled: boolean;          // disabled entries are skipped by the matcher
   hits: number;              // how many times this answer has been served (usage)
   createdAt: Date;
@@ -29,6 +30,9 @@ const KnowledgeEntrySchema = new Schema<IKnowledgeEntry>(
     keywords: { type: [String], default: [] },
     answer: { type: String, required: true },
     category: { type: String, default: 'General', trim: true },
+    // 'both' = shared by website + WhatsApp; 'web' / 'whatsapp' = channel-specific.
+    // Legacy entries have no channel field → treated as 'both' by the matcher.
+    channel: { type: String, enum: ['both', 'web', 'whatsapp'], default: 'both', index: true },
     enabled: { type: Boolean, default: true, index: true },
     hits: { type: Number, default: 0 },
   },

@@ -1,34 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTwilioSignature } from '@/lib/whatsapp';
-import { runEngine, ChatState } from '@/lib/chatbot/engine';
-import { buildSystemPrompt, llmReply } from '@/lib/chatbot/llm';
-import { captureLead } from '@/lib/chatbot/leadCapture';
-import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from '@/lib/chatbot/knowledgeBase';
-import { connectDB } from '@/lib/db';
-import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
+import { sendMetaText, verifyMetaChallenge, validateMetaSignature, parseMetaInbound } from '@/lib/whatsappMeta';
+import { generateWhatsAppReply } from '@/lib/chatbot/whatsappBrain';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-type Turn = { role: 'user' | 'assistant'; content: string };
-
-// Inbound WhatsApp webhook. Twilio POSTs here (application/x-www-form-urlencoded)
-// whenever a user messages our WhatsApp number, and expects a TwiML XML reply.
+// Inbound WhatsApp webhook — supports BOTH providers:
 //
-// This runs the SAME "Ezy AI" brain as the website chat widget: the deterministic
-// rule engine drives products/EMI/eligibility/lead-capture flows, and (when an AI
-// key is configured) Claude phrases richer free-form answers — all grounded in
-// lib/chatbot/knowledge.ts and bound by the same guardrails. Conversation state +
-// recent history are persisted per phone number (WhatsApp sends each message with
-// no client-side state), so multi-turn flows work exactly like on the website.
+//  • Meta WhatsApp Cloud API (the direct, cheaper path): Meta first calls this
+//    URL with a GET verification challenge, then POSTs JSON for every inbound
+//    message. We reply by POSTing back to the Graph API (sendMetaText) and just
+//    200-ack the webhook.
+//  • Twilio: POSTs application/x-www-form-urlencoded and expects a TwiML XML
+//    reply inline.
 //
-// The reply is free text, which WhatsApp allows because the user just messaged us
-// (that opens the 24-hour customer-service window).
+// Both run the SAME "Ezy AI" brain via generateWhatsAppReply() — the deterministic
+// rule engine + self-trained knowledge base + optional Claude backup, all grounded
+// in lib/chatbot/knowledge.ts, with per-phone conversation memory.
 //
-// Configure this URL in the Twilio Console:
-//   Messaging → Try it out → WhatsApp Sandbox → "When a message comes in"
-//   (or, in production, your WhatsApp Sender's messaging webhook)
-//   → https://<your-domain>/api/whatsapp/webhook   (HTTP POST)
+// Configure this URL:
+//   Meta:   developers.facebook.com → your App → WhatsApp → Configuration →
+//           Callback URL = https://<domain>/api/whatsapp/webhook, Verify token =
+//           META_WHATSAPP_VERIFY_TOKEN, then Subscribe to the "messages" field.
+//   Twilio: Console → Messaging → Senders → WhatsApp → "When a message comes in".
 
 function twimlReply(reply: string): NextResponse {
   const safe = reply.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -36,8 +31,50 @@ function twimlReply(reply: string): NextResponse {
   return new NextResponse(twiml, { status: 200, headers: { 'Content-Type': 'text/xml' } });
 }
 
+// ── GET: Meta webhook verification handshake ────────────────────────────────
+export async function GET(req: NextRequest) {
+  const challenge = verifyMetaChallenge(req.nextUrl.searchParams);
+  if (challenge !== null) {
+    return new NextResponse(challenge, { status: 200, headers: { 'Content-Type': 'text/plain' } });
+  }
+  return new NextResponse('Forbidden', { status: 403 });
+}
+
 export async function POST(req: NextRequest) {
-  // Twilio sends form-encoded params, not JSON.
+  const contentType = req.headers.get('content-type') || '';
+
+  // ── Meta Cloud API (JSON) ─────────────────────────────────────────────────
+  if (contentType.includes('application/json')) {
+    // Read the RAW body so we can verify Meta's signature over the exact bytes.
+    const raw = await req.text();
+    if (!validateMetaSignature(raw, req.headers.get('x-hub-signature-256'))) {
+      console.warn('Rejected WhatsApp webhook — invalid Meta signature');
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+
+    let payload: any = {};
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      return NextResponse.json({ ok: true }); // malformed → ack & ignore
+    }
+
+    const inbound = parseMetaInbound(payload);
+    // No message (delivery/read status event, etc.) → just acknowledge.
+    if (!inbound) return NextResponse.json({ ok: true });
+
+    console.log(`📩 Inbound WhatsApp (Meta) from ${inbound.from}: ${inbound.text}`);
+    try {
+      const reply = await generateWhatsAppReply(inbound.from, inbound.text);
+      await sendMetaText(inbound.from, reply);
+    } catch (e) {
+      console.error('Meta WhatsApp handling failed:', e);
+    }
+    // Always 200 quickly so Meta doesn't retry/disable the webhook.
+    return NextResponse.json({ ok: true });
+  }
+
+  // ── Twilio (form-encoded) ─────────────────────────────────────────────────
   const form = await req.formData();
   const params: Record<string, string> = {};
   form.forEach((value, key) => {
@@ -58,99 +95,9 @@ export async function POST(req: NextRequest) {
 
   const from = params.From || 'unknown';
   const bodyText = (params.Body || '').toString();
-  const userText = bodyText.trim() || '[non-text message]';
-  console.log(`📩 Inbound WhatsApp from ${from}: ${bodyText}`);
+  console.log(`📩 Inbound WhatsApp (Twilio) from ${from}: ${bodyText}`);
 
-  // 1) Load this sender's conversation memory (flow state + recent history). If
-  // the DB is unreachable we degrade gracefully to a stateless single-turn reply.
-  let state: ChatState = {};
-  let history: Turn[] = [];
-  let dbReady = false;
-  try {
-    await connectDB();
-    const doc = await WhatsAppSession.findOne({ phone: from }).lean();
-    if (doc) {
-      state = (doc.state || {}) as ChatState;
-      history = (doc.history || []) as Turn[];
-    }
-    dbReady = true;
-  } catch (e) {
-    console.error('WhatsApp session load failed (replying statelessly):', e);
-  }
-
-  // 2) Run the rule engine (source of truth for flows + lead capture).
-  const result = runEngine(bodyText, state);
-  let reply = result.reply;
-
-  // 3) Free-form answering (only OUTSIDE a structured flow and when NOT finalising
-  // a lead, so flow/lead replies stay deterministic and we never run extra I/O on
-  // a lead turn → keeps us under Twilio's webhook timeout). Same priority as the
-  // website chat: (a) self-trained knowledge base, (b) engine intent, (c) optional
-  // LLM backup (off unless CHATBOT_LLM_ENABLED=true). Every turn is logged.
-  const inFlow = !!result.state.flow;
-  let usedLlm = false;
-  if (!inFlow && !result.lead) {
-    try {
-      const kb = await matchKnowledge(bodyText);
-      if (kb && kb.score >= HIGH_CONFIDENCE) {
-        // (a) Trained answer.
-        reply = kb.answer;
-        bumpHits(kb.entryId);
-        await logChat({ question: userText, answer: kb.answer, source: 'knowledge', matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'whatsapp' });
-      } else if (!result.fallback) {
-        // (b) Engine recognised a specific intent — keep its reply.
-        await logChat({ question: userText, answer: reply, source: 'engine', matched: true, score: kb?.score || 0, channel: 'whatsapp' });
-      } else if (process.env.CHATBOT_LLM_ENABLED === 'true') {
-        // (c) Optional LLM backup.
-        const llm = await llmReply(buildSystemPrompt(), history, userText);
-        if (llm) {
-          reply = llm;
-          usedLlm = true;
-          await logChat({ question: userText, answer: llm, source: 'llm', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
-        } else {
-          await logChat({ question: userText, answer: reply, source: 'fallback', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
-        }
-      } else {
-        // Nothing confident → engine's catch-all. Log as unanswered for training.
-        await logChat({ question: userText, answer: reply, source: 'fallback', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
-      }
-    } catch (e) {
-      console.error('WhatsApp free-form answering failed (using rule-engine reply):', e);
-    }
-  }
-
-  // 4) Surface the engine's quick-reply suggestions as tappable-looking text
-  // (WhatsApp free text has no buttons here). Skip when the LLM answered, to
-  // avoid a mismatched menu under a free-form reply.
-  if (!usedLlm && result.quickReplies && result.quickReplies.length) {
-    reply += `\n\n${result.quickReplies.map((q) => `▪️ ${q}`).join('\n')}`;
-  }
-
-  // 5) Persist updated state + trimmed history for the next inbound message.
-  if (dbReady) {
-    const newHistory = [...history, { role: 'user', content: userText }, { role: 'assistant', content: reply }].slice(-10);
-    try {
-      await WhatsAppSession.findOneAndUpdate(
-        { phone: from },
-        { $set: { state: result.state, history: newHistory } },
-        { upsert: true, new: false },
-      );
-    } catch (e) {
-      console.error('WhatsApp session save failed:', e);
-    }
-  }
-
-  // 6) If the engine captured a lead, run the SAME pipeline as the website chat
-  // (DB + admin email + CRM + WhatsApp confirmation). Guarded; never blocks reply.
-  if (result.lead) {
-    try {
-      // Tag the channel so the admin/CRM can tell WhatsApp leads from web-chat ones.
-      result.lead.source = 'Ezy AI WhatsApp';
-      await captureLead(result.lead);
-    } catch (e) {
-      console.error('WhatsApp lead capture failed:', e);
-    }
-  }
+  const reply = await generateWhatsAppReply(from, bodyText);
 
   // Respond with TwiML — Twilio delivers <Message> back to the sender.
   return twimlReply(reply);
