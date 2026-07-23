@@ -20,10 +20,12 @@ import {
   Plus,
   Edit,
   Save,
-  Loader2
+  Loader2,
+  Brain
 } from 'lucide-react';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
+import EzyBrainManager from '@/components/admin/EzyBrainManager';
 
 // TypeScript Interfaces
 interface User {
@@ -177,7 +179,8 @@ function AdminDashboard({
     { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager },
     { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager },
     { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager },
-    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager }
+    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager },
+    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager }
   ];
 
   // Fetch dashboard stats

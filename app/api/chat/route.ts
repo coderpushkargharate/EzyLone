@@ -3,6 +3,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { runEngine, ChatState } from '@/lib/chatbot/engine';
 import { buildSystemPrompt, llmReply } from '@/lib/chatbot/llm';
 import { captureLead } from '@/lib/chatbot/leadCapture';
+import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from '@/lib/chatbot/knowledgeBase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -43,14 +44,68 @@ export async function POST(req: NextRequest) {
     await captureLead(result.lead);
   }
 
-  // Optional LLM upgrade: if a key is configured AND we're not inside a
-  // structured flow (EMI/eligibility/lead), let the LLM phrase a richer answer
-  // grounded in the same knowledge base. Flows stay on the deterministic engine
-  // so guardrails and lead capture are never bypassed.
+  // Inside a structured flow (EMI/eligibility/lead/callback) the deterministic
+  // engine is the sole authority — never let the brain or LLM hijack a flow.
   const inFlow = !!result.state.flow;
-  if (!inFlow && process.env.CHATBOT_LLM_ENABLED !== 'false') {
+  if (inFlow) {
+    return NextResponse.json({
+      reply: result.reply,
+      quickReplies: result.quickReplies || [],
+      state: result.state,
+      handoff: result.handoff || false,
+    });
+  }
+
+  // ── Free-form answering ────────────────────────────────────────────────────
+  // Priority: (1) our SELF-TRAINED knowledge base, (2) the engine's recognised
+  // intents (greeting / product / FAQ / handoff), (3) an OPTIONAL LLM backup
+  // (off unless CHATBOT_LLM_ENABLED=true), (4) the engine's generic fallback.
+  // Every turn is logged so admins can teach the bot answers for what it missed.
+
+  // 1. Self-trained knowledge base. Guarded: a DB hiccup must never break chat —
+  // we simply fall through to the engine's own answer.
+  let kb: Awaited<ReturnType<typeof matchKnowledge>> = null;
+  try {
+    kb = await matchKnowledge(message);
+  } catch (err) {
+    console.error('Ezy AI knowledge match failed (using rule engine):', err);
+  }
+  if (kb && kb.score >= HIGH_CONFIDENCE) {
+    bumpHits(kb.entryId); // fire-and-forget
+    await logChat({
+      question: message, answer: kb.answer, source: 'knowledge',
+      matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'web',
+    });
+    return NextResponse.json({
+      reply: kb.answer,
+      quickReplies: result.quickReplies || [],
+      state: result.state,
+      handoff: false,
+    });
+  }
+
+  // 2. Engine recognised a specific intent (not its generic catch-all).
+  if (!result.fallback) {
+    await logChat({
+      question: message, answer: result.reply, source: 'engine',
+      matched: true, score: kb?.score || 0, channel: 'web',
+    });
+    return NextResponse.json({
+      reply: result.reply,
+      quickReplies: result.quickReplies || [],
+      state: result.state,
+      handoff: result.handoff || false,
+    });
+  }
+
+  // 3. Optional LLM backup — only when explicitly enabled by the owner.
+  if (process.env.CHATBOT_LLM_ENABLED === 'true') {
     const llm = await llmReply(buildSystemPrompt(), body.history || [], message);
     if (llm) {
+      await logChat({
+        question: message, answer: llm, source: 'llm',
+        matched: false, score: kb?.score || 0, channel: 'web',
+      });
       return NextResponse.json({
         reply: llm,
         quickReplies: result.quickReplies,
@@ -60,6 +115,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // 4. Nothing confident — the engine's helpful catch-all. Log as UNANSWERED so
+  // it shows up in the admin "Needs training" list.
+  await logChat({
+    question: message, answer: result.reply, source: 'fallback',
+    matched: false, score: kb?.score || 0, channel: 'web',
+  });
   return NextResponse.json({
     reply: result.reply,
     quickReplies: result.quickReplies || [],

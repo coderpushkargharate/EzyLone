@@ -44,6 +44,10 @@ export interface EngineResult {
   state: ChatState;
   lead?: LeadData;
   handoff?: boolean;
+  // True only for the final "I want to get this right for you…" catch-all — i.e.
+  // the engine did NOT recognise a specific intent. /api/chat uses this to decide
+  // when to let the self-trained knowledge base or the LLM backup take over.
+  fallback?: boolean;
 }
 
 const norm = (s: string) => (s || '').toLowerCase().trim();
@@ -216,6 +220,7 @@ export function runEngine(rawMessage: string, prevState: ChatState = {}): Engine
       `If you’d prefer, I can connect you with a human Executive.`,
     quickReplies: DEFAULT_QUICK,
     state: {},
+    fallback: true,
   };
 }
 

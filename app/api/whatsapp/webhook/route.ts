@@ -3,6 +3,7 @@ import { validateTwilioSignature } from '@/lib/whatsapp';
 import { runEngine, ChatState } from '@/lib/chatbot/engine';
 import { buildSystemPrompt, llmReply } from '@/lib/chatbot/llm';
 import { captureLead } from '@/lib/chatbot/leadCapture';
+import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from '@/lib/chatbot/knowledgeBase';
 import { connectDB } from '@/lib/db';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
 
@@ -81,21 +82,40 @@ export async function POST(req: NextRequest) {
   const result = runEngine(bodyText, state);
   let reply = result.reply;
 
-  // 3) Optional LLM upgrade — only for free-form answers OUTSIDE a structured flow
-  // and when we're NOT finalising a lead (so flow/lead replies stay deterministic
-  // and we never run the LLM and lead-capture on the same turn → keeps us well
-  // under Twilio's webhook timeout).
+  // 3) Free-form answering (only OUTSIDE a structured flow and when NOT finalising
+  // a lead, so flow/lead replies stay deterministic and we never run extra I/O on
+  // a lead turn → keeps us under Twilio's webhook timeout). Same priority as the
+  // website chat: (a) self-trained knowledge base, (b) engine intent, (c) optional
+  // LLM backup (off unless CHATBOT_LLM_ENABLED=true). Every turn is logged.
   const inFlow = !!result.state.flow;
   let usedLlm = false;
-  if (!inFlow && !result.lead && process.env.CHATBOT_LLM_ENABLED !== 'false') {
+  if (!inFlow && !result.lead) {
     try {
-      const llm = await llmReply(buildSystemPrompt(), history, userText);
-      if (llm) {
-        reply = llm;
-        usedLlm = true;
+      const kb = await matchKnowledge(bodyText);
+      if (kb && kb.score >= HIGH_CONFIDENCE) {
+        // (a) Trained answer.
+        reply = kb.answer;
+        bumpHits(kb.entryId);
+        await logChat({ question: userText, answer: kb.answer, source: 'knowledge', matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'whatsapp' });
+      } else if (!result.fallback) {
+        // (b) Engine recognised a specific intent — keep its reply.
+        await logChat({ question: userText, answer: reply, source: 'engine', matched: true, score: kb?.score || 0, channel: 'whatsapp' });
+      } else if (process.env.CHATBOT_LLM_ENABLED === 'true') {
+        // (c) Optional LLM backup.
+        const llm = await llmReply(buildSystemPrompt(), history, userText);
+        if (llm) {
+          reply = llm;
+          usedLlm = true;
+          await logChat({ question: userText, answer: llm, source: 'llm', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
+        } else {
+          await logChat({ question: userText, answer: reply, source: 'fallback', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
+        }
+      } else {
+        // Nothing confident → engine's catch-all. Log as unanswered for training.
+        await logChat({ question: userText, answer: reply, source: 'fallback', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
       }
     } catch (e) {
-      console.error('WhatsApp LLM reply failed (using rule-engine reply):', e);
+      console.error('WhatsApp free-form answering failed (using rule-engine reply):', e);
     }
   }
 
