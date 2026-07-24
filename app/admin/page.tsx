@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -29,7 +29,12 @@ import {
   Network,
   Zap,
   FolderOpen,
-  ShieldCheck
+  ShieldCheck,
+  CreditCard,
+  Smartphone,
+  BookOpen,
+  Settings as SettingsIcon,
+  ChevronDown
 } from 'lucide-react';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
@@ -42,6 +47,7 @@ import AnalyticsManager from '@/components/admin/AnalyticsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import AutomationsManager from '@/components/admin/AutomationsManager';
 import EmployeesManager from '@/components/admin/EmployeesManager';
+import AccountManager from '@/components/admin/AccountManager';
 
 // TypeScript Interfaces
 interface User {
@@ -163,6 +169,19 @@ function AdminDashboard({
   setCurrentPage: (page: string) => void;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [accountTab, setAccountTab] = useState('profile');
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  // Close the profile dropdown when clicking outside it.
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
   const [dashboardStats, setDashboardStats] = useState({
     totalContacts: 0,
     totalLoanApplications: 0,
@@ -207,24 +226,32 @@ function AdminDashboard({
     { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager },
     { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager },
     { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager },
-    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true }
+    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true },
+    // `hidden` = reachable from the top-bar profile menu, not shown in the sidebar.
+    // Everyone (admins + employees) can view/edit their own account.
+    { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true }
   ];
 
   // Role-based visibility: admins (anything not explicitly 'employee') see every
   // tab; employees only see the tabs listed in their `permissions`. The
-  // "Employees" tab is admin-only.
+  // "Employees" tab is admin-only; "Account" is hidden from the sidebar.
   const isAdminUser = (user as any)?.role !== 'employee';
   const permissions: string[] = (user as any)?.permissions || [];
-  const visibleMenuItems = menuItems.filter((item) => {
-    if ((item as any).adminOnly) return isAdminUser;
+  const mayAccess = (item: any) => {
+    if (item.adminOnly) return isAdminUser;
+    if (item.hidden) return true;
     if (isAdminUser) return true;
     return permissions.includes(item.id);
-  });
+  };
+  // Sidebar shows non-hidden allowed tabs; `reachableItems` also includes the
+  // hidden Account page so it can render when opened from the profile menu.
+  const visibleMenuItems = menuItems.filter((item) => !(item as any).hidden && mayAccess(item));
+  const reachableItems = menuItems.filter(mayAccess);
 
-  // If the current tab isn't one the user may see, snap to their first allowed tab.
+  // If the current tab isn't one the user may reach, snap to their first sidebar tab.
   useEffect(() => {
     if (!user) return;
-    if (visibleMenuItems.length && !visibleMenuItems.some((i) => i.id === currentPage)) {
+    if (visibleMenuItems.length && !reachableItems.some((i) => i.id === currentPage)) {
       setCurrentPage(visibleMenuItems[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -520,10 +547,22 @@ function AdminDashboard({
     }
   };
 
-  // Get current component to display — restricted to tabs the user may see, so
-  // an employee can never render a component they lack access to.
-  const activeItem = visibleMenuItems.find(item => item.id === currentPage) || visibleMenuItems[0];
+  // Get current component to display — restricted to tabs the user may reach
+  // (includes the hidden Account page), so an employee can never render a
+  // component they lack access to.
+  const activeItem = reachableItems.find(item => item.id === currentPage) || visibleMenuItems[0];
   const CurrentComponent = activeItem?.component;
+
+  // Profile dropdown display values (mirrors the EzyLoanCrm nav profile menu).
+  const displayName = (user as any)?.name || user?.username || 'Admin';
+  const company = (user as any)?.company || 'ezyloan.co.in';
+  const initials = String(displayName).split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  const openAccount = (t: string) => {
+    setAccountTab(t);
+    setCurrentPage('account');
+    setProfileOpen(false);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50" id="admin-app">
@@ -603,8 +642,65 @@ function AdminDashboard({
               {activeItem?.name || 'Dashboard'}
             </h2>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/ezy-logo.webp" alt="EzyLoan" className="h-8 w-auto lg:hidden flex-shrink-0" />
+          <div className="flex items-center gap-3 flex-shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/ezy-logo.webp" alt="EzyLoan" className="h-8 w-auto lg:hidden" />
+
+            {/* Profile dropdown — same items as the EzyLoanCrm nav menu */}
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                onClick={() => setProfileOpen((o) => !o)}
+                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition"
+                aria-label="Account menu"
+              >
+                <span className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 ring-2 ring-white shadow flex items-center justify-center text-white text-xs font-bold">
+                  {initials}
+                </span>
+                <span className="hidden sm:block text-sm font-semibold text-gray-700 max-w-[140px] truncate">{displayName}</span>
+                <ChevronDown size={15} className="text-gray-400 hidden sm:block" />
+              </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
+                  <div className="flex flex-col items-center px-4 py-3 border-b border-gray-100">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-bold mb-2">
+                      {initials}
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 capitalize">{displayName}</p>
+                    <p className="text-xs text-gray-500 truncate max-w-full">{company}</p>
+                    <span className="mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 capitalize">
+                      {isAdminUser ? 'Administrator' : 'Employee'}
+                    </span>
+                  </div>
+                  <div className="py-1">
+                    <button onClick={() => openAccount('profile')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                      <UserIcon size={15} className="text-gray-400" /> Profile
+                    </button>
+                    <button onClick={() => openAccount('notifications')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                      <SettingsIcon size={15} className="text-gray-400" /> Settings
+                    </button>
+                    <button onClick={() => openAccount('subscription')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                      <CreditCard size={15} className="text-gray-400" /> Subscription
+                    </button>
+                    <button onClick={() => openAccount('profile')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                      <Smartphone size={15} className="text-gray-400" /> Mobile App
+                    </button>
+                    <a href="/faq" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                      <BookOpen size={15} className="text-gray-400" /> User Guide
+                    </a>
+                    <a href="https://wa.me/916372977626" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                      <MessageCircle size={15} className="text-gray-400" /> Live Chat Support
+                    </a>
+                  </div>
+                  <div className="border-t border-gray-100 pt-1">
+                    <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition font-medium">
+                      <LogOut size={15} /> Log Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="p-4 md:p-6">
@@ -616,6 +712,8 @@ function AdminDashboard({
             </div>
           ) : (
           <CurrentComponent
+            // Account props
+            accountInitialTab={accountTab}
             // Dashboard props
             stats={dashboardStats}
             analytics={analyticsData}

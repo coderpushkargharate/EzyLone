@@ -6,6 +6,12 @@ import bcrypt from 'bcryptjs';
 // - Employees: role 'employee', log in with their email, and only see the tabs
 //   listed in `permissions` (an array of admin-panel tab ids).
 
+export interface IUserSettings {
+  leadAlertEmail?: boolean;
+  dailySummary?: 'always' | 'updates' | 'never';
+  summaryHour?: string;
+}
+
 export interface IUser extends Document {
   username: string;
   email?: string;
@@ -13,6 +19,12 @@ export interface IUser extends Document {
   password: string;
   role: 'admin' | 'employee';
   permissions: string[];
+  // Profile fields (edited from the admin "Account" page).
+  phone?: string;
+  whatsapp?: string;
+  company?: string;
+  avatar?: string;
+  settings?: IUserSettings;
   comparePassword(password: string): Promise<boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -31,6 +43,11 @@ const UserSchema = new Schema<IUser>(
     // explicitly set to 'employee'.
     role: { type: String, enum: ['admin', 'employee'], default: 'admin' },
     permissions: { type: [String], default: [] },
+    phone: { type: String, trim: true },
+    whatsapp: { type: String, trim: true },
+    company: { type: String, trim: true },
+    avatar: { type: String },
+    settings: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );
