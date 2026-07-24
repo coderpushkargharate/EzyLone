@@ -1,9 +1,18 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+// Admins (bootstrapped from env) and Employees share this collection.
+// - Admins: role 'admin' (default), see every tab.
+// - Employees: role 'employee', log in with their email, and only see the tabs
+//   listed in `permissions` (an array of admin-panel tab ids).
+
 export interface IUser extends Document {
   username: string;
+  email?: string;
+  name?: string;
   password: string;
+  role: 'admin' | 'employee';
+  permissions: string[];
   comparePassword(password: string): Promise<boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -12,7 +21,16 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
   {
     username: { type: String, required: true, unique: true },
+    // Employees log in with email; admins may not have one. Sparse so multiple
+    // admins without an email don't collide on the unique index.
+    email: { type: String, trim: true, lowercase: true, unique: true, sparse: true },
+    name: { type: String, trim: true },
     password: { type: String, required: true },
+    // Defaults to 'admin' so the existing env-bootstrapped admin (which has no
+    // role field stored) keeps full access. Employees are created with role
+    // explicitly set to 'employee'.
+    role: { type: String, enum: ['admin', 'employee'], default: 'admin' },
+    permissions: { type: [String], default: [] },
   },
   { timestamps: true }
 );

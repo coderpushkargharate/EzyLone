@@ -22,12 +22,26 @@ import {
   Save,
   Loader2,
   Brain,
-  MessageCircle
+  MessageCircle,
+  Target,
+  Activity as ActivityIcon,
+  BarChart3,
+  Network,
+  Zap,
+  FolderOpen,
+  ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
 import EzyBrainManager from '@/components/admin/EzyBrainManager';
 import WhatsAppBrainManager from '@/components/admin/WhatsAppBrainManager';
+import LeadsManager from '@/components/admin/LeadsManager';
+import ContentManager from '@/components/admin/ContentManager';
+import ActivitiesManager from '@/components/admin/ActivitiesManager';
+import AnalyticsManager from '@/components/admin/AnalyticsManager';
+import TeamManager from '@/components/admin/TeamManager';
+import AutomationsManager from '@/components/admin/AutomationsManager';
+import EmployeesManager from '@/components/admin/EmployeesManager';
 
 // TypeScript Interfaces
 interface User {
@@ -75,12 +89,15 @@ export default function AdminApp() {
 
   useEffect(() => {
     // Auth is held in an httpOnly cookie (sent automatically on same-origin
-    // requests). Verify it server-side; the stored `user` is display-only.
-    const savedUser = localStorage.getItem('user');
-
+    // requests). Verify it server-side; the response carries the user's current
+    // role + permissions (fresh from the DB), which drives which tabs show.
     axios.get('/api/auth/verify')
-      .then(() => {
-        if (savedUser) setUser(JSON.parse(savedUser));
+      .then((res) => {
+        const verified = res.data?.user;
+        if (verified) {
+          setUser(verified);
+          localStorage.setItem('user', JSON.stringify(verified));
+        }
         setCurrentPage('dashboard');
       })
       .catch(() => {
@@ -180,11 +197,38 @@ function AdminDashboard({
     { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager },
     { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager },
     { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager },
+    { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager },
+    { id: 'activities', name: 'Activities', icon: ActivityIcon, component: ActivitiesManager },
+    { id: 'content', name: 'Content', icon: FolderOpen, component: ContentManager },
+    { id: 'team', name: 'Team', icon: Network, component: TeamManager },
+    { id: 'analytics', name: 'CRM Analytics', icon: BarChart3, component: AnalyticsManager },
+    { id: 'automations', name: 'Automations', icon: Zap, component: AutomationsManager },
     { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager },
     { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager },
     { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager },
-    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager }
+    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager },
+    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true }
   ];
+
+  // Role-based visibility: admins (anything not explicitly 'employee') see every
+  // tab; employees only see the tabs listed in their `permissions`. The
+  // "Employees" tab is admin-only.
+  const isAdminUser = (user as any)?.role !== 'employee';
+  const permissions: string[] = (user as any)?.permissions || [];
+  const visibleMenuItems = menuItems.filter((item) => {
+    if ((item as any).adminOnly) return isAdminUser;
+    if (isAdminUser) return true;
+    return permissions.includes(item.id);
+  });
+
+  // If the current tab isn't one the user may see, snap to their first allowed tab.
+  useEffect(() => {
+    if (!user) return;
+    if (visibleMenuItems.length && !visibleMenuItems.some((i) => i.id === currentPage)) {
+      setCurrentPage(visibleMenuItems[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, currentPage]);
 
   // Fetch dashboard stats
   useEffect(() => {
@@ -476,8 +520,10 @@ function AdminDashboard({
     }
   };
 
-  // Get current component to display
-  const CurrentComponent = menuItems.find(item => item.id === currentPage)?.component || menuItems[0].component;
+  // Get current component to display — restricted to tabs the user may see, so
+  // an employee can never render a component they lack access to.
+  const activeItem = visibleMenuItems.find(item => item.id === currentPage) || visibleMenuItems[0];
+  const CurrentComponent = activeItem?.component;
 
   return (
     <div className="min-h-screen bg-gray-50" id="admin-app">
@@ -488,20 +534,28 @@ function AdminDashboard({
         />
       )}
       
-      {/* Sidebar */}
+      {/* Sidebar — flex column so the nav scrolls between a fixed logo header
+          and a fixed user/logout footer (12+ tabs would otherwise overflow). */}
       <div
-        className={`fixed top-0 left-0 z-50 h-screen w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out
+        className={`fixed top-0 left-0 z-50 h-screen w-64 bg-white shadow-xl flex flex-col transform transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <h1 className="text-lg font-bold text-blue-600 tracking-wide">EzyLoan Admin</h1>
+        {/* Logo header (fixed) */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/ezy-logo.webp" alt="EzyLoan" className="h-9 w-auto" />
+            <span className="text-[11px] font-bold text-gray-400 tracking-widest uppercase">Admin</span>
+          </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700">
             <X className="h-6 w-6" />
           </button>
         </div>
-        <nav className="mt-6 space-y-1 px-3">
-          {menuItems.map((item) => {
+
+        {/* Scrollable nav */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+          {visibleMenuItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
@@ -510,23 +564,25 @@ function AdminDashboard({
                   setCurrentPage(item.id);
                   setIsMobileMenuOpen(false);
                 }}
-                className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors
-                ${currentPage === item.id ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+                className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors
+                ${currentPage === item.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
               >
-                <Icon className="h-5 w-5 mr-3" />
-                {item.name}
+                <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                <span className="truncate">{item.name}</span>
               </button>
             );
           })}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+
+        {/* User + logout (fixed) */}
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
               <Users className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-800">{user?.username || 'Admin'}</p>
-              <p className="text-xs text-gray-500">Administrator</p>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-800 truncate">{(user as any)?.name || user?.username || 'Admin'}</p>
+              <p className="text-xs text-gray-500">{isAdminUser ? 'Administrator' : 'Employee'}</p>
             </div>
           </div>
           <button onClick={onLogout} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
@@ -538,18 +594,27 @@ function AdminDashboard({
 
       {/* Main content */}
       <div className="lg:ml-64">
-        <div className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-between px-6">
-          <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-gray-500 hover:text-gray-700">
-            <Menu className="h-6 w-6" />
-          </button>
-          <div className="flex items-center">
-            <h2 className="text-lg font-semibold text-gray-800">
-              {menuItems.find(item => item.id === currentPage)?.name || 'Dashboard'}
+        <div className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-gray-500 hover:text-gray-700 flex-shrink-0">
+              <Menu className="h-6 w-6" />
+            </button>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
+              {activeItem?.name || 'Dashboard'}
             </h2>
           </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/ezy-logo.webp" alt="EzyLoan" className="h-8 w-auto lg:hidden flex-shrink-0" />
         </div>
 
         <div className="p-4 md:p-6">
+          {!CurrentComponent ? (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-16 text-center">
+              <ShieldCheck size={36} className="text-blue-400 mx-auto mb-3" />
+              <p className="text-base font-semibold text-gray-700">No sections assigned yet</p>
+              <p className="text-sm text-gray-500 mt-1">Your admin hasn&apos;t given you access to any tabs. Please contact them.</p>
+            </div>
+          ) : (
           <CurrentComponent
             // Dashboard props
             stats={dashboardStats}
@@ -592,6 +657,7 @@ function AdminDashboard({
             onDeleteTestimonial={handleDeleteTestimonial}
             loadingTestimonials={loading.testimonials}
           />
+          )}
         </div>
       </div>
     </div>

@@ -22,7 +22,11 @@ export async function POST(req: NextRequest) {
     // Bootstrap the first admin from env on demand if it isn't there yet.
     await ensureAdmin();
 
-    const user = await User.findOne({ username });
+    // Accept either a username (admins) or an email (employees).
+    const identifier = String(username || '').trim();
+    const user = await User.findOne({
+      $or: [{ username: identifier }, { email: identifier.toLowerCase() }],
+    });
     if (!user || !(await user.comparePassword(password))) {
       // Someone tried to log in with bad credentials — alert (throttled).
       sendSecurityAlert('login-fail', 'Failed admin login attempt', {
@@ -33,14 +37,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = signToken({ userId: String(user._id), username: user.username });
-    // Successful admin login — notify so you know who got in.
+    const token = signToken({
+      userId: String(user._id),
+      username: user.username,
+      role: user.role,
+      name: user.name,
+      email: user.email,
+    });
+    // Successful login — notify so you know who got in.
     sendSecurityAlert('login-success', 'Admin logged in successfully', {
       Username: user.username,
+      Role: user.role || 'admin',
       IP: ip,
       'User agent': userAgent,
     }).catch(() => {});
-    const res = NextResponse.json({ user: { id: user._id, username: user.username } });
+    const res = NextResponse.json({
+      user: {
+        id: user._id,
+        username: user.username,
+        name: user.name || user.username,
+        email: user.email || '',
+        role: user.role || 'admin',
+        permissions: user.permissions || [],
+      },
+    });
     setAuthCookie(res, token);
     return res;
   } catch (error) {

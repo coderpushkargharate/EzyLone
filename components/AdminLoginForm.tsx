@@ -44,15 +44,16 @@ export default function AdminLoginForm({
       <div className="glass-prism bg-white/95 lg:bg-white/85 lg:backdrop-blur-xl rounded-2xl shadow-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Users className="h-12 w-12 text-blue-600" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/ezy-logo.webp" alt="EzyLoan" className="h-14 w-auto" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">EzyLoan Admin</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Admin Panel</h1>
           <p className="text-gray-600">Access EzyLoan Dashboard</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Username or Email</label>
             <div className="relative">
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -61,7 +62,7 @@ export default function AdminLoginForm({
                 value={formData.username}
                 onChange={handleChange}
                 required
-                placeholder="Enter username"
+                placeholder="Admin username or employee email"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               />
             </div>

@@ -9,6 +9,15 @@ const MAX_AGE_SECONDS = 60 * 60 * 24; // 24h, same as the old Express server
 export interface AuthPayload {
   userId: string;
   username: string;
+  role?: 'admin' | 'employee';
+  name?: string;
+  email?: string;
+}
+
+/** Treat anything that isn't an explicit 'employee' as an admin, so the
+ *  env-bootstrapped admin (whose old tokens have no role) keeps full access. */
+export function isAdmin(payload: { role?: string } | null | undefined): boolean {
+  return !!payload && payload.role !== 'employee';
 }
 
 function getSecret(): string {
@@ -78,6 +87,6 @@ export async function ensureAdmin(): Promise<void> {
   await connectDB();
   const exists = await User.findOne({ username });
   if (!exists) {
-    await User.create({ username, password });
+    await User.create({ username, password, role: 'admin' });
   }
 }
