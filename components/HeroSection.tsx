@@ -1406,6 +1406,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   fill
                   sizes="570px"
                   loading="lazy"
+                  fetchPriority="high"
                   quality={72}
                   className="object-contain pointer-events-none"
                 />

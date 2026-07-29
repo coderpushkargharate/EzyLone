@@ -301,7 +301,7 @@ const Header = memo(() => {
                 <span className="relative z-10">About</span>
                 <div className="liquid-overlay" />
               </Link>
-              <div className="relative group" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave} role="menuitem">
+              <div className="relative group" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
                 <button className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap flex items-center space-x-1 apple-glass-btn" aria-expanded={isCarRefinanceOpen} aria-haspopup="true" aria-label="Car Refinance options">
                   <span className="relative z-10">Car Refinance</span>
                   <ChevronDown className={`w-4 h-4 transition-apple ${isCarRefinanceOpen ? "rotate-180" : ""}`} aria-hidden="true" />
