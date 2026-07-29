@@ -210,27 +210,32 @@ function AdminDashboard({
     testimonials: false
   });
 
-  // Menu items configuration
+  // Menu items configuration. `group` sorts each tab under a labelled section
+  // in the sidebar so the 15+ tabs read as an organised, advanced panel instead
+  // of one long list. `hidden` items (Account) belong to no sidebar group.
   const menuItems = [
-    { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview },
-    { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager },
-    { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager },
-    { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager },
-    { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager },
-    { id: 'activities', name: 'Activities', icon: ActivityIcon, component: ActivitiesManager },
-    { id: 'content', name: 'Content', icon: FolderOpen, component: ContentManager },
-    { id: 'team', name: 'Team', icon: Network, component: TeamManager },
-    { id: 'analytics', name: 'CRM Analytics', icon: BarChart3, component: AnalyticsManager },
-    { id: 'automations', name: 'Automations', icon: Zap, component: AutomationsManager },
-    { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager },
-    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager },
-    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager },
-    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager },
-    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true },
+    { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview' },
+    { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager, group: 'Leads & CRM' },
+    { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager, group: 'Leads & CRM' },
+    { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager, group: 'Leads & CRM' },
+    { id: 'activities', name: 'Activities', icon: ActivityIcon, component: ActivitiesManager, group: 'Leads & CRM' },
+    { id: 'team', name: 'Team', icon: Network, component: TeamManager, group: 'Leads & CRM' },
+    { id: 'analytics', name: 'CRM Analytics', icon: BarChart3, component: AnalyticsManager, group: 'Leads & CRM' },
+    { id: 'automations', name: 'Automations', icon: Zap, component: AutomationsManager, group: 'Growth & Automation' },
+    { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager, group: 'Website Content' },
+    { id: 'content', name: 'Content', icon: FolderOpen, component: ContentManager, group: 'Website Content' },
+    { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager, group: 'Website Content' },
+    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager, group: 'Website Content' },
+    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager, group: 'AI Assistants' },
+    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager, group: 'AI Assistants' },
+    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration' },
     // `hidden` = reachable from the top-bar profile menu, not shown in the sidebar.
     // Everyone (admins + employees) can view/edit their own account.
     { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true }
   ];
+
+  // Order the section labels appear in the sidebar.
+  const GROUP_ORDER = ['Overview', 'Leads & CRM', 'Growth & Automation', 'Website Content', 'AI Assistants', 'Administration'];
 
   // Role-based visibility: admins (anything not explicitly 'employee') see every
   // tab; employees only see the tabs listed in their `permissions`. The
@@ -592,23 +597,34 @@ function AdminDashboard({
           </button>
         </div>
 
-        {/* Scrollable nav */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {visibleMenuItems.map((item) => {
-            const Icon = item.icon;
+        {/* Scrollable nav — tabs organised under labelled section headers. */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3">
+          {GROUP_ORDER.map((group) => {
+            const groupItems = visibleMenuItems.filter((item) => (item as any).group === group);
+            if (groupItems.length === 0) return null;
             return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setCurrentPage(item.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors
-                ${currentPage === item.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-              >
-                <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                <span className="truncate">{item.name}</span>
-              </button>
+              <div key={group} className="mb-4">
+                <p className="px-4 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">{group}</p>
+                <div className="space-y-1">
+                  {groupItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setCurrentPage(item.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors
+                        ${currentPage === item.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
+                      >
+                        <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                        <span className="truncate">{item.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>

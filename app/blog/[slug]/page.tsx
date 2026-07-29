@@ -94,9 +94,22 @@ export default async function BlogDetails({ params }: { params: { slug: string }
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   };
 
+  // Breadcrumb structured data — matches the visible breadcrumb, so Google can
+  // show the Home › Blogs › Title trail in search results.
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Blogs', item: `${SITE_URL}/blogs` },
+      { '@type': 'ListItem', position: 3, name: blog.title, item: url },
+    ],
+  };
+
   return (
     <article style={{ maxWidth: '800px', margin: 'auto', padding: '20px', marginTop: '40px' }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Breadcrumb */}
       <nav style={{ marginBottom: '20px', fontSize: '0.9rem', color: '#666' }}>

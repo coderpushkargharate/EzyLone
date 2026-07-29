@@ -25,6 +25,41 @@ export default function AutomationsManager() {
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [modalProvider, setModalProvider] = useState<Provider | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  // Export all leads to a CSV file the browser downloads — no server change
+  // needed, reads the same /api/leads the Lead Management tab uses.
+  async function exportLeads() {
+    setExporting(true);
+    try {
+      const res = await fetch('/api/leads');
+      if (!res.ok) throw new Error('fetch failed');
+      const leads = await res.json();
+      const rows = Array.isArray(leads) ? leads : leads.items || [];
+      const headers = ['Name', 'Phone', 'Email', 'Status', 'Source', 'Notes', 'Created'];
+      const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const csv = [
+        headers.join(','),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...rows.map((l: any) =>
+          [l.name, l.phone, l.email, l.status, l.source, l.notes, l.createdAt]
+            .map(esc)
+            .join(',')
+        ),
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ezyloan-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Could not export leads. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const loadIntegrations = useCallback(async () => {
     const res = await fetch('/api/integrations');
@@ -243,11 +278,18 @@ export default function AutomationsManager() {
           </div>
           <div className="p-5">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center"><Download size={16} className="text-gray-600" /></div>
+              <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center"><Download size={16} className="text-green-600" /></div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900">Export Client List</h3>
-                <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Download your client list in CSV format</p>
-                <span className="text-xs text-gray-400">Coming soon</span>
+                <p className="text-xs text-gray-500 mt-0.5 mb-2">Download all your leads in CSV format</p>
+                <button
+                  onClick={exportLeads}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-green-700 transition disabled:opacity-60"
+                >
+                  <Download size={13} />
+                  {exporting ? 'Preparing…' : 'Download CSV'}
+                </button>
               </div>
             </div>
           </div>
@@ -274,7 +316,7 @@ const META: Record<Provider, { title: string; webhookPath: string; docsUrl: stri
   },
   whatsapp: {
     title: 'WhatsApp Business',
-    webhookPath: '/api/webhook/whatsapp',
+    webhookPath: '/api/whatsapp/webhook',
     docsUrl: 'https://developers.facebook.com/docs/whatsapp/cloud-api/get-started',
   },
 };
