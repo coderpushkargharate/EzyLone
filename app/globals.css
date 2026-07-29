@@ -228,6 +228,270 @@ a {
 }
 
 /* ============================================================
+   APPLE-GLASS HOVER — the shared nav/button hover effect
+   The same "over effect" used on the navbar, now a real, reusable
+   design-system primitive so ANY button/link can opt in.
+
+   Performance contract (identical to .glass-prism):
+   ✅ MOBILE: only a colour change + tiny active press — no blur, no
+      hover transform, so paint stays cheap and scroll never janks.
+   ✅ DESKTOP (≥1024px): soft liquid-tint fill + lift + glow on hover.
+   ✅ transform/opacity ONLY → zero layout shift (no CLS), GPU-composited.
+   ✅ prefers-reduced-motion is neutralised by the blanket rule below.
+   ✅ Self-contained: the tint is a ::before behind the content (z-index:-1),
+      so it works on any button WITHOUT wrapping text and never clips a
+      focus ring (no overflow:hidden).
+
+   Usage:
+     • Text nav links → class="nav-link-water transition-apple"
+     • Buttons / CTAs → class="apple-glass-btn transition-apple"
+   ============================================================ */
+.transition-apple {
+  transition:
+    color var(--transition-base),
+    background-color var(--transition-base),
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
+}
+
+/* Text link — a gradient "water" underline that wipes in on hover/focus */
+.nav-link-water {
+  position: relative;
+}
+.nav-link-water::after {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.25rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--blue-primary), var(--cyan-primary));
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--transition-base);
+  pointer-events: none;
+}
+.nav-link-water:hover::after,
+.nav-link-water:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* Button — soft liquid-glass tint fill behind the content */
+.apple-glass-btn {
+  position: relative;
+  z-index: 0;
+}
+.apple-glass-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    rgba(37, 99, 235, 0.1),
+    rgba(6, 182, 212, 0.14)
+  );
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+.apple-glass-btn:hover::before,
+.apple-glass-btn:focus-visible::before {
+  opacity: 1;
+}
+
+/* Optional inner sheen layer (used where markup includes it, e.g. the navbar) */
+.liquid-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0) 60%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  pointer-events: none;
+}
+.apple-glass-btn:hover .liquid-overlay,
+.nav-link-water:hover .liquid-overlay {
+  opacity: 0.5;
+}
+
+@media (min-width: 1024px) {
+  .apple-glass-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px rgba(37, 99, 235, 0.18);
+  }
+}
+@media (max-width: 1023px) {
+  .apple-glass-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Subtle glass edge — a translucent border + top inner highlight. Static, so
+   it costs nothing and is safe on any surface. */
+.glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Diagonal shine sweep. Kept invisible until the button is hovered (desktop
+   only), then a light band wipes across. background-position only → GPU-cheap. */
+.glass-shimmer {
+  background: linear-gradient(
+    120deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 65%
+  );
+  background-size: 220% 100%;
+  background-position: 160% 0;
+  pointer-events: none;
+}
+@media (min-width: 1024px) {
+  .group:hover .glass-shimmer,
+  .apple-glass-btn:hover .glass-shimmer {
+    transition: background-position 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    background-position: -60% 0;
+  }
+}
+
+/* ------------------------------------------------------------
+   SITE-WIDE BUTTON HOVER  (front-end + admin)
+   Gives EVERY native <button> and button-link the same apple-glass
+   feel — a smooth lift + soft brand glow — without tagging each one.
+
+   Why this is safe & fast:
+   ✅ Hover-only (desktop) + active press (mobile) → costs NOTHING
+      until the pointer/finger interacts. No scroll jank, no CLS.
+   ✅ transform/box-shadow only → GPU-composited, no layout reflow.
+   ✅ Any button with its OWN Tailwind hover: utility (or the richer
+      .apple-glass-btn class) has higher specificity and overrides
+      this, so every existing design is preserved untouched.
+   ✅ No ::before/::after used → cannot collide with component pseudos.
+   ✅ Skips disabled buttons; neutralised for prefers-reduced-motion.
+   ------------------------------------------------------------ */
+button,
+a[role="button"] {
+  transition:
+    color var(--transition-base),
+    background-color var(--transition-base),
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    border-color var(--transition-base);
+}
+@media (min-width: 1024px) {
+  button:not(:disabled):not([aria-disabled="true"]):hover,
+  a[role="button"]:not([aria-disabled="true"]):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.14);
+  }
+}
+@media (max-width: 1023px) {
+  button:not(:disabled):not([aria-disabled="true"]):active,
+  a[role="button"]:not([aria-disabled="true"]):active {
+    transform: scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------
+   FORMS — attractive inputs site-wide (every form)
+   Smooth transitions + a soft brand focus glow. Inputs that already
+   set their own Tailwind focus:ring keep it (higher specificity); the
+   rest inherit this consistent premium look. Fires on mobile too (tap
+   = focus), so forms feel alive on touch as well.
+   ------------------------------------------------------------ */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]),
+textarea,
+select {
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    background-color var(--transition-base);
+}
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: rgba(37, 99, 235, 0.7);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+@media (min-width: 1024px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):hover,
+  textarea:hover,
+  select:hover {
+    border-color: rgba(37, 99, 235, 0.4);
+  }
+}
+
+/* ------------------------------------------------------------
+   MOBILE TOUCH — the glass "over" effect reads on tap too.
+   Touch devices have no :hover, so we surface the same feedback on
+   :active (finger down). Transform/opacity/shadow only → still smooth.
+   ------------------------------------------------------------ */
+@media (max-width: 1023px) {
+  .apple-glass-btn:active::before {
+    opacity: 1;
+  }
+  .glass-prism:active,
+  .glass-prism-btn:active {
+    transform: scale(0.98);
+  }
+  button:not(:disabled):not([aria-disabled="true"]):active,
+  a[role="button"]:not([aria-disabled="true"]):active {
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+  }
+}
+
+/* ============================================================
+   SCROLL REVEAL  (AOS-lite — see components/ScrollReveal.tsx)
+   Elements tagged data-aos="…" fade/slide in as they scroll into
+   view. The hidden pre-state is gated behind html.aos-on, which JS
+   only adds when it can animate — so WITHOUT JS (crawlers, no-JS
+   users) everything is fully visible. GPU-only (opacity/transform),
+   so it never touches layout (no CLS) or scroll cost.
+   ============================================================ */
+html.aos-on [data-aos] {
+  opacity: 0;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.aos-on [data-aos="fade-up"] {
+  transform: translateY(24px);
+}
+html.aos-on [data-aos="fade-down"] {
+  transform: translateY(-24px);
+}
+html.aos-on [data-aos="fade-left"] {
+  transform: translateX(24px);
+}
+html.aos-on [data-aos="fade-right"] {
+  transform: translateX(-24px);
+}
+html.aos-on [data-aos="zoom-in"] {
+  transform: scale(0.94);
+}
+html.aos-on [data-aos].aos-in {
+  opacity: 1;
+  transform: none;
+}
+/* Motion-sensitive users: never hide, never animate. */
+@media (prefers-reduced-motion: reduce) {
+  html.aos-on [data-aos] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================
    SCROLLBAR — thin, unobtrusive
    ============================================================ */
 ::-webkit-scrollbar {

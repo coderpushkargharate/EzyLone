@@ -115,7 +115,7 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="px-4 sm:px-6 lg:px-8 mt-4" data-aos="fade-up">
           <div className="max-w-[85rem] mx-auto px-4 py-3 bg-amber-50 border-l-4 border-amber-500" role="note">
             <div className="flex items-start">
               <AlertCircle className="w-4 h-4 text-amber-600 mr-2 mt-0.5 flex-shrink-0" />
@@ -127,7 +127,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="px-4 sm:px-6 lg:px-8 mt-4" data-aos="fade-up">
           <div className="max-w-[85rem] mx-auto">
             <div className="glass-prism bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl p-4 sm:p-5 lg:p-6 mb-6 text-white">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">

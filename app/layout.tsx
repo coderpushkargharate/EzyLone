@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import ConditionalHeader from '@/components/ConditionalHeader';
 import ConditionalFooter from '@/components/ConditionalFooter';
+import ScrollReveal from '@/components/ScrollReveal';
 import Script from 'next/script';
 import MetaPixel from '@/components/MetaPixel';
 import { GOOGLE_ADS_ID } from '@/lib/ads';
@@ -230,6 +231,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
 
         <ConditionalHeader />
+        <ScrollReveal />
         <main id="main-content" className="flex-grow min-h-[calc(100vh-400px)]" role="main">
           {children}
         </main>
