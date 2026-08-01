@@ -20,85 +20,126 @@ import {
 import HeroSection from '@/components/HeroSection';
 import Script from 'next/script';
 
-// ==================== BankingPartnersCarousel (FIXED for Mobile) ====================
+// ==================== BankingPartnersCarousel ====================
+// Mirrors the home page "Trusted Banking & NBFC Partners" section exactly:
+// separate desktop / mobile marquee tracks, same tile & logo sizes, so all
+// logos scroll through on every screen size.
 const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Array<{name: string, logo: string}> }) => {
-  const itemWidth = 160; // w-40 = 160px
-  const itemGap = 24; // space-x-6 = 24px
-  const itemTotal = itemWidth + itemGap; // 184px per item
-  const scrollDistance = itemTotal * bankingPartners.length;
-  const animationDuration = 40; // seconds for desktop
-  const animationDurationMobile = 80; // seconds for mobile
+  if (bankingPartners.length === 0) return null;
+
+  const heading = (
+    <div className="flex items-center justify-center gap-4 mb-4">
+      <div className="h-[2px] w-12 sm:w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+      <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+        Trusted Banking &amp; NBFC Partners
+      </h2>
+      <div className="h-[2px] w-12 sm:w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+    </div>
+  );
+
+  const itemCount = bankingPartners.length;
+  const desktopTrackWidth = 184 * itemCount;
+  const mobileTrackWidth = 124 * itemCount;
 
   return (
     <div className="bg-gradient-to-r from-blue-50 to-cyan-50 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-blue-100/50 shadow-2xl mb-20">
-      <div className="text-center mb-8">
-        <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-          <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-            Our Banking Partners
-          </span>
-        </h3>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          We collaborate with India's leading financial institutions to bring you the best loan offers.
-        </p>
-      </div>
-      <div className="relative overflow-hidden py-2">
-        {/* ✅ FIXED: Carousel with proper mobile support */}
-        <div 
-          className="flex scrollbar-hide"
-          style={{
-            animation: `scroll ${animationDuration}s linear infinite`,
-            width: `${itemTotal * bankingPartners.length * 2}px`,
-            willChange: 'transform',
-          }}
-        >
+      <div className="max-w-7xl mx-auto">
+        {heading}
+        <div className="relative overflow-hidden py-2 lg:py-4">
           <style>{`
-            .scrollbar-hide::-webkit-scrollbar { display: none; }
-            .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-            @keyframes scroll {
+            @keyframes marquee-partners-desktop {
               0% { transform: translateX(0); }
-              100% { transform: translateX(-${scrollDistance}px); }
+              100% { transform: translateX(-${desktopTrackWidth}px); }
             }
-            @media (max-width: 1023px) {
-              [style*="animation: scroll"] {
-                animation-duration: ${animationDurationMobile}s !important;
-              }
+            @keyframes marquee-partners-mobile {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-${mobileTrackWidth}px); }
             }
-            /* Pause animation on hover for better UX */
-            @media (hover: hover) {
-              [style*="animation: scroll"]:hover {
-                animation-play-state: paused;
+            .partner-marquee-desktop {
+              animation: marquee-partners-desktop 40s linear infinite;
+              will-change: transform;
+            }
+            .partner-marquee-mobile {
+              animation: marquee-partners-mobile 30s linear infinite;
+              will-change: transform;
+            }
+            .partner-marquee-desktop:hover,
+            .partner-marquee-mobile:hover {
+              animation-play-state: paused;
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .partner-marquee-desktop,
+              .partner-marquee-mobile {
+                animation: none;
               }
             }
           `}</style>
-          
-          {/* Duplicated items for seamless loop */}
-          {[...bankingPartners, ...bankingPartners].map((partner, index) => (
-            <div 
-              key={`${partner.name}-${index}`} 
-              className="flex-shrink-0 flex items-center justify-center"
-              style={{ width: `${itemWidth}px`, marginRight: `${itemGap}px` }}
+
+          {/* Desktop */}
+          <div className="hidden lg:block">
+            <div
+              className="flex partner-marquee-desktop"
+              style={{ width: `${desktopTrackWidth * 2}px` }}
             >
-              <div className="w-40 h-24 bg-gradient-to-br from-white to-blue-50/50 rounded-xl p-3 flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110 border border-blue-100/30">
-                <img 
-                  src={partner.logo} 
-                  alt={partner.name} 
-                  className="max-w-full max-h-full object-contain" 
-                  loading="lazy"
-                  decoding="async"
-                  width={120}
-                  height={80}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
+              {[...bankingPartners, ...bankingPartners].map((partner, index) => (
+                <div
+                  key={`desktop-${partner.name}-${index}`}
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{ width: "160px", marginRight: "24px" }}
+                >
+                  <div className="w-40 h-20 bg-white rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                      decoding="async"
+                      width={120}
+                      height={60}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Mobile */}
+          <div className="lg:hidden">
+            <div
+              className="flex partner-marquee-mobile"
+              style={{ width: `${mobileTrackWidth * 2}px` }}
+            >
+              {[...bankingPartners, ...bankingPartners].map((partner, index) => (
+                <div
+                  key={`mobile-${partner.name}-${index}`}
+                  className="flex-shrink-0 flex items-center justify-center"
+                  style={{ width: "112px", marginRight: "12px" }}
+                >
+                  <div className="w-28 h-16 bg-white rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm">
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                      decoding="async"
+                      width={80}
+                      height={48}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="absolute top-0 left-0 bottom-0 w-16 bg-gradient-to-r from-blue-50 to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-blue-50 to-transparent pointer-events-none" />
         </div>
-        
-        {/* Fade overlays for smooth edges */}
-        <div className="absolute top-0 left-0 bottom-0 w-16 bg-gradient-to-r from-blue-50 to-transparent pointer-events-none"></div>
-        <div className="absolute top-0 right-0 bottom-0 w-16 bg-gradient-to-l from-blue-50 to-transparent pointer-events-none"></div>
       </div>
     </div>
   );
@@ -209,7 +250,7 @@ const About = () => {
     "/banks/AU-Small-Finance-Bank.webp",
     "/banks/Axis_Bank_logo.svg.webp",
     "/banks/Bajaj-Finsery-Logo.webp",
-    "/banks/chola-logo.webp",
+    "/banks/chola-logo-removebg-preview.jpg",
     "/banks/Tata-Capital.webp",
     "/banks/HDB.webp",
     "/banks/boi.webp",
@@ -217,11 +258,11 @@ const About = () => {
     "/banks/ICICI-Bank-logo.webp",
     "/banks/IDFC-logo.webp",
     "/banks/Kotak_Mahindra_Bank_logo.webp",
-    "/banks/Mahindra_Finance_Logo.webp",
+    "/banks/Mahindra_Finance_Logo.jpg",
     "/banks/Piramal-Logo.webp",
     "/banks/esaf-seeklogo.webp",
     "/banks/aditya_birla_camptal-removebg-preview.webp",
-    "/banks/arka-removebg-preview.webp",
+    "/banks/download-removebg-preview.webp",
     "/banks/dcb_bank-removebg-preview.webp",
     "/banks/Poonamwalla-Fincorp-removebg-preview.webp",
   ].filter(Boolean);
