@@ -1,7 +1,6 @@
 import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { Activity } from '@/lib/models/Activity';
-import { fetchNewLeadEmails } from '@/lib/imap';
 
 export interface IngestResult {
   processed: number;
@@ -46,7 +45,21 @@ export async function createLeadFromWebhook(
   if (phone) orConds.push({ phone });
   if (orConds.length) {
     const dup = await Lead.findOne({ $or: orConds }).lean();
-    if (dup) return { created: false, leadId: String(dup._id) };
+    if (dup) {
+      // Same person enquired again (new form submission, not a duplicate webhook
+      // redelivery). Don't spawn a second lead, but DO record the fresh enquiry
+      // on the timeline and bump lastActivity so nothing goes unrecorded and the
+      // lead resurfaces in "recently active" views.
+      await Activity.create({
+        leadId: dup._id,
+        type: 'note',
+        description: input.message
+          ? `New enquiry via ${input.source}: ${input.message}`
+          : `New enquiry via ${input.source}`,
+      });
+      await Lead.updateOne({ _id: dup._id }, { $set: { lastActivity: new Date() } });
+      return { created: false, leadId: String(dup._id) };
+    }
   }
 
   const lead = await Lead.create({
@@ -76,6 +89,9 @@ export async function createLeadFromWebhook(
  */
 export async function ingestLeadEmails(): Promise<IngestResult> {
   await connectDB();
+  // Lazy-loaded so the lightweight createLeadFromWebhook path (used by the
+  // public website form routes) never pulls in the heavy IMAP/mail-parser deps.
+  const { fetchNewLeadEmails } = await import('@/lib/imap');
   const parsedLeads = await fetchNewLeadEmails();
 
   let created = 0;

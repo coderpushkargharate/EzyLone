@@ -5,6 +5,7 @@ import { verifyAuth, unauthorized } from '@/lib/auth';
 import { formRateLimit } from '@/lib/rateLimit';
 import { sendWelcomeEmail, sendContactAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
+import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
@@ -56,14 +57,34 @@ export async function POST(req: NextRequest) {
       console.error('Contact notification email failed (lead still saved):', mailErr);
     }
 
-    // Mirror the lead into EzyLoanCrm. Non-blocking + never throws — same
-    // guarantee as the email step: a CRM outage never affects the visitor.
+    const leadMessage =
+      `Loan Type: ${loanType} | Amount: ${loanAmount || 'Not specified'}` +
+      (message ? ` | Message: ${message}` : '');
+
+    // Create/attach a Lead in the SAME database the admin CRM reads from, so every
+    // website enquiry lands in Lead Management, Activities, Analytics, Team and the
+    // notification bell. De-duped by phone/email; a repeat enquiry is logged on the
+    // existing lead's timeline instead of creating a second lead. Never throws — a
+    // CRM hiccup must not turn a captured contact into a 500 for the visitor.
+    try {
+      await createLeadFromWebhook({
+        name: fullName,
+        email,
+        phone: phoneNumber,
+        message: leadMessage,
+        source: 'Website Contact Form',
+      });
+    } catch (crmErr) {
+      console.error('Lead capture failed (contact still saved):', crmErr);
+    }
+
+    // Also mirror to an EXTERNAL CRM if one is configured (optional). Non-blocking
+    // + never throws — a no-op when CRM_WEBHOOK_URL isn't set.
     await syncLeadToCrm({
       name: fullName,
       email,
       phone: phoneNumber,
-      message: `Loan Type: ${loanType} | Amount: ${loanAmount || 'Not specified'}` +
-        (message ? ` | Message: ${message}` : ''),
+      message: leadMessage,
       source: 'Website Contact Form',
     });
 

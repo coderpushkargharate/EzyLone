@@ -5,6 +5,7 @@ import { verifyAuth, unauthorized } from '@/lib/auth';
 import { formRateLimit } from '@/lib/rateLimit';
 import { sendWelcomeEmail, sendLoanAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
+import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
 export const runtime = 'nodejs';
@@ -53,14 +54,34 @@ export async function POST(req: NextRequest) {
       console.error('Loan notification email failed (application still saved):', mailErr);
     }
 
-    // Mirror the application into EzyLoanCrm. Non-blocking + never throws — a
-    // CRM outage never affects the applicant (data already saved above).
+    const leadMessage =
+      `Loan Type: ${loanType} | Employment: ${employmentType} | ` +
+      `City: ${city} | Pincode: ${pincode} | CIBIL: ${cibilScore}`;
+
+    // Create/attach a Lead in the SAME database the admin CRM reads from, so every
+    // Apply-Now application lands in Lead Management, Activities, Analytics, Team
+    // and the notification bell. De-duped by phone/email; a repeat application is
+    // logged on the existing lead's timeline. Never throws — a CRM hiccup must not
+    // turn a captured application into a 500 for the applicant.
+    try {
+      await createLeadFromWebhook({
+        name: fullName,
+        email,
+        phone: phoneNumber,
+        message: leadMessage,
+        source: 'Website Apply Now',
+      });
+    } catch (crmErr) {
+      console.error('Lead capture failed (application still saved):', crmErr);
+    }
+
+    // Also mirror to an EXTERNAL CRM if one is configured (optional). Non-blocking
+    // + never throws — a no-op when CRM_WEBHOOK_URL isn't set.
     await syncLeadToCrm({
       name: fullName,
       email,
       phone: phoneNumber,
-      message: `Loan Type: ${loanType} | Employment: ${employmentType} | ` +
-        `City: ${city} | Pincode: ${pincode} | CIBIL: ${cibilScore}`,
+      message: leadMessage,
       source: 'Website Apply Now',
     });
 

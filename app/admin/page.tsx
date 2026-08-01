@@ -187,7 +187,9 @@ function AdminDashboard({
     totalLoanApplications: 0,
     pendingApplications: 0,
     totalBanners: 0,
-    totalBlogs: 0
+    totalBlogs: 0,
+    totalLeads: 0,
+    convertedLeads: 0
   });
   // Raw data kept for the analytics charts on the overview page.
   const [analyticsData, setAnalyticsData] = useState<{ loans: any[]; contacts: any[] }>({ loans: [], contacts: [] });
@@ -280,19 +282,25 @@ function AdminDashboard({
 
   const fetchDashboardStats = async () => {
     try {
-      const [contactsRes, loansRes, bannersRes, blogsRes] = await Promise.all([
+      const [contactsRes, loansRes, bannersRes, blogsRes, analyticsRes] = await Promise.all([
         axios.get(`/api/contacts`),
         axios.get(`/api/loans`),
         axios.get(`/api/banners`),
-        axios.get(`/api/blogs`)
+        axios.get(`/api/blogs`),
+        // CRM lead totals (shared leads collection). Wrapped so a failure here
+        // never blanks out the rest of the dashboard.
+        axios.get(`/api/analytics`).catch(() => ({ data: { stats: {} } }))
       ]);
-      
+
+      const crmStats = analyticsRes.data?.stats || {};
       setDashboardStats({
         totalContacts: contactsRes.data.length,
         totalLoanApplications: loansRes.data.length,
         pendingApplications: loansRes.data.filter((loan: any) => loan.status === 'pending').length,
         totalBanners: bannersRes.data.length,
-        totalBlogs: blogsRes.data.length
+        totalBlogs: blogsRes.data.length,
+        totalLeads: crmStats.totalLeads || 0,
+        convertedLeads: crmStats.convertedLeads || 0
       });
       setAnalyticsData({ loans: loansRes.data, contacts: contactsRes.data });
     } catch (error) {
@@ -733,6 +741,7 @@ function AdminDashboard({
             // Dashboard props
             stats={dashboardStats}
             analytics={analyticsData}
+            setCurrentPage={setCurrentPage}
             // Banners props
             banners={banners}
             selectedPage={selectedPage}
@@ -800,7 +809,7 @@ function MiniBarChart({ data }: { data: { label: string; value: number; color: s
 }
 
 // Dashboard Overview Component
-function DashboardOverview({ stats, analytics }: { stats: any; analytics?: { loans: any[]; contacts: any[] } }) {
+function DashboardOverview({ stats, analytics, setCurrentPage }: { stats: any; analytics?: { loans: any[]; contacts: any[] }; setCurrentPage?: (page: string) => void }) {
   const loans = analytics?.loans || [];
   const contacts = analytics?.contacts || [];
 
@@ -840,6 +849,8 @@ function DashboardOverview({ stats, analytics }: { stats: any; analytics?: { loa
   const approvalRate = decided > 0 ? Math.round((statusData[0].value / decided) * 100) : 0;
 
   const statCards = [
+    { title: 'Total Leads (CRM)', value: stats.totalLeads, color: 'bg-blue-600', icon: <Target className="h-8 w-8" /> },
+    { title: 'Converted Leads', value: stats.convertedLeads, color: 'bg-emerald-500', icon: <CheckCircle className="h-8 w-8" /> },
     { title: 'Total Contacts', value: stats.totalContacts, color: 'bg-blue-500', icon: <MessageSquare className="h-8 w-8" /> },
     { title: 'Loan Applications', value: stats.totalLoanApplications, color: 'bg-green-500', icon: <FileText className="h-8 w-8" /> },
     { title: 'Pending Applications', value: stats.pendingApplications, color: 'bg-yellow-500', icon: <FileText className="h-8 w-8" /> },
@@ -894,21 +905,21 @@ function DashboardOverview({ stats, analytics }: { stats: any; analytics?: { loa
         <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h4>
           <div className="space-y-3">
-            <button className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors w-full text-left">
-              <ImageIcon className="h-5 w-5 text-blue-600 mr-3" />
-              <span className="font-medium text-blue-600">Manage Banners</span>
+            <button onClick={() => setCurrentPage?.('leads')} className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors w-full text-left">
+              <Target className="h-5 w-5 text-blue-600 mr-3" />
+              <span className="font-medium text-blue-600">Manage Leads</span>
             </button>
-            <button className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors w-full text-left">
+            <button onClick={() => setCurrentPage?.('contacts')} className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors w-full text-left">
               <MessageSquare className="h-5 w-5 text-green-600 mr-3" />
               <span className="font-medium text-green-600">View Contacts</span>
             </button>
-            <button className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors w-full text-left">
+            <button onClick={() => setCurrentPage?.('loans')} className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors w-full text-left">
               <FileText className="h-5 w-5 text-purple-600 mr-3" />
               <span className="font-medium text-purple-600">Review Loan Applications</span>
             </button>
-            <button className="flex items-center p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors w-full text-left">
-              <FileText className="h-5 w-5 text-indigo-600 mr-3" />
-              <span className="font-medium text-indigo-600">Manage Blogs</span>
+            <button onClick={() => setCurrentPage?.('banners')} className="flex items-center p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors w-full text-left">
+              <ImageIcon className="h-5 w-5 text-indigo-600 mr-3" />
+              <span className="font-medium text-indigo-600">Manage Banners</span>
             </button>
           </div>
         </div>
