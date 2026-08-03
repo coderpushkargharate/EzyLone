@@ -288,7 +288,7 @@ const Header = memo(() => {
               className="lg:hidden apple-glass-btn relative bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-3 py-1.5 rounded-full font-semibold transition-apple text-base whitespace-nowrap glass-border"
               aria-label="Apply for a loan now"
             >
-              <span className="relative z-10">Apply now</span>
+              <span className="relative z-10">Apply Now</span>
               <div className="liquid-overlay" />
             </Link>
 
@@ -321,7 +321,7 @@ const Header = memo(() => {
               <Link href="/commercial-vehicle-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Commercial Vehicle</span><div className="liquid-overlay" /></Link>
               <Link href="/contact" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Contact</span><div className="liquid-overlay" /></Link>
               <Link href="/apply-now" className="group apple-glass-btn relative bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-apple text-base whitespace-nowrap glass-border ml-2">
-                <span className="relative z-10">Apply now</span>
+                <span className="relative z-10">Apply Now</span>
                 <div className="liquid-overlay" />
                 <div className="absolute inset-0 glass-shimmer rounded-full opacity-0 group-hover:opacity-100 transition-apple" />
               </Link> &nbsp; &nbsp;
@@ -361,7 +361,7 @@ const Header = memo(() => {
                 <Link href="/emi-calculator" onClick={(e) => handleMobileLinkClick(e, "/emi-calculator")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">EMI Calculator</Link>
                 <Link href="/contact" onClick={(e) => handleMobileLinkClick(e, "/contact")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Contact</Link>
                 <Link href="/apply-now" onClick={(e) => handleMobileLinkClick(e, "/apply-now")} className="relative text-white bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 rounded-full font-semibold mt-3 text-center max-w-[220px] mx-auto glass-border text-base min-h-[44px] flex items-center justify-center" role="menuitem" aria-label="Apply for a loan now">
-                  <span className="relative z-10">Apply now</span>
+                  <span className="relative z-10">Apply Now</span>
                 </Link>
               </nav>
             </div>
