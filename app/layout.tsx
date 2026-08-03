@@ -43,11 +43,10 @@ export const metadata: Metadata = {
   formatDetection: { email: false, address: false, telephone: false },
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-      { url: '/favicon.webp', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.webp', sizes: '32x32', type: 'image/webp' },
     ],
-    shortcut: '/favicon.ico',
-    apple: [{ url: '/apple-touch-icon.webp', sizes: '180x180', type: 'image/png' }],
+    shortcut: '/favicon.webp',
+    apple: [{ url: '/touch-elementor-io-optimized.webp', sizes: '180x180', type: 'image/webp' }],
   },
   openGraph: {
     type: 'website',
@@ -193,7 +192,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `priority` prop on the mobile hero <Image>, with the correct responsive
             srcset. No manual preload needed (avoids duplicate/un-gated preloads). */}
 
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.webp" type="image/webp" />
 
         {/* ✅ INLINE CRITICAL CSS - Eliminates 670ms render-blocking */}
         <style dangerouslySetInnerHTML={{ __html: `

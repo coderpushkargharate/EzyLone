@@ -34,7 +34,7 @@ const BANKING_PARTNERS = [
   },
   { 
     name: 'Cholamandalam Finance', 
-    logo: '/banks/chola-logo-removebg-preview.webp',
+    logo: '/banks/chola-logo-removebg-preview.jpg',
     website: 'https://www.cholamandalam.com',
     type: 'NBFC'
   },
@@ -82,7 +82,7 @@ const BANKING_PARTNERS = [
   },
   { 
     name: 'Mahindra Finance', 
-    logo: '/banks/Mahindra_Finance_Logo.webp',
+    logo: '/banks/Mahindra_Finance_Logo.jpg',
     website: 'https://www.mahindrafinance.com',
     type: 'NBFC'
   },

@@ -112,7 +112,7 @@ const LOAN_TYPES = [
   },
 ];
 
-const FALLBACK_BANNER = "/fallback-banner.jpg";
+const FALLBACK_BANNER = "/ezy-banner.webp";
 
 // Session-lived client cache for banner data, keyed by page. Lets banners render
 // instantly when navigating between pages (no spinner / re-fetch flash) while a
