@@ -877,6 +877,17 @@ const ApplyNowPage: React.FC = () => {
 };
 
 // Reusable Benefit Card Component - Fully Responsive + Compliance + Glass Hover
+// Full, literal Tailwind class strings per color. Tailwind's JIT only emits CSS
+// for class names it can find as complete strings in the source — a dynamic
+// `bg-${iconColor}-100` is never generated, so those icon backgrounds rendered
+// blank in every environment. Mapping to static strings guarantees the CSS ships.
+const BENEFIT_ICON_STYLES: Record<string, { bg: string; text: string }> = {
+  blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+  green: { bg: 'bg-green-100', text: 'text-green-600' },
+  purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+  orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
+};
+
 const BenefitCard = ({
   iconColor,
   title,
@@ -886,13 +897,14 @@ const BenefitCard = ({
   title: string;
   desc: string;
 }) => {
+  const iconStyle = BENEFIT_ICON_STYLES[iconColor] ?? BENEFIT_ICON_STYLES.blue;
   return (
     <div className="flex items-start space-x-3 sm:space-x-4 p-4 sm:p-5 lg:p-6 bg-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200/50 transition-all duration-300 group">
       <div
-        className={`w-10 h-10 sm:w-12 sm:h-12 bg-${iconColor}-100 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300`}
+        className={`w-10 h-10 sm:w-12 sm:h-12 ${iconStyle.bg} rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300`}
         aria-hidden="true"
       >
-        <CheckCircle className={`w-5 h-5 sm:w-6 sm:h-6 text-${iconColor}-600`} />
+        <CheckCircle className={`w-5 h-5 sm:w-6 sm:h-6 ${iconStyle.text}`} />
       </div>
       <div className="min-w-0 flex-1">
         <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight group-hover:text-blue-700 transition-colors">{title}</h3>
