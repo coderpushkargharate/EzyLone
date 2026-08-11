@@ -33,6 +33,8 @@ export async function syncLeadToCrm(payload: CrmLeadPayload): Promise<void> {
           : {}),
       },
       body: JSON.stringify(payload),
+      // Bound the call so a slow/unreachable CRM fails fast instead of hanging.
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!res.ok) {

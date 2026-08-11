@@ -84,6 +84,8 @@ async function postToTwilio(cfg: TwilioConfig, fields: Record<string, string>): 
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: params.toString(),
+        // Bound the call so a slow/unreachable Twilio fails fast instead of hanging.
+        signal: AbortSignal.timeout(8000),
       },
     );
 
@@ -95,12 +97,15 @@ async function postToTwilio(cfg: TwilioConfig, fields: Record<string, string>): 
       //   63016 → production: business-initiated msg outside 24h window without a template.
       //   21608 → number not on the sandbox allow-list / sandbox not active.
       //   20003 → auth failed (wrong SID/token, e.g. after a rotation).
+      //   572002 → TRIAL account: the 'to' number isn't a Verified Caller ID yet.
       const hint =
         data?.code === 63015
           ? ' → recipient must first send "join <code>" to +14155238886 (sandbox opt-in).'
           : data?.code === 63016
             ? ' → business-initiated message needs an approved template (set TWILIO_WHATSAPP_TEMPLATE_SID).'
-            : '';
+            : data?.code === 572002
+              ? ' → TRIAL account: verify this number in Twilio Console → Phone Numbers → Manage → Verified Caller IDs, AND send "join <code>" from it to +14155238886.'
+              : '';
       console.error(
         `❌ WhatsApp send failed (HTTP ${res.status}, Twilio ${data?.code}): ${data?.message || ''}${hint} — lead still saved.`,
       );
@@ -214,10 +219,14 @@ export async function sendLeadConfirmationWhatsApp(
   name: string,
 ): Promise<void> {
   const firstName = (name || '').trim().split(/\s+/)[0] || 'there';
+  const provider = whatsappProvider();
+  console.log(
+    `📤 WhatsApp confirmation → provider=${provider}, to=${toPhone || '(none)'}, name=${firstName}`,
+  );
 
   // ── Meta Cloud API path ───────────────────────────────────────────────────
   // A form-submit message is business-initiated → needs an approved template.
-  if (whatsappProvider() === 'meta') {
+  if (provider === 'meta') {
     const tplName = process.env.META_WHATSAPP_TEMPLATE_NAME;
     const tplLang = process.env.META_WHATSAPP_TEMPLATE_LANG || 'en';
     if (tplName) {
@@ -236,6 +245,7 @@ export async function sendLeadConfirmationWhatsApp(
   // Preferred path: an approved template. Works in sandbox AND production, and is
   // the ONLY thing that delivers outside the 24-hour window (the normal case).
   if (templateSid) {
+    console.log(`   ↳ Twilio path: approved template (${templateSid})`);
     await sendWhatsAppTemplate(toPhone, templateSid, { '1': firstName });
     return;
   }
@@ -257,6 +267,7 @@ export async function sendLeadConfirmationWhatsApp(
       'delivers inside a 24h window (real form leads will fail with 63016). Configure ' +
       'a template to fix this.',
   );
+  console.log('   ↳ Twilio path: sandbox free text');
   await sendWhatsAppMessage(toPhone, buildLeadConfirmationMessage(name));
 }
 

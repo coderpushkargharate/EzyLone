@@ -78,6 +78,8 @@ async function postToMeta(cfg: MetaConfig, payload: Record<string, unknown>): Pr
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+      // Bound the call so a slow/unreachable Graph API fails fast instead of hanging.
+      signal: AbortSignal.timeout(8000),
     });
 
     const data: any = await res.json().catch(() => ({}));

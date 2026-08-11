@@ -78,20 +78,23 @@ export async function POST(req: NextRequest) {
       console.error('Lead capture failed (contact still saved):', crmErr);
     }
 
-    // Also mirror to an EXTERNAL CRM if one is configured (optional). Non-blocking
-    // + never throws — a no-op when CRM_WEBHOOK_URL isn't set.
-    await syncLeadToCrm({
+    // External notifications (CRM mirror + WhatsApp confirmation) are fired WITHOUT
+    // awaiting: the lead is already saved, so they must never delay or break the
+    // visitor's response. Previously these were awaited, and a slow/unreachable
+    // Twilio or CRM pushed the response past the client's 15s timeout — the visitor
+    // saw "Something went wrong" even though the lead was captured. Both helpers
+    // catch their own errors and never throw, so a bare .catch is just a safety net.
+    void syncLeadToCrm({
       name: fullName,
       email,
       phone: phoneNumber,
       message: leadMessage,
       source: 'Website Contact Form',
-    });
+    }).catch((e) => console.error('CRM sync error (lead still saved):', e));
 
-    // Send a WhatsApp confirmation to the lead. Fire-and-forget + never throws —
-    // same guarantee as email/CRM above (lead already saved). Picks template vs
-    // free-text automatically based on env (sandbox vs production sender).
-    await sendLeadConfirmationWhatsApp(phoneNumber, fullName);
+    void sendLeadConfirmationWhatsApp(phoneNumber, fullName).catch((e) =>
+      console.error('WhatsApp send error (lead still saved):', e),
+    );
 
     return NextResponse.json({ message: 'Contact submitted', contact }, { status: 201 });
   } catch (error: any) {
