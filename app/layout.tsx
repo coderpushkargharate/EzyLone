@@ -42,11 +42,20 @@ export const metadata: Metadata = {
   publisher: 'EzyLoan (Dibyansh Associates)',
   formatDetection: { email: false, address: false, telephone: false },
   icons: {
+    // Google's search-result favicon crawler (and every browser) auto-discovers
+    // /favicon.ico first, so it's listed as the primary square icon. The old
+    // /favicon.webp was the WIDE horizontal wordmark — at 16px it collapsed into
+    // an unrecognizable orange blob in Google results. These are square crops of
+    // the actual EzyLoan hexagon mark. (Apple icon was the unrelated orange
+    // "touch" glyph — replaced with the brand mark too.)
     icon: [
-      { url: '/favicon.webp', sizes: '32x32', type: 'image/webp' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
     ],
-    shortcut: '/favicon.webp',
-    apple: [{ url: '/touch-elementor-io-optimized.webp', sizes: '180x180', type: 'image/webp' }],
+    shortcut: '/favicon.ico',
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {
     type: 'website',
@@ -192,7 +201,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `priority` prop on the mobile hero <Image>, with the correct responsive
             srcset. No manual preload needed (avoids duplicate/un-gated preloads). */}
 
-        <link rel="icon" href="/favicon.webp" type="image/webp" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
 
         {/* ✅ INLINE CRITICAL CSS - Eliminates 670ms render-blocking */}
         <style dangerouslySetInnerHTML={{ __html: `

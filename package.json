@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:twilio": "node --env-file=.env.local scripts/test-twilio.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",
