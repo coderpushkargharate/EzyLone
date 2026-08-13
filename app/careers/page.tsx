@@ -195,7 +195,7 @@ export default function CareersPage() {
     "@type": "Organization",
     "name": "EzyLoan (Dibyansh Associates)",
     "url": "https://www.ezyloan.co.in",
-    "logo": "https://www.ezyloan.co.in/logo.webp",
+    "logo": "https://www.ezyloan.co.in/logo.png",
     "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India.",
     "address": {
       "@type": "PostalAddress",

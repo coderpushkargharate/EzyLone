@@ -19,7 +19,7 @@ const financialProductSchema = {
     '@type': 'FinancialService',
     name: 'EzyLoan (Dibyansh Associates)',
     url: BASE_URL,
-    logo: `${BASE_URL}/logo.webp`,
+    logo: `${BASE_URL}/logo.png`,
   },
   areaServed: 'IN',
   availableLanguage: ['English', 'Hindi'],

@@ -20,8 +20,8 @@ export default function TermsPage() {
     "provider": {
       "@type": "Organization",
       "name": "EzyLoan (Dibyansh Associates)",
-      "url": "https://ezyloan.co.in",
-      "logo": "https://ezyloan.co.in/logo.webp",
+      "url": "https://www.ezyloan.co.in",
+      "logo": "https://www.ezyloan.co.in/logo.png",
       "contactPoint": {
         "@type": "ContactPoint",
         "telephone": "+91-6372977626",

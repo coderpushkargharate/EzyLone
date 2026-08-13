@@ -89,7 +89,7 @@ export default async function BlogDetails({ params }: { params: { slug: string }
     publisher: {
       '@type': 'Organization',
       name: 'EzyLoan',
-      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.webp` },
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
     },
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
   };

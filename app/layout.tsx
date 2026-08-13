@@ -123,7 +123,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@type': 'FinancialService',
     name: 'EzyLoan (Dibyansh Associates)',
     url: BASE_URL,
-    logo: `${BASE_URL}/logo.webp`,
+    // Google reads this for the Search/Knowledge-panel logo. It must be a real,
+    // crawlable raster file — /logo.png is the brand wordmark (600x454, PNG).
+    logo: `${BASE_URL}/logo.png`,
     image: `${BASE_URL}/og-image.jpg`,
     description:
       'EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with RBI-regulated partner banks and NBFCs across India. We are not a direct lender.',
@@ -153,11 +155,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         closes: '19:00',
       },
     },
-    sameAs: [
-      'https://www.facebook.com/ezyloan',
-      'https://twitter.com/ezyloan',
-      'https://www.linkedin.com/company/ezyloan',
-    ],
+    // sameAs links Google to your OFFICIAL social profiles. Wrong/non-existent
+    // URLs hurt entity trust, so the previous GUESSED handles were removed.
+    // TODO: add the real profile URLs here, e.g.
+    //   'https://www.facebook.com/<real>', 'https://www.instagram.com/<real>',
+    //   'https://www.linkedin.com/company/<real>'
+    sameAs: [],
     additionalType: 'DirectSellingAgent',
     regulatoryCompliance: ['RBI-DSA-Guidelines', 'IT-Act-2000', 'PMLA-KYC'],
     disclaimer:
