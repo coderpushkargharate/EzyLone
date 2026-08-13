@@ -13,6 +13,7 @@ import axios from "axios";
 import Image from "next/image";
 import { trackGoogleAdsConversion } from "@/lib/ads";
 import { trackMetaLead } from "@/components/MetaPixel";
+import { isIndianMobile } from "@/lib/phone";
 import {
   Clock,
   Percent,
@@ -662,8 +663,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       errors.email = "Valid email required";
     if (!formData.phoneNumber.trim())
       errors.phoneNumber = "Phone number is required";
-    else if (!/^[0-9]{10,13}$/.test(formData.phoneNumber.replace(/[\s-]/g, "")))
-      errors.phoneNumber = "Valid 10-digit number required";
+    else if (!isIndianMobile(formData.phoneNumber))
+      errors.phoneNumber = "Enter a valid Indian mobile (10 digits, starts 6-9)";
     if (!formData.loanType) errors.loanType = "Select loan type";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -1038,19 +1039,26 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         )}
 
         <div className="relative">
-          <Phone
+          <span
             className={`absolute left-${
               isLg ? "3" : "2.5"
             } top-1/2 -translate-y-1/2 ${
-              isLg ? "h-5 w-5" : "h-3.5 w-3.5"
-            } text-gray-400`}
-          />
+              isLg ? "text-base" : "text-xs"
+            } font-medium text-gray-600 select-none pointer-events-none`}
+          >
+            🇮🇳 +91
+          </span>
           <input
             type="tel"
-            placeholder="Phone Number *"
+            placeholder="10-digit mobile number *"
+            maxLength={10}
             value={formData.phoneNumber}
             onChange={(e) => {
-              const cleaned = e.target.value.replace(/\D/g, "").slice(0, 13);
+              // India-only: keep digits, drop a pasted 91/0 prefix, cap at 10.
+              let d = e.target.value.replace(/\D/g, "");
+              if (d.length === 12 && d.startsWith("91")) d = d.slice(2);
+              if (d.length === 11 && d.startsWith("0")) d = d.slice(1);
+              const cleaned = d.slice(0, 10);
               setFormData((prev) => ({ ...prev, phoneNumber: cleaned }));
               if (formErrors.phoneNumber) {
                 setFormErrors((p) => {
@@ -1061,7 +1069,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               }
             }}
             className={`w-full ${
-              isLg ? "pl-10 pr-4 py-3 text-base" : "pl-8 pr-3 py-2 text-xs"
+              isLg ? "pl-20 pr-4 py-3 text-base" : "pl-16 pr-3 py-2 text-xs"
             } rounded-lg bg-white/95 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400${
               formErrors.phoneNumber ? " ring-2 ring-red-400" : ""
             }`}

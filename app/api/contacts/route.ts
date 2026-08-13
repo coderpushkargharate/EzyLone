@@ -7,6 +7,7 @@ import { sendWelcomeEmail, sendContactAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
 import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
+import { normalizeIndianMobile } from '@/lib/phone';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -38,10 +39,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Name, email, phone and loan type are required' }, { status: 400 });
     }
 
+    // India-only: reject out-of-country numbers. Store the normalized 10-digit form
+    // so the CRM/WhatsApp downstream (which prefix +91) get a clean value and dedup works.
+    const indianPhone = normalizeIndianMobile(phoneNumber);
+    if (!indianPhone) {
+      return NextResponse.json(
+        { message: 'Please enter a valid Indian mobile number (10 digits, starting 6-9). We currently serve India only.' },
+        { status: 400 },
+      );
+    }
+
     await connectDB();
     // Whitelist fields explicitly rather than spreading the raw body (see loans route).
     const contact = await Contact.create({
-      fullName, email, phoneNumber, loanType,
+      fullName, email, phoneNumber: indianPhone, loanType,
       loanAmount: loanAmount || 'Not specified',
       message,
     });
@@ -70,7 +81,7 @@ export async function POST(req: NextRequest) {
       await createLeadFromWebhook({
         name: fullName,
         email,
-        phone: phoneNumber,
+        phone: indianPhone,
         message: leadMessage,
         source: 'Website Contact Form',
       });
@@ -87,12 +98,12 @@ export async function POST(req: NextRequest) {
     void syncLeadToCrm({
       name: fullName,
       email,
-      phone: phoneNumber,
+      phone: indianPhone,
       message: leadMessage,
       source: 'Website Contact Form',
     }).catch((e) => console.error('CRM sync error (lead still saved):', e));
 
-    void sendLeadConfirmationWhatsApp(phoneNumber, fullName).catch((e) =>
+    void sendLeadConfirmationWhatsApp(indianPhone, fullName).catch((e) =>
       console.error('WhatsApp send error (lead still saved):', e),
     );
 

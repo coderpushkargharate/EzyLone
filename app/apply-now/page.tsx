@@ -12,6 +12,8 @@ import { trackMetaLead } from "@/components/MetaPixel";
 import {   Truck, ArrowRight, Percent, Clock, Shield, DollarSign, FileText, AlertCircle,
   User, TrendingUp, CheckCircle, Building, Zap, Award, Bus, Car , Info, Phone, Mail, MapPin } from "lucide-react";
 
+import { isIndianMobile } from "@/lib/phone";
+
 const BASE_URL = 'https://www.ezyloan.co.in'; // ✅ Fixed: No trailing spaces
 
 const ApplyNowPage: React.FC = () => {
@@ -45,10 +47,19 @@ const ApplyNowPage: React.FC = () => {
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
-    
+
+    // Phone is India-only: keep digits, drop a pasted 91/0 prefix, cap at 10.
+    let nextValue: string = value;
+    if (name === 'phoneNumber') {
+      let d = value.replace(/\D/g, '');
+      if (d.length === 12 && d.startsWith('91')) d = d.slice(2);
+      if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
+      nextValue = d.slice(0, 10);
+    }
+
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? checked : nextValue,
     });
     
     // Clear error when user starts typing
@@ -69,8 +80,10 @@ const ApplyNowPage: React.FC = () => {
     if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Valid email is required';
     }
-    if (!formData.phoneNumber.trim() || !/^[0-9]{10,13}$/.test(formData.phoneNumber.replace(/[\s\-]/g, ''))) {
-      errors.phoneNumber = 'Valid 10-digit mobile number is required';
+    if (!formData.phoneNumber.trim()) {
+      errors.phoneNumber = 'Mobile number is required';
+    } else if (!isIndianMobile(formData.phoneNumber)) {
+      errors.phoneNumber = 'Enter a valid Indian mobile number (10 digits, starting 6-9)';
     }
     if (!formData.loanType) errors.loanType = 'Please select a loan type';
     if (!formData.employmentType) errors.employmentType = 'Please select employment type';
@@ -357,22 +370,29 @@ const ApplyNowPage: React.FC = () => {
                       
                       <div>
                         <label htmlFor="phoneNumber" className="sr-only">Phone Number</label>
-                        <input
-                          id="phoneNumber"
-                          type="tel"
-                          name="phoneNumber"
-                          value={formData.phoneNumber}
-                          onChange={handleChange}
-                          required
-                          pattern="[0-9]{10,13}"
-                          aria-required="true"
-                          aria-invalid={!!formErrors.phoneNumber}
-                          aria-describedby={formErrors.phoneNumber ? "phoneError" : undefined}
-                          placeholder="Enter your 10-digit mobile number *"
-                          className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                            formErrors.phoneNumber ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        />
+                        <div className={`flex w-full rounded-lg overflow-hidden bg-white ${
+                          formErrors.phoneNumber ? 'ring-2 ring-red-400' : ''
+                        }`}>
+                          <span className="inline-flex items-center px-3 bg-gray-100 text-gray-700 font-medium border-r border-gray-200 select-none">
+                            🇮🇳 +91
+                          </span>
+                          <input
+                            id="phoneNumber"
+                            type="tel"
+                            name="phoneNumber"
+                            value={formData.phoneNumber}
+                            onChange={handleChange}
+                            required
+                            inputMode="numeric"
+                            maxLength={10}
+                            pattern="[6-9][0-9]{9}"
+                            aria-required="true"
+                            aria-invalid={!!formErrors.phoneNumber}
+                            aria-describedby={formErrors.phoneNumber ? "phoneError" : undefined}
+                            placeholder="10-digit mobile number *"
+                            className="flex-1 px-4 py-3 border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900"
+                          />
+                        </div>
                         {formErrors.phoneNumber && (
                           <p id="phoneError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.phoneNumber}</p>
                         )}

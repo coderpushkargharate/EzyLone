@@ -6,6 +6,7 @@ import { Phone, Mail, MapPin, Clock, Send, AlertCircle, ArrowRight, CheckCircle 
 import axios from 'axios';
 import Script from 'next/script';
 import HeroSection from '@/components/HeroSection';
+import { isIndianMobile } from '@/lib/phone';
 
 // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
 const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -24,7 +25,14 @@ const Contact = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    let nextValue = value;
+    if (name === 'phoneNumber') {
+      let d = value.replace(/\D/g, '');
+      if (d.length === 12 && d.startsWith('91')) d = d.slice(2);
+      if (d.length === 11 && d.startsWith('0')) d = d.slice(1);
+      nextValue = d.slice(0, 10);
+    }
+    setFormData({ ...formData, [name]: nextValue });
     if (formErrors[name]) {
       setFormErrors(prev => { const newErrors = { ...prev }; delete newErrors[name]; return newErrors; });
     }
@@ -36,7 +44,7 @@ const Contact = () => {
     if (!formData.email.trim()) errors.email = 'Email is required';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Please enter a valid email address';
     if (!formData.phoneNumber.trim()) errors.phoneNumber = 'Phone number is required';
-    else if (!/^[0-9]{10,13}$/.test(formData.phoneNumber.replace(/[\s\-]/g, ''))) errors.phoneNumber = 'Please enter a valid 10-digit mobile number';
+    else if (!isIndianMobile(formData.phoneNumber)) errors.phoneNumber = 'Enter a valid Indian mobile number (10 digits, starting 6-9)';
     if (!formData.loanType) errors.loanType = 'Please select a loan type';
     if (!formData.loanAmount.trim()) errors.loanAmount = 'Loan amount is required';
     setFormErrors(errors);
@@ -181,17 +189,22 @@ const Contact = () => {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                    <input 
-                      type="tel" 
-                      id="phoneNumber" 
-                      name="phoneNumber" 
-                      value={formData.phoneNumber} 
-                      onChange={handleChange} 
-                      required 
-                      pattern="[0-9]{10,13}" 
-                      className={`w-full px-4 py-3 text-black bg-white/50 backdrop-blur-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 hover:bg-white/70 ${formErrors.phoneNumber ? 'border-red-300 bg-red-50/50' : 'border-gray-200/50'}`} 
-                      placeholder="Enter 10-digit mobile number" 
-                    />
+                    <div className={`flex w-full rounded-xl overflow-hidden bg-white/50 backdrop-blur-sm border ${formErrors.phoneNumber ? 'border-red-300 bg-red-50/50' : 'border-gray-200/50'}`}>
+                      <span className="inline-flex items-center px-3 bg-gray-100/80 text-gray-700 font-medium border-r border-gray-200/50 select-none">🇮🇳 +91</span>
+                      <input
+                        type="tel"
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        required
+                        inputMode="numeric"
+                        maxLength={10}
+                        pattern="[6-9][0-9]{9}"
+                        className="flex-1 px-4 py-3 text-black bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                        placeholder="10-digit mobile number"
+                      />
+                    </div>
                     {formErrors.phoneNumber && <p className="mt-1 text-sm text-red-600 animate-shake">{formErrors.phoneNumber}</p>}
                   </div>
                   <div>
