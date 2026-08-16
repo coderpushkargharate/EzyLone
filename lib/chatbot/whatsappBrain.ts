@@ -84,10 +84,14 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
     }
   }
 
-  // 4) Surface the engine's quick-reply suggestions as tappable-looking text
-  // (WhatsApp free text has no buttons here). Skip when the LLM answered.
+  // 4) Surface the engine's quick-reply suggestions as a NUMBERED menu (WhatsApp
+  // free text has no buttons here). The user can reply with just the number
+  // (e.g. "1") or type the option name — runEngine's resolveMenuPick maps the
+  // number back to the option next turn. Skip when the LLM answered.
   if (!usedLlm && result.quickReplies && result.quickReplies.length) {
-    reply += `\n\n${result.quickReplies.map((q) => `▪️ ${q}`).join('\n')}`;
+    const keycap = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+    reply += `\n\n${result.quickReplies.map((q, i) => `${keycap[i] || `${i + 1}.`} ${q}`).join('\n')}`;
+    reply += `\n\n_Reply with the number (e.g. 1) or the name._`;
   }
 
   // 5) Persist updated state + trimmed history for the next inbound message.

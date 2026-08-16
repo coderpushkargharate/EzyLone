@@ -23,6 +23,9 @@ export interface ChatState {
   flow?: 'emi' | 'eligibility' | 'lead' | 'callback' | null;
   step?: number;
   data?: Record<string, any>;
+  // The quick-reply options we offered last turn, in display order. Lets the user
+  // pick by number ("1", "2"…) instead of retyping the full option/product name.
+  menu?: string[];
 }
 
 export interface LeadData {
@@ -110,7 +113,34 @@ const inr = (n: number) => '₹' + n.toLocaleString('en-IN');
 // ────────────────────────────────────────────────────────────────────────────
 // Main entry
 // ────────────────────────────────────────────────────────────────────────────
+
+// If the user replies with just a number (e.g. "1", "2.", "#3") and we offered a
+// numbered menu last turn, expand it to that option's text so they can pick a
+// product/choice without typing the full name. Only bare numbers are treated this
+// way — real numeric answers inside a flow (EMI amount, income, phone) are safe
+// because those steps never carry a `menu` (they offer no quick replies).
+function resolveMenuPick(rawMessage: string, prevState: ChatState): string {
+  const menu = prevState.menu;
+  if (!menu || !menu.length) return rawMessage;
+  const m = norm(rawMessage).match(/^#?\s*(\d{1,2})[.):]?$/);
+  if (!m) return rawMessage;
+  const idx = parseInt(m[1], 10) - 1;
+  return idx >= 0 && idx < menu.length ? menu[idx] : rawMessage;
+}
+
 export function runEngine(rawMessage: string, prevState: ChatState = {}): EngineResult {
+  const result = runEngineCore(resolveMenuPick(rawMessage, prevState), prevState);
+  // Remember exactly what we're offering this turn so a bare-number reply next
+  // turn maps to it — and clear it when we offer nothing, so a stray digit in a
+  // numeric flow step is never mistaken for a menu pick.
+  result.state = {
+    ...result.state,
+    menu: result.quickReplies && result.quickReplies.length ? result.quickReplies : undefined,
+  };
+  return result;
+}
+
+function runEngineCore(rawMessage: string, prevState: ChatState = {}): EngineResult {
   const text = norm(rawMessage);
   const state: ChatState = { ...prevState, data: { ...(prevState.data || {}) } };
 
