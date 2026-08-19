@@ -23,6 +23,7 @@ import {
   Loader2,
   Brain,
   MessageCircle,
+  MessageSquareText,
   Target,
   Activity as ActivityIcon,
   BarChart3,
@@ -40,6 +41,7 @@ import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
 import EzyBrainManager from '@/components/admin/EzyBrainManager';
 import WhatsAppBrainManager from '@/components/admin/WhatsAppBrainManager';
+import WhatsAppChatsManager from '@/components/admin/WhatsAppChatsManager';
 import LeadsManager from '@/components/admin/LeadsManager';
 import ContentManager from '@/components/admin/ContentManager';
 import ActivitiesManager from '@/components/admin/ActivitiesManager';
@@ -230,6 +232,7 @@ function AdminDashboard({
     { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager, group: 'Website Content' },
     { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager, group: 'AI Assistants' },
     { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager, group: 'AI Assistants' },
+    { id: 'whatsappChats', name: 'WhatsApp Chats', icon: MessageSquareText, component: WhatsAppChatsManager, group: 'AI Assistants' },
     { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration' },
     // `hidden` = reachable from the top-bar profile menu, not shown in the sidebar.
     // Everyone (admins + employees) can view/edit their own account.

@@ -22,4 +22,5 @@ export const ASSIGNABLE_TABS: AdminTab[] = [
   { id: 'testimonials', name: 'Testimonials' },
   { id: 'ezyBrain', name: 'Ezy AI Brain' },
   { id: 'whatsappBrain', name: 'WhatsApp AI Brain' },
+  { id: 'whatsappChats', name: 'WhatsApp Chats' },
 ];

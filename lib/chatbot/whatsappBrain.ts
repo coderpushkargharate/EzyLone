@@ -19,6 +19,7 @@ import { captureLead } from './leadCapture';
 import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from './knowledgeBase';
 import { connectDB } from '@/lib/db';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
+import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
 
 type Turn = { role: 'user' | 'assistant'; content: string };
 
@@ -58,25 +59,36 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
   // LLM backup (off unless CHATBOT_LLM_ENABLED=true). Every turn is logged.
   const inFlow = !!result.state.flow;
   let usedLlm = false;
+  // Per-turn metadata for the durable transcript (see step 4b). Defaults describe
+  // a structured-flow / lead turn; the free-form branch below overrides them.
+  let turnSource = inFlow || result.lead ? 'flow' : 'engine';
+  let turnMatched = !inFlow && !result.lead ? true : false;
+  let turnScore = 0;
   if (!inFlow && !result.lead) {
     try {
       const kb = await matchKnowledge(bodyText, 'whatsapp');
+      turnScore = kb?.score || 0;
       if (kb && kb.score >= HIGH_CONFIDENCE) {
         reply = kb.answer;
         bumpHits(kb.entryId);
+        turnSource = 'knowledge'; turnMatched = true;
         await logChat({ question: userText, answer: kb.answer, source: 'knowledge', matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'whatsapp' });
       } else if (!result.fallback) {
+        turnSource = 'engine'; turnMatched = true;
         await logChat({ question: userText, answer: reply, source: 'engine', matched: true, score: kb?.score || 0, channel: 'whatsapp' });
       } else if (process.env.CHATBOT_LLM_ENABLED === 'true') {
         const llm = await llmReply(buildSystemPrompt(), history, userText);
         if (llm) {
           reply = llm;
           usedLlm = true;
+          turnSource = 'llm'; turnMatched = false;
           await logChat({ question: userText, answer: llm, source: 'llm', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
         } else {
+          turnSource = 'fallback'; turnMatched = false;
           await logChat({ question: userText, answer: reply, source: 'fallback', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
         }
       } else {
+        turnSource = 'fallback'; turnMatched = false;
         await logChat({ question: userText, answer: reply, source: 'fallback', matched: false, score: kb?.score || 0, channel: 'whatsapp' });
       }
     } catch (e) {
@@ -92,6 +104,27 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
     const keycap = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
     reply += `\n\n${result.quickReplies.map((q, i) => `${keycap[i] || `${i + 1}.`} ${q}`).join('\n')}`;
     reply += `\n\n_Reply with the number (e.g. 1) or the name._`;
+  }
+
+  // 4b) Durably record this turn (user message + final reply) keyed by phone, so
+  // admins can read each user's full WhatsApp conversation history in the panel
+  // and see the questions people ask. Fire-and-forget; a failure never blocks the
+  // reply. Unlike ChatLog this captures EVERY turn (flows + free-form) and never
+  // expires, giving a complete transcript per user.
+  try {
+    if (dbReady) {
+      await WhatsAppMessage.create({
+        phone,
+        userMessage: userText,
+        botReply: reply,
+        source: turnSource,
+        matched: turnMatched,
+        score: turnScore,
+        inFlow,
+      });
+    }
+  } catch (e) {
+    console.error('WhatsApp transcript log failed:', e);
   }
 
   // 5) Persist updated state + trimmed history for the next inbound message.
