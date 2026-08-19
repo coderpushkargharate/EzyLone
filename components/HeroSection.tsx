@@ -410,13 +410,13 @@ const BankingPartnersCarousel = memo(
                     className="flex-shrink-0 flex items-center justify-center"
                     style={{ width: "160px", marginRight: "24px" }}
                   >
-                    <div className="w-40 h-20 bg-white rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div className="w-40 h-20 bg-white rounded-xl px-2 py-1 flex items-center justify-center border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                       <Image
                         src={partner.logo}
                         alt={partner.name}
                         width={120}
                         height={60}
-                        className="w-full h-full object-contain"
+                        className="max-w-full max-h-full w-auto h-auto object-contain scale-125"
                         loading="lazy"
                         quality={65}
                         onError={(e) => {
@@ -441,13 +441,13 @@ const BankingPartnersCarousel = memo(
                     className="flex-shrink-0 flex items-center justify-center"
                     style={{ width: "112px", marginRight: "12px" }}
                   >
-                    <div className="w-28 h-16 bg-white rounded-xl p-2 flex items-center justify-center border border-gray-100 shadow-sm">
+                    <div className="w-28 h-16 bg-white rounded-xl px-2 py-1 flex items-center justify-center border border-gray-100 shadow-sm overflow-hidden">
                       <Image
                         src={partner.logo}
                         alt={partner.name}
                         width={80}
                         height={48}
-                        className="w-full h-full object-contain"
+                        className="max-w-full max-h-full w-auto h-auto object-contain scale-125"
                         loading="lazy"
                         quality={65}
                         onError={(e) => {
