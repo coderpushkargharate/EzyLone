@@ -12,3 +12,4 @@ build/
 # EzyLoanCrm is a self-contained app with its OWN git repo — the parent
 # EzyLone repo must not track or compile it (see tsconfig "exclude" too).
 EzyLoanCrm/
+.banklogo-originals-backup/
