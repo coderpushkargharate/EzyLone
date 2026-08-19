@@ -253,7 +253,7 @@ const About = () => {
     "/banks/chola-logo-removebg-preview.webp",
     "/banks/Tata-Capital.webp",
     "/banks/HDB.webp",
-    "/banks/boi.webp",
+    "/banks/boi.jpg",
     "/banks/Hero-Fincorp.webp",
     "/banks/ICICI-Bank-logo.webp",
     "/banks/IDFC-logo.webp",
