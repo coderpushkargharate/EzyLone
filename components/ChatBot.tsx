@@ -18,14 +18,31 @@ interface ChatState {
 const WELCOME: Msg = {
   role: 'assistant',
   content:
-    'Hi! 👋 I’m *Ezy AI*, your EzyLoan assistant. I can explain our loan options, calculate an EMI, do a quick eligibility check, or connect you with our team. How can I help?',
-  quickReplies: ['Loan products', 'EMI calculator', 'Check eligibility', 'Talk to a human'],
+    'Hello 👋 Welcome to *EzyLoan*. I’m *EzySaathi AI*, your digital loan assistant. I can help you explore loan options, check preliminary eligibility, calculate your EMI, or connect you with a specialist.\n\n*How may I help you today?*',
+  quickReplies: [
+    'Additional funds against my car',
+    'Used Car Loan',
+    'New Car Loan',
+    'Commercial Vehicle Loan',
+    'Check My Eligibility',
+    'Calculate EMI',
+    'Talk to a Loan Specialist',
+  ],
 };
 
 // Render very light markdown (*bold* and _italic_ and line breaks) safely as
 // plain React nodes — no dangerouslySetInnerHTML.
 function renderText(text: string): React.ReactNode {
-  return text.split('\n').map((line, i) => (
+  return text.split('\n').map((line, i) => {
+    // Simple "### heading" support — used e.g. for the big estimated EMI figure.
+    if (/^###\s+/.test(line)) {
+      return (
+        <p key={i} className="my-0.5 text-lg font-bold text-[#2563eb]">
+          {line.replace(/^###\s+/, '')}
+        </p>
+      );
+    }
+    return (
     <React.Fragment key={i}>
       {line.split(/(\*[^*]+\*|_[^_]+_)/g).map((part, j) => {
         if (/^\*[^*]+\*$/.test(part)) return <strong key={j}>{part.slice(1, -1)}</strong>;
@@ -34,7 +51,8 @@ function renderText(text: string): React.ReactNode {
       })}
       {i < text.split('\n').length - 1 && <br />}
     </React.Fragment>
-  ));
+    );
+  });
 }
 
 const ChatBot: React.FC = () => {
@@ -95,7 +113,7 @@ const ChatBot: React.FC = () => {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Chat with Ezy AI"
+          aria-label="Chat with EzySaathi AI"
           className="fixed bottom-24 right-4 z-[9998] flex origin-right items-center gap-2 rounded-full border border-white/25 bg-gradient-to-r from-[#2563eb]/80 to-[#06b6d4]/80 px-4 py-3 text-white shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-105 md:bottom-6 md:right-6"
         >
           <MessageSquare className="h-6 w-6" />
@@ -115,9 +133,9 @@ const ChatBot: React.FC = () => {
                 <Bot className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-bold leading-tight">Ezy AI</p>
+                <p className="text-sm font-bold leading-tight">EzySaathi AI</p>
                 <p className="flex items-center gap-1 text-xs text-white/80">
-                  <span className="h-2 w-2 rounded-full bg-green-400" /> Online · EzyLoan Assistant
+                  <span className="h-2 w-2 rounded-full bg-green-400" /> Online · Your Digital Loan Assistant
                 </p>
               </div>
             </div>
@@ -197,7 +215,7 @@ const ChatBot: React.FC = () => {
             </button>
           </form>
           <p className="bg-white pb-2 text-center text-[10px] leading-tight text-gray-400">
-            Ezy AI gives preliminary guidance only. Final approval &amp; rates are decided by the lending partner.
+            EzySaathi AI gives preliminary guidance only. Final approval &amp; rates are decided by the lending partner.
           </p>
         </div>
       )}
