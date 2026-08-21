@@ -17,6 +17,29 @@ export interface WebhookLeadInput {
   // A stable per-source id (e.g. Facebook leadgen_id) so repeated webhook
   // deliveries of the SAME lead don't create duplicates.
   sourceMessageId?: string;
+  // Optional CRM qualification fields — used by the EzySaathi AI chatbot/WhatsApp
+  // pipeline so a qualified conversation lands as a tagged, staged CRM lead.
+  priority?: 'HOT' | 'WARM' | 'COLD';
+  loanType?: string;
+  city?: string;
+  leadStage?: string;
+}
+
+// Map an AI lead priority to a CRM group tag (used for filtering in the panel).
+function priorityTag(p?: string): string | null {
+  if (p === 'HOT') return '🔥 Hot';
+  if (p === 'WARM') return '🟡 Warm';
+  if (p === 'COLD') return '⚪ Cold';
+  return null;
+}
+
+// The extra CRM tags/stage carried by a qualified AI lead.
+function crmExtras(input: WebhookLeadInput): { groups: string[]; leadStage?: string } {
+  const groups: string[] = [];
+  const tag = priorityTag(input.priority);
+  if (tag) groups.push(tag);
+  if (input.loanType) groups.push(input.loanType);
+  return { groups, leadStage: input.leadStage };
 }
 
 /**
@@ -49,7 +72,8 @@ export async function createLeadFromWebhook(
       // Same person enquired again (new form submission, not a duplicate webhook
       // redelivery). Don't spawn a second lead, but DO record the fresh enquiry
       // on the timeline and bump lastActivity so nothing goes unrecorded and the
-      // lead resurfaces in "recently active" views.
+      // lead resurfaces in "recently active" views. Merge any new priority/product
+      // tags and stage so the CRM reflects the latest qualification.
       await Activity.create({
         leadId: dup._id,
         type: 'note',
@@ -57,11 +81,16 @@ export async function createLeadFromWebhook(
           ? `New enquiry via ${input.source}: ${input.message}`
           : `New enquiry via ${input.source}`,
       });
-      await Lead.updateOne({ _id: dup._id }, { $set: { lastActivity: new Date() } });
+      const { groups, leadStage } = crmExtras(input);
+      const update: Record<string, any> = { $set: { lastActivity: new Date() } };
+      if (leadStage) update.$set.leadStage = leadStage;
+      if (groups.length) update.$addToSet = { groups: { $each: groups } };
+      await Lead.updateOne({ _id: dup._id }, update);
       return { created: false, leadId: String(dup._id) };
     }
   }
 
+  const { groups, leadStage } = crmExtras(input);
   const lead = await Lead.create({
     name: input.name?.trim() || email || phone || 'Unknown Lead',
     email,
@@ -71,6 +100,8 @@ export async function createLeadFromWebhook(
     source: input.source,
     sourceMessageId: input.sourceMessageId,
     status: 'New',
+    leadStage,
+    groups: groups.length ? groups : undefined,
   });
 
   await Activity.create({

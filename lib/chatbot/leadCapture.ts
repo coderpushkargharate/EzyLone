@@ -13,6 +13,7 @@ import { LeadData } from './engine';
 import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
 import { syncLeadToCrm } from '@/lib/crm';
+import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLoanAdminNotification, sendWelcomeEmail } from '@/lib/email';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
@@ -56,7 +57,26 @@ export async function captureLead(lead: LeadData): Promise<void> {
     }
   }
 
-  // 3) Mirror into the CRM (Privyr etc.) — carries the richer chat context.
+  // 3) Land the lead in the admin CRM Lead Management (shared `leads` collection),
+  // tagged with its AI priority + product and staged "AI Qualified" — deduped by
+  // phone/email so a repeat chat/WhatsApp enquiry updates the same lead card.
+  try {
+    await createLeadFromWebhook({
+      name: fullName,
+      email,
+      phone: phoneNumber,
+      message: lead.message,
+      source: lead.source,
+      priority: lead.priority,
+      loanType: lead.loanType,
+      city: lead.city,
+      leadStage: 'AI Qualified',
+    });
+  } catch (e) {
+    console.error('Chat lead CRM (Lead Management) create failed (lead still saved):', e);
+  }
+
+  // 3b) Also mirror into any external CRM (Privyr etc.) — no-op when unconfigured.
   try {
     await syncLeadToCrm({
       name: fullName,
@@ -66,7 +86,7 @@ export async function captureLead(lead: LeadData): Promise<void> {
       source: lead.source,
     });
   } catch (e) {
-    console.error('Chat lead CRM sync failed (lead still saved):', e);
+    console.error('Chat lead external CRM sync failed (lead still saved):', e);
   }
 
   // 4) WhatsApp confirmation to the lead (template/free-text auto-picked by env).

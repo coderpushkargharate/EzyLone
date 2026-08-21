@@ -16,10 +16,17 @@
 import { runEngine, ChatState } from './engine';
 import { buildSystemPrompt, llmReply } from './llm';
 import { captureLead } from './leadCapture';
+import { createLeadFromWebhook } from '@/lib/ingest';
 import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from './knowledgeBase';
 import { connectDB } from '@/lib/db';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
 import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
+
+// Last 10 digits of a WhatsApp sender id ("whatsapp:+919518745854" → "9518745854")
+// so a direct-contact lead dedupes against a form/chat lead for the same person.
+function normalizePhone(raw: string): string {
+  return (raw.match(/\d/g) || []).join('').slice(-10);
+}
 
 type Turn = { role: 'user' | 'assistant'; content: string };
 
@@ -36,16 +43,41 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
   let state: ChatState = {};
   let history: Turn[] = [];
   let dbReady = false;
+  let isNewSender = false;
   try {
     await connectDB();
     const doc = await WhatsAppSession.findOne({ phone }).lean();
     if (doc) {
       state = (doc.state || {}) as ChatState;
       history = (doc.history || []) as Turn[];
+    } else {
+      isNewSender = true; // first time we've heard from this number
     }
     dbReady = true;
   } catch (e) {
     console.error('WhatsApp session load failed (replying statelessly):', e);
+  }
+
+  // A first-time WhatsApp contact is a lead in itself — even if they never fill a
+  // form or complete a flow, their number + first message must land in the CRM.
+  // Deduped by phone, so if they later complete a flow captureLead updates the
+  // same card. Fire-and-forget; never blocks the reply.
+  if (isNewSender) {
+    const digits = normalizePhone(phone);
+    if (digits.length >= 10) {
+      try {
+        await createLeadFromWebhook({
+          name: `WhatsApp ${digits}`,
+          phone: digits,
+          source: 'EzySaathi AI WhatsApp',
+          message: `Started a WhatsApp conversation: ${userText}`,
+          priority: 'WARM',
+          leadStage: 'New Lead',
+        });
+      } catch (e) {
+        console.error('WhatsApp direct-contact CRM lead failed:', e);
+      }
+    }
   }
 
   // 2) Run the rule engine (source of truth for flows + lead capture).
@@ -145,7 +177,7 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
   // (DB + admin email + CRM + WhatsApp confirmation). Guarded; never blocks reply.
   if (result.lead) {
     try {
-      result.lead.source = 'Ezy AI WhatsApp';
+      result.lead.source = 'EzySaathi AI WhatsApp';
       await captureLead(result.lead);
     } catch (e) {
       console.error('WhatsApp lead capture failed:', e);
