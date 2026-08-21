@@ -99,12 +99,16 @@ const MENU_ELIGIBILITY = 'Check My Eligibility';
 const MENU_EMI = 'Calculate EMI';
 const MENU_SPECIALIST = 'Talk to a Loan Specialist';
 
-// The welcome menu lists EVERY loan service the website offers (built from the
-// shared PRODUCTS list so it never drifts), with the hero product — Car Loan
-// Top-Up — surfaced first, followed by the three utility actions.
+// The welcome menu keeps the original friendly blueprint labels, and lists EVERY
+// service we provide — the four car options, plus Personal Loan and Loan Against
+// Property — followed by the three utility actions.
 const WELCOME_MENU = [
-  'Car Loan Top-Up',
-  ...PRODUCTS.filter((p) => p.name !== 'Car Loan Top-Up').map((p) => p.name),
+  MENU_TOPUP,
+  MENU_USED,
+  MENU_NEW,
+  MENU_COMMERCIAL,
+  'Personal Loan',
+  'Loan Against Property',
   MENU_ELIGIBILITY,
   MENU_EMI,
   MENU_SPECIALIST,

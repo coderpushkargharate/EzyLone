@@ -19,12 +19,11 @@ const WELCOME: Msg = {
   role: 'assistant',
   content:
     'Hello 👋 Welcome to *EzyLoan*. I’m *EzySaathi AI*, your digital loan assistant. I can help you explore loan options, check preliminary eligibility, calculate your EMI, or connect you with a specialist.\n\n*How may I help you today?*',
-  // Every loan service on the website (hero product first), plus the utilities.
+  // Every service we provide, with the original friendly labels.
   // Keep in sync with WELCOME_MENU in lib/chatbot/engine.ts.
   quickReplies: [
-    'Car Loan Top-Up',
-    'Used Car Balance Transfer',
-    'Used Car Refinance',
+    'Additional funds against my car',
+    'Used Car Loan',
     'New Car Loan',
     'Commercial Vehicle Loan',
     'Personal Loan',
