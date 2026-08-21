@@ -99,11 +99,12 @@ const MENU_ELIGIBILITY = 'Check My Eligibility';
 const MENU_EMI = 'Calculate EMI';
 const MENU_SPECIALIST = 'Talk to a Loan Specialist';
 
+// The welcome menu lists EVERY loan service the website offers (built from the
+// shared PRODUCTS list so it never drifts), with the hero product — Car Loan
+// Top-Up — surfaced first, followed by the three utility actions.
 const WELCOME_MENU = [
-  MENU_TOPUP,
-  MENU_USED,
-  MENU_NEW,
-  MENU_COMMERCIAL,
+  'Car Loan Top-Up',
+  ...PRODUCTS.filter((p) => p.name !== 'Car Loan Top-Up').map((p) => p.name),
   MENU_ELIGIBILITY,
   MENU_EMI,
   MENU_SPECIALIST,
@@ -358,11 +359,14 @@ function runEngineCore(rawMessage: string, prevState: ChatState = {}): EngineRes
     return startCollect('bt', state);
   }
 
-  // Car Loan Top-Up (HERO): additional/extra funds against an existing car.
+  // Car Loan Top-Up (HERO): additional/extra funds against an EXISTING CAR. The
+  // trigger words must be paired with a car/vehicle context — otherwise phrases
+  // like "loan against property" (has "against" + "loan") would false-match here.
+  const carContext = has(text, ['car', 'vehicle', 'gaadi', 'gadi', 'auto']);
   if (
     has(text, ['top up', 'topup', 'top-up']) ||
-    (has(text, ['additional', 'extra', 'more', 'against', 'on my car', 'existing loan', 'existing car loan']) &&
-      has(text, ['car', 'vehicle', 'gaadi', 'loan', 'fund', 'money', 'amount', 'cash', 'lakh', 'lac']))
+    (carContext &&
+      has(text, ['additional', 'extra', 'more fund', 'more money', 'against', 'on my car', 'existing loan', 'existing car loan', 'fund', 'money', 'cash']))
   ) {
     return startTopupGate(state);
   }
@@ -433,6 +437,7 @@ function runEngineCore(rawMessage: string, prevState: ChatState = {}): EngineRes
   const product = findProduct(text);
   if (product) {
     const flowId = productFlowId(product);
+    if (flowId === 'topup') return startTopupGate(state); // hero: ask existing-loan first
     if (flowId) return startCollect(flowId, state);
     return {
       reply: withNotice(
