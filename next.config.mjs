@@ -24,6 +24,11 @@ const nextConfig = {
         destination: 'https://www.ezyloan.co.in/:path*',
         permanent: true,
       },
+      // Legacy/short legal URLs. The real pages are /terms-and-conditions and
+      // /privacy-policy; all in-app links already point there directly, so these
+      // 301s only catch external/bookmarked/email references to the short paths.
+      { source: '/terms', destination: '/terms-and-conditions', permanent: true },
+      { source: '/privacy', destination: '/privacy-policy', permanent: true },
     ]
   },
   async headers() {

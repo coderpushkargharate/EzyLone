@@ -30,6 +30,10 @@ function normalizePhone(raw: string): string {
 
 type Turn = { role: 'user' | 'assistant'; content: string };
 
+// Public EMI calculator on the website. On WhatsApp we hand users this link so
+// they can calculate the EMI themselves, instead of the multi-step in-chat flow.
+const EMI_CALCULATOR_URL = 'https://www.ezyloan.co.in/emi-calculator';
+
 /**
  * Produce the auto-reply text for one inbound WhatsApp message from `phone`.
  * Loads/saves that sender's conversation memory and fires lead capture when the
@@ -84,6 +88,23 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
   const result = runEngine(bodyText, state);
   let reply = result.reply;
 
+  // WhatsApp-only EMI override: the website chat walks users through an
+  // interactive EMI calculator, but on WhatsApp we simply hand them the online
+  // EMI calculator link so they can compute it themselves right there. The
+  // engine signals an EMI request by entering the 'emi' flow (startEmi), which
+  // catches every EMI intent; we clear that flow so the step-by-step Q&A never
+  // starts, and drop its quick-replies. Everything else behaves as before.
+  const isEmiRequest = result.state.flow === 'emi';
+  if (isEmiRequest) {
+    reply =
+      `🧮 Aap apni EMI turant yahaan calculate kar sakte hain:\n\n${EMI_CALCULATOR_URL}\n\n` +
+      `Bas loan amount, interest rate aur tenure daaliye aur aapki monthly EMI dikh jayegi. ` +
+      `Kuch aur help chahiye ho to bataiye. 😊`;
+    result.state = {};
+    result.quickReplies = [];
+    result.fallback = false;
+  }
+
   // 3) Free-form answering (only OUTSIDE a structured flow and when NOT finalising
   // a lead, so flow/lead replies stay deterministic and we never run extra I/O on
   // a lead turn → keeps us under the webhook timeout). Same priority as the
@@ -96,7 +117,7 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
   let turnSource = inFlow || result.lead ? 'flow' : 'engine';
   let turnMatched = !inFlow && !result.lead ? true : false;
   let turnScore = 0;
-  if (!inFlow && !result.lead) {
+  if (!inFlow && !result.lead && !isEmiRequest) {
     try {
       const kb = await matchKnowledge(bodyText, 'whatsapp');
       turnScore = kb?.score || 0;

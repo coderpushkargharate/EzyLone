@@ -530,7 +530,7 @@ const EMICalculatorPage: React.FC = () => {
         </div>
 
         {/* Global Footer Disclaimer */}
-        <footer className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm" role="contentinfo">
+        <div className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-3">
               <p className="text-xs text-gray-600 leading-relaxed">
@@ -540,11 +540,11 @@ const EMICalculatorPage: React.FC = () => {
                 <strong>About EzyLoan:</strong> EzyLoan (Dibyansh Associates) is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. We connect borrowers with regulated partner financial institutions. We do not charge any fees from borrowers before loan disbursement.
               </p>
               <p className="text-xs text-gray-500 pt-2">
-                © {new Date().getFullYear()} EzyLoan. All rights reserved. | <Link href="/terms" className="hover:underline">Terms</Link> | <Link href="/privacy" className="hover:underline">Privacy</Link> | <Link href="/loan-disclosure" className="hover:underline">Loan Disclosures</Link>
+                © {new Date().getFullYear()} EzyLoan. All rights reserved. | <Link href="/terms-and-conditions" className="hover:underline">Terms</Link> | <Link href="/privacy-policy" className="hover:underline">Privacy</Link> | <Link href="/loan-disclosure" className="hover:underline">Loan Disclosures</Link>
               </p>
             </div>
           </div>
-        </footer>
+        </div>
       </div>
     </>
   );

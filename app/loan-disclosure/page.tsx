@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function LoanDisclosurePage() {
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 mt-16" role="main">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 mt-16">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-blue-100">
         
         {/* Page Header */}
@@ -148,7 +148,7 @@ export default function LoanDisclosurePage() {
               <li><strong>No upfront fees:</strong> EzyLoan does not charge any fees from borrowers before loan disbursement. Beware of fraudsters asking for advance payments.</li>
               <li><strong>Direct disbursement:</strong> All approved loans are disbursed directly by partner banks/NBFCs into the borrower's verified bank account – never to third parties.</li>
               <li><strong>Read before signing:</strong> Borrowers are strongly advised to carefully read and understand all terms, conditions, fees, and repayment obligations before accepting any loan offer.</li>
-              <li><strong>Data privacy:</strong> By submitting an application, you consent to sharing your details with partner lenders for assessment. See our <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>.</li>
+              <li><strong>Data privacy:</strong> By submitting an application, you consent to sharing your details with partner lenders for assessment. See our <a href="/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</a>.</li>
             </ul>
           </div>
         </section>
@@ -210,7 +210,7 @@ export default function LoanDisclosurePage() {
         </section>
 
         {/* Last Updated & Footer */}
-        <footer className="mt-8 pt-6 border-t border-gray-200 text-center">
+        <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
             Last Updated: {new Date().toLocaleDateString('en-IN', { 
               day: '2-digit', 
@@ -226,9 +226,9 @@ export default function LoanDisclosurePage() {
             <li>• <Link href="/terms-and-conditions" className="text-blue-600 hover:underline">Terms of Service</Link></li>
             <li>• <Link href="/loan-disclosure" className="text-blue-600 hover:underline">Loan Disclosures</Link></li>
           </p>
-        </footer>
+        </div>
 
       </div>
-    </main>
+    </div>
   );
 }

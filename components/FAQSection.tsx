@@ -182,7 +182,7 @@ export default function FAQSection({
               <strong>Disclaimer:</strong> EzyLoan (Dibyansh Associates) is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, interest rates, fees, tenure, and terms are solely determined by partner lenders.
             </p>
             <p className="text-xs text-gray-500 pt-2">
-              © {new Date().getFullYear()} EzyLoan. All rights reserved. | <Link href="/terms" className="hover:underline">Terms</Link> | <Link href="/privacy" className="hover:underline">Privacy</Link>
+              © {new Date().getFullYear()} EzyLoan. All rights reserved. | <Link href="/terms-and-conditions" className="hover:underline">Terms</Link> | <Link href="/privacy-policy" className="hover:underline">Privacy</Link>
             </p>
           </div>
         </footer>

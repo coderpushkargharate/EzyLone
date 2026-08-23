@@ -63,7 +63,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(financialProductSchema) }}
       />
 
-      <main className="min-h-screen bg-white" role="main">
+      <div className="min-h-screen bg-white">
         <HeroSection page="home" title="Get Loan Assistance*" />
         <Services />
 
@@ -154,7 +154,7 @@ export default function Home() {
           </div>
         </div>
 
-        <footer className="bg-white border-t border-gray-200 py-6" role="contentinfo">
+        <div className="bg-white border-t border-gray-200 py-6">
           <div className="max-w-[85rem] mx-auto px-4 text-center">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan is a loan facilitation service provider (DSA) and{' '}
@@ -172,8 +172,8 @@ export default function Home() {
               </Link>
             </p>
           </div>
-        </footer>
-      </main>
+        </div>
+      </div>
     </>
   );
 }

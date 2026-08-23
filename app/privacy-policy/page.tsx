@@ -77,11 +77,10 @@ const PrivacyPolicyPage = () => {
         }}
       />
 
-      <main 
+      <div
         className="min-h-screen bg-gray-50"
-        itemScope 
+        itemScope
         itemType="https://schema.org/WebPage"
-        role="main"
       >
         
         {/* Hero Section */}
@@ -183,7 +182,7 @@ const PrivacyPolicyPage = () => {
                   <li>Technical data: IP address, browser type, operating system, device identifiers</li>
                   <li>Usage data: Pages visited, time spent, click patterns, referral sources</li>
                   <li>Location data: Approximate location derived from IP address (for service eligibility)</li>
-                  <li>Cookies and similar technologies: See our <Link href="/cookies" className="text-blue-600 hover:underline">Cookie Policy</Link></li>
+                  <li>Cookies and similar technologies used to operate the site, remember preferences, and measure performance (see the “Cookies” section below)</li>
                 </ul>
               </section>
 
@@ -327,7 +326,7 @@ const PrivacyPolicyPage = () => {
                 </h2>
                 <p className="text-gray-600 leading-relaxed">
                   We use cookies and similar technologies to enhance your experience, analyze usage, and personalize content. 
-                  You can manage cookie preferences through your browser settings or our <Link href="/cookies" className="text-blue-600 hover:underline">Cookie Policy</Link>.
+                  You can manage cookie preferences through your browser settings.
                 </p>
                 <p className="text-gray-600 mt-3 text-sm">
                   Note: Disabling essential cookies may limit functionality of our services.
@@ -422,7 +421,7 @@ const PrivacyPolicyPage = () => {
         </div>
 
         {/* ✅ GLOBAL FOOTER DISCLAIMER */}
-        <footer className="bg-gray-100 border-t border-gray-200 py-6" role="contentinfo">
+        <div className="bg-gray-100 border-t border-gray-200 py-6">
           <div className="container mx-auto px-4 text-center">
             <p className="text-xs text-gray-600">
               © {new Date().getFullYear()} EzyLoan (Dibyansh Associates). All rights reserved. | 
@@ -432,9 +431,9 @@ const PrivacyPolicyPage = () => {
               This policy complies with the Information Technology Act, 2000 and applicable RBI guidelines.
             </p>
           </div>
-        </footer>
+        </div>
 
-      </main>
+      </div>
     </>
   );
 };

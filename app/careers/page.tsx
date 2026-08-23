@@ -250,7 +250,7 @@ export default function CareersPage() {
       {/* ❌ REMOVED: JobPosting schema from listing page - causes validation errors */}
       {/* ✅ JobPosting schema should ONLY be on individual job detail pages: /careers/[jobId] */}
 
-      <main className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen mt-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen mt-10">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse" />
@@ -707,7 +707,7 @@ export default function CareersPage() {
         `}</style>
 
         {/* FOOTER - GLASS EFFECT */}
-        <footer className="relative z-10 mt-12 md:mt-16 pt-6 md:pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm" role="contentinfo">
+        <div className="relative z-10 mt-12 md:mt-16 pt-6 md:pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 text-center space-y-2 md:space-y-3">
             <p className="text-xs text-gray-600 leading-relaxed">
               <strong>Recruitment Disclaimer:</strong> EzyLoan (Dibyansh Associates) is an Equal Opportunity Employer. All hiring decisions are based on qualifications, skills, and business requirements. We do not charge any fees from candidates at any stage of the recruitment process. Beware of fraudulent job offers.
@@ -723,8 +723,8 @@ export default function CareersPage() {
               | <Link href="/careers" className="hover:underline transition-colors">Careers</Link>
             </p>
           </div>
-        </footer>
-      </main>
+        </div>
+      </div>
     </>
   );
 }

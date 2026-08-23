@@ -147,7 +147,7 @@ export default function LendingPartnersPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 mt-16">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 mt-16">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
@@ -269,7 +269,7 @@ export default function LendingPartnersPage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-12 py-6 bg-white/50 backdrop-blur-sm border-t border-gray-200/50" role="contentinfo">
+        <div className="mt-12 py-6 bg-white/50 backdrop-blur-sm border-t border-gray-200/50">
           <div className="max-w-6xl mx-auto px-4 text-center">
             <p className="text-xs text-gray-600">
               © {new Date().getFullYear()} EzyLoan (Dibyansh Associates). All rights reserved. | GST: 21CNXPM8317C1ZV
@@ -279,9 +279,9 @@ export default function LendingPartnersPage() {
               All loans are provided by RBI-regulated partner institutions.
             </p>
           </div>
-        </footer>
+        </div>
 
       </div>
-    </main>
+    </div>
   );
 }

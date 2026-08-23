@@ -172,11 +172,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@type': 'WebSite',
     name: 'EzyLoan',
     url: BASE_URL,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${BASE_URL}/search?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
+    // NOTE: No SearchAction/sitelinks-searchbox here — the site has no /search
+    // endpoint, and declaring a searchbox that points at a non-existent handler
+    // is ignored by Google and can look like a misconfiguration. Re-add this
+    // block only when a real on-site search page exists.
     inLanguage: 'en-IN',
   };
 

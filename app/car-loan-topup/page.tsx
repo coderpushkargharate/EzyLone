@@ -498,7 +498,7 @@ const CarLoanTopUp: React.FC = () => {
                     
                     {/* ✅ GLASS PRISM CHECK ELIGIBILITY BUTTON */}
                     <Link 
-                      href="/check-eligibility"
+                      href="/apply-now?loan=car-loan-topup"
                       className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white border-2 border-white/80 bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-green-600"
                       aria-label="Check eligibility for car loan top-up"
                     >

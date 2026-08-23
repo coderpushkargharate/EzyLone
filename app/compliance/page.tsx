@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function CompliancePage() {
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 mt-16" role="main">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 mt-16">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-blue-100">
         
         {/* Header */}
@@ -234,7 +234,7 @@ export default function CompliancePage() {
               <li>Do NOT use data for unsolicited marketing without explicit consent</li>
             </ul>
             <p className="text-sm text-gray-600 mt-2">
-              For comprehensive details, please review our <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+              For comprehensive details, please review our <Link href="/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
             </p>
           </div>
         </section>
@@ -276,7 +276,7 @@ export default function CompliancePage() {
       </div>
 
       {/* Footer Disclaimer */}
-      <footer className="mt-12 py-6 bg-gray-100 border-t border-gray-200" role="contentinfo">
+      <div className="mt-12 py-6 bg-gray-100 border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="text-xs text-gray-600">
             © {new Date().getFullYear()} EzyLoan (Dibyansh Associates). All rights reserved. | GST: 21CNXPM8317C1ZV
@@ -285,7 +285,7 @@ export default function CompliancePage() {
             This disclosure complies with G2 Risk Solutions (G2RS), Google Ads Financial Services policies, RBI DSA guidelines, and applicable Indian law.
           </p>
         </div>
-      </footer>
-    </main>
+      </div>
+    </div>
   );
 }

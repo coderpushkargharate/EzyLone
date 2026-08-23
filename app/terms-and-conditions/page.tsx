@@ -57,11 +57,10 @@ export default function TermsPage() {
   };
 
   return (
-    <main 
+    <div
       className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 mt-16"
-      itemScope 
+      itemScope
       itemType="https://schema.org/WebPage"
-      role="main"
     >
       {/* ✅ Structured Data for SEO */}
       <script
@@ -234,7 +233,7 @@ export default function TermsPage() {
           </ul>
           <p className="mt-2">
             For comprehensive details on data handling, your rights, and grievance redressal, please review our 
-            <Link href="/privacy" className="text-blue-600 hover:underline font-medium ml-1">Privacy Policy</Link>.
+            <Link href="/privacy-policy" className="text-blue-600 hover:underline font-medium ml-1">Privacy Policy</Link>.
           </p>
           <p className="mt-2 text-sm text-gray-500">
             You may withdraw consent for marketing communications anytime via email or account settings. 
@@ -341,7 +340,7 @@ export default function TermsPage() {
           <p className="text-sm text-blue-900 font-medium">
             ✅ <strong>Acknowledgement:</strong> By proceeding with any loan application on EzyLoan, 
             you acknowledge that you have read, understood, and agreed to these Terms & Conditions, 
-            our <Link href="/privacy" className="underline">Privacy Policy</Link>, and the loan disclosures 
+            our <Link href="/privacy-policy" className="underline">Privacy Policy</Link>, and the loan disclosures 
             provided by partner lenders.
           </p>
         </div>
@@ -349,7 +348,7 @@ export default function TermsPage() {
       </div>
 
       {/* ✅ GLOBAL FOOTER DISCLAIMER */}
-      <footer className="mt-12 py-6 bg-gray-100 border-t border-gray-200" role="contentinfo">
+      <div className="mt-12 py-6 bg-gray-100 border-t border-gray-200">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <p className="text-xs text-gray-600">
             © {new Date().getFullYear()} EzyLoan (Dibyansh Associates). All rights reserved.
@@ -359,9 +358,9 @@ export default function TermsPage() {
           </p>
         
         </div>
-      </footer>
+      </div>
 
-    </main>
+    </div>
   );
 }
 

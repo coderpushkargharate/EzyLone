@@ -551,7 +551,7 @@ const ApplyNowPage: React.FC = () => {
                       />
                       <span className="text-xs text-blue-100 leading-tight">
                         I consent to EzyLoan processing my personal data for loan facilitation purposes and sharing it with partner lenders for assessment. 
-                        I have read and agree to the <Link href="/privacy" className="underline hover:text-white">Privacy Policy</Link> and <Link href="/terms" className="underline hover:text-white">Terms</Link>. *
+                        I have read and agree to the <Link href="/privacy-policy" className="underline hover:text-white">Privacy Policy</Link> and <Link href="/terms-and-conditions" className="underline hover:text-white">Terms</Link>. *
                       </span>
                     </label>
                     {formErrors.consent && (

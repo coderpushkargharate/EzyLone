@@ -319,7 +319,7 @@ const Contact = () => {
                   </div>
                 )}
                 <p className="text-xs text-gray-500 text-center pt-4 border-t border-gray-200/50">
-                  By submitting, you consent to sharing your details with partner lenders for assessment. Approval*, rates*, and terms* vary by lender. <Link href="/privacy" className="underline hover:text-blue-600 transition-colors">Privacy Policy</Link>.
+                  By submitting, you consent to sharing your details with partner lenders for assessment. Approval*, rates*, and terms* vary by lender. <Link href="/privacy-policy" className="underline hover:text-blue-600 transition-colors">Privacy Policy</Link>.
                 </p>
               </form>
             </div>
@@ -417,16 +417,16 @@ const Contact = () => {
         
 
         {/* Footer Disclaimer - GLASS EFFECT */}
-        <footer className="mt-16 pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm" role="contentinfo">
+        <div className="mt-16 pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 text-center">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, rates*, fees*, and terms* are determined by partner lenders.
             </p>
             <p className="text-xs text-gray-500 pt-2">
-              © {new Date().getFullYear()} EzyLoan. | <Link href="/terms" className="hover:underline transition-colors">Terms</Link> | <Link href="/privacy" className="hover:underline transition-colors">Privacy</Link>
+              © {new Date().getFullYear()} EzyLoan. | <Link href="/terms-and-conditions" className="hover:underline transition-colors">Terms</Link> | <Link href="/privacy-policy" className="hover:underline transition-colors">Privacy</Link>
             </p>
           </div>
-        </footer>
+        </div>
       </section>
 
       {/* ✅ Global CSS Animations for Prism Effects */}

@@ -99,11 +99,10 @@ const ThankYouPage = () => {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(confirmationSchema) }}
       />
 
-      <main 
+      <div
         className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4 py-10 mt-12"
-        itemScope 
+        itemScope
         itemType="https://schema.org/WebPage"
-        role="main"
       >
         {/* ✅ COMPLIANCE BANNER - Visible above content */}
         <div className="w-full max-w-3xl mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Important application notice">
@@ -296,7 +295,7 @@ const ThankYouPage = () => {
         </div>
 
         {/* ✅ GLOBAL FOOTER DISCLAIMER */}
-        <footer className="mt-12 pt-6 border-t border-gray-200 w-full max-w-4xl" role="contentinfo">
+        <div className="mt-12 pt-6 border-t border-gray-200 w-full max-w-4xl">
           <div className="text-center space-y-2">
             <p className="text-xs text-gray-600 leading-relaxed">
               <strong>Disclaimer:</strong> EzyLoan (Dibyansh Associates) is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. 
@@ -305,14 +304,14 @@ const ThankYouPage = () => {
             </p>
             <p className="text-xs text-gray-500">
               © {new Date().getFullYear()} EzyLoan. All rights reserved. |{' '}
-              <Link href="/terms" className="hover:underline">Terms</Link> |{' '}
-              <Link href="/privacy" className="hover:underline">Privacy</Link> |{' '}
+              <Link href="/terms-and-conditions" className="hover:underline">Terms</Link> |{' '}
+              <Link href="/privacy-policy" className="hover:underline">Privacy</Link> |{' '}
               <Link href="/loan-disclosure" className="hover:underline">Disclosures</Link>
             </p>
           </div>
-        </footer>
+        </div>
 
-      </main>
+      </div>
 
       {/* ✅ CSS Animations (if not in global CSS) */}
       <style jsx global>{`

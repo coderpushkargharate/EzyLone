@@ -449,9 +449,9 @@ const PersonalLoanPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {/* ✅ GLASS PRISM APPLY BUTTON */}
                 <Link 
-                  href="/apply" 
+                  href="/apply-now"
                   className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-blue-600 bg-white/95 backdrop-blur-md hover:bg-white transition-all duration-500 px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 text-lg w-full sm:w-auto"
-                  onClick={(e) => handleRedirect(e, "/apply")}
+                  onClick={(e) => handleRedirect(e, "/apply-now")}
                   aria-label="Apply for personal loan - check your eligibility"
                 >
                   {/* Base Glass Effect */}
