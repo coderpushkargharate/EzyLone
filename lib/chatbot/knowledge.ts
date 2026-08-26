@@ -163,6 +163,87 @@ export const FAQS: Faq[] = [
   },
 ];
 
+// Per-product detailed FAQs. These complement the auto-generated product overview
+// with the DISTINCTIVE facts users actually ask about (max amount, funding %, tax
+// benefit, EMI reduction, top-up sizing…). Kept product-distinctive on purpose so
+// a question about one product can never be answered with another product's facts.
+// Seeded into the knowledge base (idempotently) so the self-trained brain answers
+// them precisely. Every answer stays compliance-safe: indicative only, final terms
+// decided by the lending partner, no document collection in chat.
+export interface ProductFaq {
+  product: string;   // which product this answer is about (also its category)
+  question: string;  // canonical question
+  variants: string[];
+  keywords: string[];
+  answer: string;
+}
+
+export const PRODUCT_FAQS: ProductFaq[] = [
+  {
+    product: 'Car Loan Top-Up',
+    question: 'How much top-up can I get on my existing car loan?',
+    variants: ['top up amount', 'how much top up', 'extra loan on my car', 'additional funds on car loan', 'top up limit'],
+    keywords: ['top up amount', 'topup', 'additional', 'extra funds', 'existing car loan'],
+    answer:
+      'A *Car Loan Top-Up* gives you additional funds over and above your existing car loan — no new car needed. The amount depends on your car’s valuation, your repayment track record and the lender’s policy. ' +
+      `Rates start from ${COMPANY.ratesFrom} (set by the lending partner). I can note your requirement so our specialist can share an indicative figure — shall I?`,
+  },
+  {
+    product: 'Used Car Balance Transfer',
+    question: 'Will a balance transfer lower my car loan EMI?',
+    variants: ['reduce my emi', 'lower interest by transferring', 'shift loan to reduce emi', 'balance transfer benefit', 'transfer car loan lower rate'],
+    keywords: ['balance transfer', 'lower emi', 'reduce emi', 'shift loan', 'lower rate'],
+    answer:
+      'A *Used Car Balance Transfer* moves your existing used-car loan to a partner lender offering a lower interest rate — which can reduce your EMI or shorten your tenure. ' +
+      `Actual savings depend on your current rate, outstanding amount and the lender’s offer. Rates start from ${COMPANY.ratesFrom}. Want our specialist to review your current loan and estimate the savings?`,
+  },
+  {
+    product: 'Used Car Refinance',
+    question: 'Can I refinance my used car and also get extra funds?',
+    variants: ['refinance with top up', 'refinance used car', 'refinance better rate', 'refinance extra money', 'purani car refinance'],
+    keywords: ['refinance', 'refinancing', 'better rate', 'flexible terms', 'top up'],
+    answer:
+      'Yes — *Used Car Refinance* lets you refinance your existing used car for better rates and flexible terms, with an *optional top-up amount* on top if you need extra funds. ' +
+      `Eligibility and the top-up size depend on the car’s valuation and lender policy. Rates start from ${COMPANY.ratesFrom}. Shall I note your details for a preliminary review?`,
+  },
+  {
+    product: 'New Car Loan',
+    question: 'Can I get 100% funding for a new car?',
+    variants: ['full funding new car', 'on road price funding', 'how much funding new car', 'finance brand new car', 'new car loan amount'],
+    keywords: ['new car', '100 funding', 'full funding', 'on road price', 'brand new'],
+    answer:
+      'Our *New Car Loan* offers up to *100% funding** of the car with competitive rates and flexible repayment. The exact funding percentage and rate are decided by the lending partner based on the car, your profile and eligibility. ' +
+      `Rates start from ${COMPANY.ratesFrom}. Would you like a quick EMI estimate or a callback from our specialist?`,
+  },
+  {
+    product: 'Commercial Vehicle Loan',
+    question: 'What can I finance with a Commercial Vehicle Loan (and are there tax benefits)?',
+    variants: ['truck loan', 'bus loan', 'taxi finance', 'commercial vehicle tax benefit', 'transport vehicle loan'],
+    keywords: ['commercial', 'truck', 'bus', 'taxi', 'transport', 'tax benefit'],
+    answer:
+      'A *Commercial Vehicle Loan* finances trucks, buses, taxis and other transport vehicles — new or used — with high loan amounts and flexible tenure. Interest paid on a commercial vehicle loan may offer *tax benefits** (please confirm with your tax advisor). ' +
+      `Rates start from ${COMPANY.ratesFrom}, decided by the lending partner. Shall I take a few details for a preliminary assessment?`,
+  },
+  {
+    product: 'Personal Loan',
+    question: 'What is the maximum Personal Loan amount and what can I use it for?',
+    variants: ['max personal loan', 'personal loan limit', 'how much personal loan', 'personal loan for wedding', 'personal loan for medical', 'urgent cash loan'],
+    keywords: ['personal loan', 'maximum', 'limit', 'cash', 'wedding', 'medical', '25 lakh'],
+    answer:
+      'Our *Personal Loan* goes up to *₹25 Lakh* with minimal documentation and can be used for any personal need — wedding, medical, travel, education expenses and more. ' +
+      `The sanctioned amount depends on your income, credit profile and the lender’s policy. Rates start from ${COMPANY.ratesFrom}. Want me to note your requirement for our specialist?`,
+  },
+  {
+    product: 'Loan Against Property',
+    question: 'How much loan can I get against my property?',
+    variants: ['max loan against property', 'lap amount', 'mortgage my property', 'property loan limit', 'business loan against property'],
+    keywords: ['loan against property', 'lap', 'mortgage', 'property', '3 crore', 'business loan'],
+    answer:
+      'A *Loan Against Property* unlocks funds against your residential or commercial property up to *₹3 Crore*, with low EMIs and a long repayment tenure — useful for business or large personal needs. ' +
+      `The final amount depends on the property valuation, your profile and lender policy. Rates start from ${COMPANY.ratesFrom}. Shall I arrange a callback from our specialist?`,
+  },
+];
+
 // Preliminary eligibility rule thresholds. NOTE (per TRD §10): these are meant to
 // be admin-editable, not hardcoded business policy — they only produce an
 // *indicative* preliminary result, never a final decision.

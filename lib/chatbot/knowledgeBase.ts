@@ -13,7 +13,7 @@
 import { connectDB } from '@/lib/db';
 import { KnowledgeEntry } from '@/lib/models/KnowledgeEntry';
 import { ChatLog, ChatLogSource } from '@/lib/models/ChatLog';
-import { COMPANY, PRODUCTS, FAQS } from './knowledge';
+import { COMPANY, PRODUCTS, FAQS, PRODUCT_FAQS } from './knowledge';
 import {
   tokenize,
   buildIdf,
@@ -50,6 +50,9 @@ export type BrainChannel = 'web' | 'whatsapp';
 const brainCache: Record<string, Brain | undefined> = {};
 const BRAIN_TTL_MS = 60 * 1000;
 
+// Runs the curated per-product FAQ top-up at most once per server process.
+let curatedEnsured = false;
+
 export function invalidateBrain(): void {
   brainCache.web = undefined;
   brainCache.whatsapp = undefined;
@@ -75,6 +78,20 @@ async function getBrain(channel: BrainChannel = 'web'): Promise<Brain> {
   if (docs.length === 0) {
     await seedKnowledgeBase();
     docs = await KnowledgeEntry.find({ enabled: true, ...channelFilter(channel) }).lean();
+  }
+
+  // Idempotently top up the curated per-product FAQs — once per server process —
+  // so EXISTING databases (already seeded before these answers were authored)
+  // gain them without wiping any admin edits. Only inserts entries whose exact
+  // question is missing. Re-read if we added any so this build includes them.
+  if (!curatedEnsured) {
+    curatedEnsured = true;
+    try {
+      const added = await ensureProductFaqs();
+      if (added > 0) docs = await KnowledgeEntry.find({ enabled: true, ...channelFilter(channel) }).lean();
+    } catch (err) {
+      console.error('Ezy AI product-FAQ top-up failed (non-fatal):', err);
+    }
   }
 
   // Each entry's "document" = its question + variants + keywords, tokenized.
@@ -208,8 +225,44 @@ export async function seedKnowledgeBase(): Promise<number> {
     category: 'General',
   });
 
+  // Curated per-product detail Q&As (max amount, funding %, tax benefit, etc.).
+  for (const f of PRODUCT_FAQS) {
+    seed.push({
+      question: f.question,
+      variants: f.variants,
+      keywords: f.keywords,
+      answer: f.answer,
+      category: f.product,
+    });
+  }
+
   if (seed.length === 0) return 0;
   await KnowledgeEntry.insertMany(seed);
   invalidateBrain();
   return seed.length;
+}
+
+// Idempotently ensure the curated per-product FAQs exist, without disturbing any
+// admin-authored entries. Inserts only the ones whose exact question is missing,
+// so it's safe to run on an already-populated production database (and repeatedly).
+// Returns how many new entries were inserted. Never throws to the caller's flow.
+export async function ensureProductFaqs(): Promise<number> {
+  await connectDB();
+  let added = 0;
+  for (const f of PRODUCT_FAQS) {
+    const exists = await KnowledgeEntry.findOne({ question: f.question }).select('_id').lean();
+    if (exists) continue;
+    await KnowledgeEntry.create({
+      question: f.question,
+      variants: f.variants,
+      keywords: f.keywords,
+      answer: f.answer,
+      category: f.product,
+      channel: 'both',
+      enabled: true,
+    });
+    added++;
+  }
+  if (added > 0) invalidateBrain();
+  return added;
 }
