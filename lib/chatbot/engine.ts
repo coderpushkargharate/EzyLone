@@ -278,8 +278,21 @@ function resolveMenuPick(rawMessage: string, prevState: ChatState): string {
   return idx >= 0 && idx < menu.length ? menu[idx] : rawMessage;
 }
 
-export function runEngine(rawMessage: string, prevState: ChatState = {}): EngineResult {
-  const result = runEngineCore(resolveMenuPick(rawMessage, prevState), prevState);
+// `concise` = ask only the essential, form-level questions during data-collection
+// flows (Name → City → Amount → Phone), instead of the full per-product
+// questionnaire. WhatsApp turns this on so the auto-lead flow stays short — the
+// same length as the website lead form — while the website chat stays detailed.
+export interface EngineOptions {
+  concise?: boolean;
+}
+
+export function runEngine(rawMessage: string, prevState: ChatState = {}, opts: EngineOptions = {}): EngineResult {
+  // Seed the concise flag into `data` so it persists across turns (WhatsApp
+  // reloads state from the DB each message) and every flow helper can read it.
+  const seeded: ChatState = opts.concise
+    ? { ...prevState, data: { ...(prevState.data || {}), concise: true } }
+    : prevState;
+  const result = runEngineCore(resolveMenuPick(rawMessage, seeded), seeded);
   // Remember exactly what we're offering this turn so a bare-number reply next
   // turn maps to it — and clear it when we offer nothing.
   result.state = {
@@ -468,11 +481,15 @@ function runEngineCore(rawMessage: string, prevState: ChatState = {}): EngineRes
     };
   }
 
-  // Fallback (§18) — stay helpful, show the menu, offer a specialist.
+  // Fallback (§18) — stay genuinely helpful even when the question is off-topic.
+  // Instead of a bare "I didn't understand", acknowledge it, make clear what I
+  // *can* help with, and offer a human specialist for anything outside loans — so
+  // the user always has a useful next step rather than a dead end.
   return {
     reply:
-      'I’m sorry, I may not have understood your requirement correctly. Please choose an option below, or select *Talk to a Loan Specialist* for assistance.',
-    quickReplies: WELCOME_MENU,
+      'I want to make sure I help you correctly. 🙏 I’m *EzySaathi AI*, and I’m best with loans — I can explain *interest rates, EMI, eligibility, documents, processing time*, or any of our products (Car Loan Top-Up, Balance Transfer, New/Used Car, Commercial Vehicle, Personal Loan, Loan Against Property).\n\n' +
+      'If your question is about something else, tell me a little more and I’ll do my best — or I can connect you with a human specialist right away. What would you like?',
+    quickReplies: [MENU_SPECIALIST, MENU_ELIGIBILITY, MENU_EMI, MENU_TOPUP],
     state: {},
     fallback: true,
   };
@@ -549,6 +566,18 @@ function topupGateFlow(raw: string, state: ChatState): EngineResult {
 
 // ── Generic progressive collection flow ───────────────────────────────────────
 
+// In concise mode (WhatsApp) we ask ONLY these form-level fields, dropping the
+// deep per-product questions (car model, lender, outstanding, EMIs paid…). This
+// keeps the WhatsApp auto-lead flow as short as the website lead form. The amount
+// field differs by product (topUpAmount vs amount), so both keys are listed.
+const CONCISE_KEYS = new Set(['name', 'city', 'amount', 'topUpAmount', 'phone']);
+
+// The questions a flow actually asks, given the current data (concise or full).
+function flowFields(cfg: CollectFlow, d: Record<string, any>): Field[] {
+  if (!d || !d.concise) return cfg.fields;
+  return cfg.fields.filter((f) => CONCISE_KEYS.has(f.key));
+}
+
 // A field counts as already answered if we captured it in an earlier flow (e.g.
 // the eligibility check gathers income/employment before routing here). Name and
 // phone are always asked fresh so the lead is addressed and reachable.
@@ -558,17 +587,19 @@ function isFilled(d: Record<string, any>, field: Field): boolean {
   return v != null && v !== '';
 }
 function firstUnfilled(cfg: CollectFlow, d: Record<string, any>, from: number): number {
+  const fields = flowFields(cfg, d);
   let i = from;
-  while (i < cfg.fields.length && isFilled(d, cfg.fields[i])) i++;
+  while (i < fields.length && isFilled(d, fields[i])) i++;
   return i;
 }
 
 function startCollect(flowId: string, state: ChatState): EngineResult {
   const cfg = COLLECT_FLOWS[flowId];
   const data = { ...(state.data || {}), collect: flowId, intent: cfg.intent };
+  const fields = flowFields(cfg, data);
   const idx = firstUnfilled(cfg, data, 0);
-  if (idx >= cfg.fields.length) return finishCollect(cfg, data);
-  const first = cfg.fields[idx];
+  if (idx >= fields.length) return finishCollect(cfg, data);
+  const first = fields[idx];
   const intro: Record<string, string> = {
     topup: `Great — let’s take up your *Car Loan Top-Up* requirement. I’ll ask only what’s relevant.`,
     bt: `Certainly. We can help you explore a *Car Loan Balance Transfer with additional Top-Up funding*, subject to eligibility and lender terms.`,
@@ -587,8 +618,9 @@ function collectFlow(raw: string, state: ChatState): EngineResult {
   const d = state.data!;
   const cfg = COLLECT_FLOWS[d.collect];
   if (!cfg) return welcomeResult(); // defensive: unknown config → restart cleanly
+  const fields = flowFields(cfg, d);
   const idx = state.step || 0;
-  const field = cfg.fields[idx];
+  const field = fields[idx];
 
   // Validate & store the current field's answer.
   const value = parseField(raw, field);
@@ -599,8 +631,8 @@ function collectFlow(raw: string, state: ChatState): EngineResult {
 
   // Next unfilled field, or finish.
   const nextIdx = firstUnfilled(cfg, d, idx + 1);
-  if (nextIdx < cfg.fields.length) {
-    const next = cfg.fields[nextIdx];
+  if (nextIdx < fields.length) {
+    const next = fields[nextIdx];
     // Personalise the very next question right after we learn the name.
     const prefix = field.key === 'name' && typeof value === 'string' ? `Thanks, ${value.split(' ')[0]}! ` : '';
     return {

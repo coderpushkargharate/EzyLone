@@ -84,8 +84,11 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
     }
   }
 
-  // 2) Run the rule engine (source of truth for flows + lead capture).
-  const result = runEngine(bodyText, state);
+  // 2) Run the rule engine (source of truth for flows + lead capture). `concise`
+  // keeps the WhatsApp auto-lead flow short — it asks only the essential
+  // form-level questions (Name → City → Amount → Phone), matching the website
+  // lead form, instead of the full per-product questionnaire.
+  const result = runEngine(bodyText, state, { concise: true });
   let reply = result.reply;
 
   // WhatsApp-only EMI override: the website chat walks users through an

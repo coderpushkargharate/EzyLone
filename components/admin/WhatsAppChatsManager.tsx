@@ -58,9 +58,18 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
+// Human-friendly date + clock time (e.g. "26 Aug 2026, 3:45 PM") so admins can
+// see exactly when each message arrived, without noisy seconds.
 function fullTime(iso: string): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleString();
+  return new Date(iso).toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 }
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -293,6 +302,7 @@ export default function WhatsAppChatsManager() {
                             <div className="flex items-center gap-1.5 mt-1 pl-1">
                               <Bot className="w-3 h-3 text-blue-500" />
                               <span className="text-[10px] text-gray-400">Ezy AI</span>
+                              <span className="text-[10px] text-gray-400">· {fullTime(m.createdAt)}</span>
                               <span
                                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                                   m.matched ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'

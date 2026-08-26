@@ -31,35 +31,72 @@ const STOPWORDS = new Set([
   'me', 'mein', 'par', 'ya', 'aur', 'ye', 'yeh', 'wo', 'woh', 'na', 'nahi',
   'mujhe', 'mera', 'meri', 'apka', 'aap', 'hum', 'kar', 'karo', 'karna', 'ek',
   'kya', 'kaise', 'kaisa', 'kaun', 'kab', 'kahan', 'kyun', 'kyu', 'hi', 'bhi',
+  // Common Hinglish filler verbs/asks that carry no matching signal on their own.
+  'chahiye', 'chaiye', 'chahie', 'lena', 'dena', 'batao', 'bata', 'bataye',
+  'batayein', 'milega', 'milta', 'milti', 'sakta', 'sakte', 'sakti', 'hoga',
+  'krna', 'kro', 'kaisi', 'plz', 'pls',
+  // SMS / chat shorthand (what/your/you/are/and/about) — pure noise for matching.
+  'wat', 'wt', 'ur', 'u', 'r', 'n', 'abt', 'thx', 'tq',
 ]);
 
 // Domain synonyms → a single canonical token, so different words for the same
 // idea collapse together before scoring. Conservative on purpose (a loan bot
 // must not blur distinct products together).
 const SYNONYMS: Record<string, string> = {
-  // interest
+  // interest (+ common misspellings)
   byaj: 'interest', byaaj: 'interest', roi: 'interest', rate: 'interest', rates: 'interest',
-  // emi / installment
+  intrest: 'interest', interst: 'interest', intres: 'interest', intrst: 'interest',
+  // emi / installment (+ misspellings)
   installment: 'emi', instalment: 'emi', installments: 'emi', kist: 'emi', kisht: 'emi',
-  // eligibility
-  eligible: 'eligibility', eligibilty: 'eligibility', qualify: 'eligibility',
-  yogya: 'eligibility', patra: 'eligibility',
-  // documents
-  document: 'documents', kagaz: 'documents', papers: 'documents', paper: 'documents', kyc: 'documents',
-  // loan
-  loans: 'loan', karz: 'loan', karza: 'loan', rin: 'loan', finance: 'loan', funding: 'loan',
+  emis: 'emi', instalments: 'emi', instalmnt: 'emi', monthly: 'emi',
+  // eligibility (+ misspellings)
+  eligible: 'eligibility', eligibilty: 'eligibility', eligiblity: 'eligibility',
+  elegible: 'eligibility', eligble: 'eligibility', elgible: 'eligibility',
+  qualify: 'eligibility', qualified: 'eligibility', yogya: 'eligibility', patra: 'eligibility',
+  // documents (+ misspellings)
+  document: 'documents', documnt: 'documents', docs: 'documents', doc: 'documents',
+  kagaz: 'documents', kagzat: 'documents', papers: 'documents', paper: 'documents', kyc: 'documents',
+  // loan (+ misspellings / Hinglish)
+  loans: 'loan', lon: 'loan', laon: 'loan', loann: 'loan', karz: 'loan', karza: 'loan',
+  rin: 'loan', finance: 'loan', financing: 'loan', funding: 'loan', fund: 'loan', funds: 'loan',
   // vehicles
-  gaadi: 'car', gadi: 'car', vehicle: 'car', vehicles: 'car', gaari: 'car',
+  gaadi: 'car', gadi: 'car', vehicle: 'car', vehicles: 'car', gaari: 'car', cars: 'car',
+  // balance transfer
+  bt: 'transfer', shift: 'transfer', shifting: 'transfer', switch: 'transfer',
+  // top-up
+  topup: 'topup', additional: 'topup', extra: 'topup',
   // contact
   phone: 'contact', number: 'contact', call: 'contact', sampark: 'contact', reach: 'contact',
-  mobile: 'contact', email: 'contact',
+  mobile: 'contact', email: 'contact', address: 'contact', location: 'contact', office: 'contact',
   // credit score
-  cibil: 'creditscore', score: 'creditscore',
+  cibil: 'creditscore', score: 'creditscore', credit: 'creditscore',
   // prepay
-  foreclose: 'prepay', foreclosure: 'prepay', preclose: 'prepay', prepayment: 'prepay',
-  // time
-  duration: 'time', tenure: 'time', period: 'time',
+  foreclose: 'prepay', foreclosure: 'prepay', preclose: 'prepay',
+  prepayment: 'prepay', prepay: 'prepay', repay: 'prepay',
+  // time / tenure
+  duration: 'time', tenure: 'time', period: 'time', months: 'time', year: 'time', years: 'time',
+  // timings / hours
+  timing: 'hours', timings: 'hours', open: 'hours',
 };
+
+// Synonym keys long enough to fuzzy-match a misspelling against without risking
+// false hits on short words. Lets "forclosure"→"foreclosure", "documnts"→
+// "documnt", "eligibilty"→"eligibilty" collapse to their canonical token even
+// when the exact spelling isn't in the table.
+const FUZZY_SYNONYM_KEYS = Object.keys(SYNONYMS).filter((k) => k.length >= 6);
+
+// Canonicalise a token via the synonym table: exact match first, then a
+// spelling-tolerant match against the longer synonym keys.
+function resolveSynonym(tok: string): string {
+  const exact = SYNONYMS[tok];
+  if (exact) return exact;
+  if (tok.length >= 6) {
+    for (const key of FUZZY_SYNONYM_KEYS) {
+      if (dice(tok, key) >= 0.82) return SYNONYMS[key];
+    }
+  }
+  return tok;
+}
 
 // Very light stemmer — strips a few common English suffixes so "processing",
 // "processed", "process" share a stem. Intentionally naive (no external lib);
@@ -91,8 +128,11 @@ export function tokenize(text: string): string[] {
   const out: string[] = [];
   for (let tok of cleaned.split(' ')) {
     if (tok.length < 2) continue;
+    // Collapse elongated typos ("loooan" → "loan", "emiiii" → "emi") so stretched
+    // spellings normalise to the real word before synonym/stem matching.
+    tok = tok.replace(/([a-z])\1{2,}/g, '$1');
     if (STOPWORDS.has(tok)) continue;
-    tok = SYNONYMS[tok] || tok;
+    tok = resolveSynonym(tok);
     if (STOPWORDS.has(tok)) continue;
     out.push(stem(tok));
   }
@@ -210,8 +250,30 @@ export function combinedScore(
   const cos = cosine(queryVec, entryVec);
   const fuzzy = fuzzyOverlap(queryTokens, entryTokens);
   const entrySet = new Set(entryTokens);
-  let hits = 0;
-  for (const q of queryTokens) if (entrySet.has(q)) hits++;
-  const containment = queryTokens.length ? hits / queryTokens.length : 0;
+  const uniqEntry = Array.from(entrySet);
+  // Does a query term appear in the entry? Spelling-tolerant: exact match, or a
+  // near-exact typo (high bigram overlap on a reasonably long word), so
+  // "eligibilty", "documnts", "forclosure" still match their correct entry.
+  const isMatch = (q: string): boolean => {
+    if (entrySet.has(q)) return true;
+    if (q.length >= 4) {
+      for (const e of uniqEntry) {
+        if (e.length >= 4 && dice(q, e) >= 0.8) return true;
+      }
+    }
+    return false;
+  };
+  // Containment = how much of the query's MEANING is found in the entry, weighted
+  // by each term's tf-idf. Weighting by importance means ubiquitous words like
+  // "loan" barely move the score, so "home loan" can't latch onto a car-loan
+  // entry through "loan" alone — while a distinctive match ("foreclosure") scores
+  // high. This is what rescues short, single-keyword questions.
+  let matched = 0;
+  let total = 0;
+  queryVec.forEach((w, term) => {
+    total += w;
+    if (isMatch(term)) matched += w;
+  });
+  const containment = total > 0 ? matched / total : 0;
   return 0.45 * cos + 0.2 * fuzzy + 0.35 * containment;
 }
