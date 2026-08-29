@@ -105,15 +105,16 @@ const ChatBot: React.FC = () => {
       const voices = window.speechSynthesis.getVoices();
       if (!voices.length) return;
       // Known female voice names across Chrome/Edge/Safari/Android, plus a
-      // generic female/woman/girl match. Prefer Indian English if available.
+      // generic female/woman/girl match. English ONLY — never a Hindi voice,
+      // so the greeting always sounds like clear English. Prefer Indian English.
       const femaleRe =
-        /(female|woman|girl|zira|susan|samantha|karen|tessa|fiona|moira|veena|raveena|heera|kalpana|swara|neerja|aria|jenny|libby|sonia|google uk english female|google हिन्दी)/i;
+        /(female|woman|girl|zira|susan|samantha|karen|tessa|fiona|moira|veena|raveena|heera|kalpana|swara|neerja|aria|jenny|libby|sonia|google uk english female)/i;
+      const englishVoices = voices.filter((v) => /^en(-|$)/i.test(v.lang));
       femaleVoiceRef.current =
-        voices.find((v) => /^en-IN/i.test(v.lang) && femaleRe.test(v.name)) ||
-        voices.find((v) => femaleRe.test(v.name)) ||
-        voices.find((v) => /^en-IN/i.test(v.lang)) ||
-        voices.find((v) => /^en/i.test(v.lang)) ||
-        voices[0] ||
+        englishVoices.find((v) => /^en-IN/i.test(v.lang) && femaleRe.test(v.name)) ||
+        englishVoices.find((v) => femaleRe.test(v.name)) ||
+        englishVoices.find((v) => /^en-IN/i.test(v.lang)) ||
+        englishVoices[0] ||
         null;
     };
     pick();
@@ -129,6 +130,11 @@ const ChatBot: React.FC = () => {
     if (typeof window === 'undefined' || !window.speechSynthesis || !voiceOnRef.current) return;
     const clean = text
       .replace(/[*_#`>]/g, '')
+      // Speak the brand names the way they should sound in English. This only
+      // affects the spoken audio — the on-screen text still shows the real
+      // spelling (EzyLoan / EzySaathi).
+      .replace(/EzyLoan/gi, 'Easy Loan')
+      .replace(/EzySaathi/gi, 'Ezzy Saathi')
       // Strip emoji/pictographs (surrogate-pair range) without needing the
       // Unicode regex flag, which this project's TS target doesn't allow.
       .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
@@ -139,7 +145,11 @@ const ChatBot: React.FC = () => {
     window.speechSynthesis.cancel(); // don't overlap with a previous utterance
     const u = new SpeechSynthesisUtterance(clean);
     if (femaleVoiceRef.current) u.voice = femaleVoiceRef.current;
-    u.lang = femaleVoiceRef.current?.lang || 'en-IN';
+    // Always English so the greeting is never spoken in Hindi, even if the
+    // browser only exposes a non-English default voice.
+    u.lang = /^en(-|$)/i.test(femaleVoiceRef.current?.lang || '')
+      ? (femaleVoiceRef.current!.lang)
+      : 'en-IN';
     u.rate = 1;
     u.pitch = 1.15; // a touch higher for a warm, feminine tone
     window.speechSynthesis.speak(u);
