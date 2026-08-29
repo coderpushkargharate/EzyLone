@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageSquare, X, Send, Bot, Mic } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, Mic, Volume2, VolumeX } from 'lucide-react';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -68,6 +68,11 @@ const ChatBot: React.FC = () => {
   const [state, setState] = useState<ChatState>({});
   const [listening, setListening] = useState(false);
   const [micSupported, setMicSupported] = useState(false);
+  // Whether EzySaathi speaks her replies aloud (female voice). On by default.
+  const [voiceOn, setVoiceOn] = useState(true);
+  const voiceOnRef = useRef(true);
+  // The female voice we picked from the browser's available voices.
+  const femaleVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -85,6 +90,72 @@ const ChatBot: React.FC = () => {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading, open]);
+
+  // Keep the ref in sync so the speak() callback always sees the latest setting.
+  useEffect(() => {
+    voiceOnRef.current = voiceOn;
+    if (!voiceOn && typeof window !== 'undefined') window.speechSynthesis?.cancel();
+  }, [voiceOn]);
+
+  // Pick a female voice from whatever the browser exposes. Voices load
+  // asynchronously, so we re-run on the `voiceschanged` event too.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    const pick = () => {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+      // Known female voice names across Chrome/Edge/Safari/Android, plus a
+      // generic female/woman/girl match. Prefer Indian English if available.
+      const femaleRe =
+        /(female|woman|girl|zira|susan|samantha|karen|tessa|fiona|moira|veena|raveena|heera|kalpana|swara|neerja|aria|jenny|libby|sonia|google uk english female|google हिन्दी)/i;
+      femaleVoiceRef.current =
+        voices.find((v) => /^en-IN/i.test(v.lang) && femaleRe.test(v.name)) ||
+        voices.find((v) => femaleRe.test(v.name)) ||
+        voices.find((v) => /^en-IN/i.test(v.lang)) ||
+        voices.find((v) => /^en/i.test(v.lang)) ||
+        voices[0] ||
+        null;
+    };
+    pick();
+    window.speechSynthesis.onvoiceschanged = pick;
+    return () => {
+      if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
+
+  // Speak a bot reply aloud in the chosen female voice. Strips markdown/emoji
+  // so the speech sounds natural. No-op if the user muted the voice.
+  const speak = useCallback((text: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis || !voiceOnRef.current) return;
+    const clean = text
+      .replace(/[*_#`>]/g, '')
+      // Strip emoji/pictographs (surrogate-pair range) without needing the
+      // Unicode regex flag, which this project's TS target doesn't allow.
+      .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
+      .replace(/[←-⇿⌀-➿⬀-⯿️]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!clean) return;
+    window.speechSynthesis.cancel(); // don't overlap with a previous utterance
+    const u = new SpeechSynthesisUtterance(clean);
+    if (femaleVoiceRef.current) u.voice = femaleVoiceRef.current;
+    u.lang = femaleVoiceRef.current?.lang || 'en-IN';
+    u.rate = 1;
+    u.pitch = 1.15; // a touch higher for a warm, feminine tone
+    window.speechSynthesis.speak(u);
+  }, []);
+
+  // Greet aloud when the chat is opened (the open click is a user gesture, so
+  // browsers allow speech). Stop talking when it's closed.
+  useEffect(() => {
+    if (open) {
+      const last = [...messages].reverse().find((m) => m.role === 'assistant');
+      if (last) speak(last.content);
+    } else if (typeof window !== 'undefined') {
+      window.speechSynthesis?.cancel();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   // Set up Web Speech API voice input (Chrome/Edge/most mobile browsers).
   useEffect(() => {
@@ -229,10 +300,12 @@ const ChatBot: React.FC = () => {
         });
         const data = await res.json();
         setState(data.state || {});
+        const reply = data.reply || 'Sorry, please try again.';
         setMessages((m) => [
           ...m,
-          { role: 'assistant', content: data.reply || 'Sorry, please try again.', quickReplies: data.quickReplies },
+          { role: 'assistant', content: reply, quickReplies: data.quickReplies },
         ]);
+        speak(reply); // read the answer aloud in EzySaathi's female voice
       } catch {
         setMessages((m) => [
           ...m,
@@ -247,7 +320,7 @@ const ChatBot: React.FC = () => {
         setTimeout(() => inputRef.current?.focus(), 50);
       }
     },
-    [loading, messages, state, listening],
+    [loading, messages, state, listening, speak],
   );
 
   return (
@@ -282,9 +355,21 @@ const ChatBot: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button onClick={() => setOpen(false)} aria-label="Close chat" className="rounded-full p-1 hover:bg-white/20">
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              {/* Voice on/off — mutes EzySaathi's spoken replies */}
+              <button
+                onClick={() => setVoiceOn((v) => !v)}
+                aria-label={voiceOn ? 'Mute voice' : 'Unmute voice'}
+                aria-pressed={voiceOn}
+                title={voiceOn ? 'Voice on — tap to mute' : 'Voice off — tap to unmute'}
+                className="rounded-full p-1 hover:bg-white/20"
+              >
+                {voiceOn ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+              </button>
+              <button onClick={() => setOpen(false)} aria-label="Close chat" className="rounded-full p-1 hover:bg-white/20">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
