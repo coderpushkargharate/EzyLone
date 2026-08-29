@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { MessageSquare, X, Send, Bot } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, Mic } from 'lucide-react';
 
 interface Msg {
   role: 'user' | 'assistant';
@@ -66,28 +66,166 @@ const ChatBot: React.FC = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [state, setState] = useState<ChatState>({});
+  const [listening, setListening] = useState(false);
+  const [micSupported, setMicSupported] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+  // Text captured before the current dictation started, so we append rather than
+  // overwrite anything the user had already typed.
+  const baseInputRef = useRef('');
+  // True while the user wants the mic on. The recognizer stops itself after a
+  // pause; we auto-restart it while this is true so dictation keeps going until
+  // the user taps the mic again.
+  const wantListeningRef = useRef(false);
+  // Whether the text currently in the box was produced by voice — sent to the API
+  // so the admin analytics can show voice-vs-typed usage. Reset when the user types.
+  const viaRef = useRef<'text' | 'voice'>('text');
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading, open]);
 
+  // Set up Web Speech API voice input (Chrome/Edge/most mobile browsers).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN'; // Indian English — handles common Hindi/English mix well
+    recognition.continuous = true; // keep listening through natural pauses
+    recognition.interimResults = true;
+
+    recognition.onresult = (event: any) => {
+      viaRef.current = 'voice';
+      // Only look at results new since last event. Finalised chunks are appended
+      // to the confirmed text; interim words are shown live but not yet committed.
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        const text = res[0].transcript;
+        if (res.isFinal) {
+          const base = baseInputRef.current;
+          baseInputRef.current = (base ? base.trimEnd() + ' ' : '') + text.trim();
+        } else {
+          interim += text;
+        }
+      }
+      const base = baseInputRef.current;
+      setInput(base + (interim ? (base ? ' ' : '') + interim : ''));
+    };
+
+    // The engine ends itself after silence. If the user still wants the mic on,
+    // restart it so dictation continues seamlessly.
+    recognition.onend = () => {
+      if (wantListeningRef.current) {
+        try {
+          recognition.start();
+          return;
+        } catch {
+          /* fall through to turning the indicator off */
+        }
+      }
+      setListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      // Permission denied → stop for good and explain. Transient errors
+      // (no-speech, aborted) are handled by onend's auto-restart.
+      if (event?.error === 'not-allowed' || event?.error === 'service-not-allowed') {
+        wantListeningRef.current = false;
+        setListening(false);
+        setMessages((m) => [
+          ...m,
+          {
+            role: 'assistant',
+            content:
+              'I couldn’t access your microphone. Please allow microphone permission for this site in your browser, then tap the 🎤 again.',
+          },
+        ]);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    setMicSupported(true);
+
+    return () => {
+      try {
+        recognition.onresult = null;
+        recognition.onend = null;
+        recognition.onerror = null;
+        recognition.abort();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, []);
+
+  const toggleMic = useCallback(() => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      // Browser has no Speech Recognition — tell the user in-chat instead of
+      // the button doing nothing.
+      setMessages((m) => [
+        ...m,
+        {
+          role: 'assistant',
+          content:
+            'Voice typing isn’t supported in this browser. Please use *Google Chrome*, *Microsoft Edge*, or a modern mobile browser — or just type your message here. 🙂',
+        },
+      ]);
+      return;
+    }
+    if (listening) {
+      wantListeningRef.current = false; // stop for good (don't auto-restart)
+      try { recognition.stop(); } catch { /* ignore */ }
+      setListening(false);
+      return;
+    }
+    // Start fresh from whatever is already in the box.
+    baseInputRef.current = input.trim();
+    wantListeningRef.current = true;
+    try {
+      recognition.start();
+      setListening(true);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    } catch {
+      // start() throws if called while already active — reset state.
+      wantListeningRef.current = false;
+      setListening(false);
+    }
+  }, [listening, input]);
+
   const send = useCallback(
-    async (raw: string) => {
+    async (raw: string, via: 'text' | 'voice' = 'text') => {
       const text = raw.trim();
       if (!text || loading) return;
+
+      // Stop any active dictation as soon as the message is sent.
+      wantListeningRef.current = false;
+      if (listening) {
+        try {
+          recognitionRef.current?.stop();
+        } catch {
+          /* ignore */
+        }
+        setListening(false);
+      }
+      baseInputRef.current = '';
 
       const history = messages.map((m) => ({ role: m.role, content: m.content }));
       setMessages((m) => [...m, { role: 'user', content: text }]);
       setInput('');
+      viaRef.current = 'text'; // reset for the next message
       setLoading(true);
 
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: text, state, history }),
+          body: JSON.stringify({ message: text, state, history, via }),
         });
         const data = await res.json();
         setState(data.state || {});
@@ -109,7 +247,7 @@ const ChatBot: React.FC = () => {
         setTimeout(() => inputRef.current?.focus(), 50);
       }
     },
-    [loading, messages, state],
+    [loading, messages, state, listening],
   );
 
   return (
@@ -198,18 +336,49 @@ const ChatBot: React.FC = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              send(input);
+              send(input, viaRef.current);
             }}
             className="flex items-center gap-2 border-t border-gray-200 bg-white p-2.5"
           >
             <input
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message…"
+              onChange={(e) => {
+                viaRef.current = 'text'; // manual typing overrides voice attribution
+                setInput(e.target.value);
+              }}
+              placeholder={listening ? 'Listening… speak now' : 'Type or tap 🎤 to speak…'}
               maxLength={1000}
               className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
             />
+            {/* Mic (voice-to-text). Always visible. While recording it glows red
+                and pulses so it clearly reads as "listening", not muted. */}
+            <button
+              type="button"
+              onClick={toggleMic}
+              aria-label={listening ? 'Stop voice input' : 'Speak your message'}
+              aria-pressed={listening}
+              title={
+                !micSupported
+                  ? 'Voice input needs Chrome, Edge or a supported mobile browser'
+                  : listening
+                    ? 'Listening… tap to stop'
+                    : 'Tap and speak'
+              }
+              className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
+                listening
+                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                  : micSupported
+                    ? 'border border-gray-200 bg-gray-50 text-[#2563eb] hover:bg-gray-100'
+                    : 'border border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100'
+              }`}
+            >
+              {listening && (
+                <span className="absolute inset-0 animate-ping rounded-full bg-red-400/60" />
+              )}
+              {/* Always the mic icon — the red pulse conveys "recording". */}
+              <Mic className={`relative h-4 w-4 ${listening ? 'animate-pulse' : ''}`} />
+            </button>
             <button
               type="submit"
               disabled={!input.trim() || loading}

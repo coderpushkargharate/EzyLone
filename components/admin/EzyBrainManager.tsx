@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   Brain, Plus, Trash2, Edit, Save, X, GraduationCap, RefreshCw, Check, MessageCircle,
+  Upload, Send, FlaskConical,
 } from 'lucide-react';
 
 // Ezy AI — "Brain" manager. Two tabs:
@@ -61,7 +62,7 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
   // A brand-new entry defaults to this channel for the current brain.
   const defaultChannel = isWa ? 'whatsapp' : 'both';
 
-  const [tab, setTab] = useState<'kb' | 'training'>('kb');
+  const [tab, setTab] = useState<'kb' | 'training' | 'test'>('kb');
   const [entries, setEntries] = useState<KEntry[]>([]);
   const [logs, setLogs] = useState<ChatLog[]>([]);
   const [loading, setLoading] = useState(false);
@@ -74,6 +75,69 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+
+  // Live "Test the bot" panel — asks the real chat pipeline what it would reply.
+  const [testInput, setTestInput] = useState('');
+  const [testResult, setTestResult] = useState<{ reply: string } | null>(null);
+  const [testing, setTesting] = useState(false);
+
+  // Bulk import modal.
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importing, setImporting] = useState(false);
+
+  const runTest = async () => {
+    const q = testInput.trim();
+    if (!q) return;
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await axios.post('/api/chat', { message: q, state: {}, history: [] });
+      setTestResult({ reply: res.data.reply || '(no reply)' });
+    } catch {
+      setTestResult({ reply: 'Error contacting the bot. Please try again.' });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  // Bulk import: one Q&A per line as "question | answer". Blank lines and lines
+  // starting with # are ignored. Each becomes a knowledge entry for this brain.
+  const runImport = async () => {
+    const lines = importText.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
+    const rows = lines
+      .map((l) => {
+        const idx = l.indexOf('|');
+        if (idx === -1) return null;
+        const question = l.slice(0, idx).trim();
+        const answer = l.slice(idx + 1).trim();
+        return question && answer ? { question, answer } : null;
+      })
+      .filter(Boolean) as { question: string; answer: string }[];
+
+    if (rows.length === 0) {
+      alert('No valid rows found. Use the format:  question | answer  (one per line).');
+      return;
+    }
+    if (!window.confirm(`Import ${rows.length} Q&A entr${rows.length === 1 ? 'y' : 'ies'} into this brain?`)) return;
+
+    setImporting(true);
+    let ok = 0;
+    let failed = 0;
+    for (const r of rows) {
+      try {
+        await axios.post('/api/admin/knowledge', { ...r, channel: defaultChannel, category: 'Imported' });
+        ok++;
+      } catch {
+        failed++;
+      }
+    }
+    setImporting(false);
+    setShowImport(false);
+    setImportText('');
+    alert(`Imported ${ok} entr${ok === 1 ? 'y' : 'ies'}${failed ? `, ${failed} failed` : ''}.`);
+    fetchEntries();
+  };
 
   const fetchEntries = async () => {
     setLoading(true);
@@ -101,7 +165,7 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
 
   useEffect(() => {
     if (tab === 'kb') fetchEntries();
-    else fetchLogs();
+    else if (tab === 'training') fetchLogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, logChannel]);
 
@@ -234,6 +298,12 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
         >
           <GraduationCap className="h-4 w-4" /> Needs Training {logs.length > 0 && tab !== 'training' ? `(${logs.length})` : ''}
         </button>
+        <button
+          onClick={() => setTab('test')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${tab === 'test' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-200'}`}
+        >
+          <FlaskConical className="h-4 w-4" /> Test Bot
+        </button>
       </div>
 
       {/* ── Knowledge Base tab ─────────────────────────────────────────────── */}
@@ -242,6 +312,7 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
           <div className="flex flex-wrap gap-3 items-center mb-4">
             <input className={`${input} flex-1 min-w-[220px]`} placeholder="Search questions, answers, keywords…" value={search} onChange={(e) => setSearch(e.target.value)} />
             <button onClick={() => fetchEntries()} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm flex items-center gap-1"><RefreshCw className="h-4 w-4" /> Refresh</button>
+            <button onClick={() => setShowImport(true)} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm flex items-center gap-1"><Upload className="h-4 w-4" /> Bulk import</button>
             <button onClick={() => openAdd()} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm flex items-center gap-1"><Plus className="h-4 w-4" /> Add Q&A</button>
           </div>
 
@@ -336,6 +407,72 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Test Bot tab ───────────────────────────────────────────────────── */}
+      {tab === 'test' && (
+        <div className="max-w-2xl">
+          <p className="text-sm text-gray-600 mb-4">
+            Type a question the way a visitor would. This runs the real chatbot pipeline so you can
+            confirm your trained answers work before customers see them.
+          </p>
+          <div className="flex gap-2 mb-4">
+            <input
+              className={`${input} flex-1`}
+              placeholder="e.g. What is the processing fee for a top-up loan?"
+              value={testInput}
+              onChange={(e) => setTestInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') runTest(); }}
+            />
+            <button onClick={runTest} disabled={testing || !testInput.trim()} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm flex items-center gap-1 disabled:opacity-60">
+              <Send className="h-4 w-4" /> {testing ? 'Asking…' : 'Ask'}
+            </button>
+          </div>
+          {testResult && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50">
+                  <Brain className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">Bot reply</p>
+                  <p className="text-sm text-gray-800 whitespace-pre-wrap">{testResult.reply}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Bulk import modal ──────────────────────────────────────────────── */}
+      {showImport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full my-8">
+            <div className="p-5 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-800">Bulk import Q&A</h3>
+              <button onClick={() => setShowImport(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-sm text-gray-600">
+                One Q&amp;A per line as <code className="bg-gray-100 px-1 rounded">question | answer</code>.
+                Lines starting with <code className="bg-gray-100 px-1 rounded">#</code> are ignored.
+                Entries are added to the <strong>{isWa ? 'WhatsApp' : 'Website'}</strong> brain.
+              </p>
+              <textarea
+                className={`${input} min-h-[200px] font-mono text-xs`}
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+                placeholder={'What is the processing fee? | It ranges from 1-2% of the loan amount.\nDo you offer top-up loans? | Yes, top-up loans are available on your existing car loan.'}
+              />
+            </div>
+            <div className="p-5 border-t border-gray-200 flex justify-end gap-3">
+              <button onClick={() => setShowImport(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm">Cancel</button>
+              <button onClick={runImport} disabled={importing} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm flex items-center gap-1 disabled:opacity-60">
+                <Upload className="h-4 w-4" /> {importing ? 'Importing…' : 'Import'}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -40,6 +40,8 @@ import {
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
 import EzyBrainManager from '@/components/admin/EzyBrainManager';
+import ChatAnalytics from '@/components/admin/ChatAnalytics';
+import SiteHealth from '@/components/admin/SiteHealth';
 import WhatsAppBrainManager from '@/components/admin/WhatsAppBrainManager';
 import WhatsAppChatsManager from '@/components/admin/WhatsAppChatsManager';
 import LeadsManager from '@/components/admin/LeadsManager';
@@ -219,6 +221,7 @@ function AdminDashboard({
   // of one long list. `hidden` items (Account) belong to no sidebar group.
   const menuItems = [
     { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview' },
+    { id: 'siteHealth', name: 'Website Health', icon: ShieldCheck, component: SiteHealth, group: 'Overview' },
     { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager, group: 'Leads & CRM' },
     { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager, group: 'Leads & CRM' },
     { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager, group: 'Leads & CRM' },
@@ -231,6 +234,7 @@ function AdminDashboard({
     { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager, group: 'Website Content' },
     { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager, group: 'Website Content' },
     { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager, group: 'AI Assistants' },
+    { id: 'ezyInsights', name: 'Ezy AI Insights', icon: BarChart3, component: ChatAnalytics, group: 'AI Assistants' },
     { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager, group: 'AI Assistants' },
     { id: 'whatsappChats', name: 'WhatsApp Chats', icon: MessageSquareText, component: WhatsAppChatsManager, group: 'AI Assistants' },
     { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration' },

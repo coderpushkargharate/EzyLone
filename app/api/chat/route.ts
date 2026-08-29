@@ -12,6 +12,7 @@ interface ChatBody {
   message?: string;
   state?: ChatState;
   history?: { role: 'user' | 'assistant'; content: string }[];
+  via?: 'text' | 'voice'; // how the visitor entered the message (typed vs mic)
 }
 
 // POST /api/chat — public (rate-limited). Returns { reply, quickReplies, state }.
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
 
   const message = (body.message || '').toString().slice(0, 1000);
   const state = body.state || {};
+  const via = body.via === 'voice' ? 'voice' : 'text';
 
   // The rule engine is the source of truth for flows (EMI/eligibility/lead) and
   // for lead capture — it's deterministic and compliance-safe. We ALWAYS run it.
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
     bumpHits(kb.entryId); // fire-and-forget
     await logChat({
       question: message, answer: kb.answer, source: 'knowledge',
-      matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'web',
+      matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'web', via,
     });
     return NextResponse.json({
       reply: kb.answer,
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
   if (!result.fallback) {
     await logChat({
       question: message, answer: result.reply, source: 'engine',
-      matched: true, score: kb?.score || 0, channel: 'web',
+      matched: true, score: kb?.score || 0, channel: 'web', via,
     });
     return NextResponse.json({
       reply: result.reply,
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
     if (llm) {
       await logChat({
         question: message, answer: llm, source: 'llm',
-        matched: false, score: kb?.score || 0, channel: 'web',
+        matched: false, score: kb?.score || 0, channel: 'web', via,
       });
       return NextResponse.json({
         reply: llm,
@@ -119,7 +121,7 @@ export async function POST(req: NextRequest) {
   // it shows up in the admin "Needs training" list.
   await logChat({
     question: message, answer: result.reply, source: 'fallback',
-    matched: false, score: kb?.score || 0, channel: 'web',
+    matched: false, score: kb?.score || 0, channel: 'web', via,
   });
   return NextResponse.json({
     reply: result.reply,

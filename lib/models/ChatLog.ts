@@ -19,6 +19,7 @@ export interface IChatLog extends Document {
   score: number;             // best knowledge-base match score (0..1)
   matchedEntry?: mongoose.Types.ObjectId; // the KnowledgeEntry that answered, if any
   channel: string;           // 'web' | 'whatsapp'
+  via: string;               // how the visitor entered the message: 'text' | 'voice'
   resolved: boolean;         // admin has taught an answer for this (or dismissed it)
   createdAt: Date;
   updatedAt: Date;
@@ -33,6 +34,7 @@ const ChatLogSchema = new Schema<IChatLog>(
     score: { type: Number, default: 0 },
     matchedEntry: { type: Schema.Types.ObjectId, ref: 'KnowledgeEntry' },
     channel: { type: String, default: 'web' },
+    via: { type: String, enum: ['text', 'voice'], default: 'text', index: true },
     resolved: { type: Boolean, default: false, index: true },
   },
   { timestamps: true }

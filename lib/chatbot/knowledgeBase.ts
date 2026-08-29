@@ -153,6 +153,7 @@ export async function logChat(entry: {
   score: number;
   matchedEntry?: string;
   channel?: string;
+  via?: string;
 }): Promise<void> {
   try {
     await connectDB();
@@ -164,6 +165,7 @@ export async function logChat(entry: {
       score: entry.score,
       matchedEntry: entry.matchedEntry,
       channel: entry.channel || 'web',
+      via: entry.via === 'voice' ? 'voice' : 'text',
     });
   } catch (err) {
     console.error('Ezy AI chat log failed (non-fatal):', err);
