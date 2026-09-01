@@ -4,7 +4,10 @@ import { connectDB } from './db';
 import { User } from './models/User';
 
 export const TOKEN_COOKIE = 'token';
-const MAX_AGE_SECONDS = 60 * 60 * 24; // 24h, same as the old Express server
+// Keep admins signed in for 30 days so the installed WhatsApp-chat app doesn't
+// ask for a login every time it's opened (see the "Access" mode in the admin
+// panel). Logging out still clears the cookie immediately.
+const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 export interface AuthPayload {
   userId: string;
@@ -27,7 +30,7 @@ function getSecret(): string {
 }
 
 export function signToken(payload: AuthPayload): string {
-  return jwt.sign(payload, getSecret(), { expiresIn: '24h' });
+  return jwt.sign(payload, getSecret(), { expiresIn: '30d' });
 }
 
 /** Verify a raw token string. Returns the payload or null if invalid/expired. */

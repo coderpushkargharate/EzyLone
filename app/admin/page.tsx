@@ -35,7 +35,8 @@ import {
   Smartphone,
   BookOpen,
   Settings as SettingsIcon,
-  ChevronDown
+  ChevronDown,
+  MoreVertical
 } from 'lucide-react';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
@@ -95,7 +96,19 @@ export default function AdminApp() {
   const [currentPage, setCurrentPage] = useState<string>('login');
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  // "Access" / app mode: when the admin taps "Open as app" on the WhatsApp Chats
+  // tab we remember it in localStorage and show ONLY the chat, full-screen, like
+  // a standalone WhatsApp app. Stays that way (across app opens) until logout or
+  // "Exit". Kept in sync via the 'wa-focus-change' window event.
+  const [waFocus, setWaFocus] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const read = () => setWaFocus(typeof window !== 'undefined' && localStorage.getItem('wa_focus') === '1');
+    read();
+    window.addEventListener('wa-focus-change', read);
+    return () => window.removeEventListener('wa-focus-change', read);
+  }, []);
 
   useEffect(() => {
     // Auth is held in an httpOnly cookie (sent automatically on same-origin
@@ -141,13 +154,25 @@ export default function AdminApp() {
       // ignore — clear local state regardless
     }
     localStorage.removeItem('user');
+    localStorage.removeItem('wa_focus'); // leaving = drop app mode too
+    setWaFocus(false);
     setUser(null);
     setToken(null);
     setCurrentPage('login');
   };
 
+  const exitAccess = () => {
+    localStorage.removeItem('wa_focus');
+    setWaFocus(false);
+  };
+
   if (currentPage === 'login') {
     return <AdminLoginForm onLogin={handleLogin} />;
+  }
+
+  // Standalone WhatsApp-chat app mode (only after we've confirmed a session).
+  if (waFocus && currentPage !== 'login') {
+    return <WhatsAppFocusApp user={user} onLogout={handleLogout} onExit={exitAccess} />;
   }
 
   return (
@@ -157,6 +182,77 @@ export default function AdminApp() {
       currentPage={currentPage}
       setCurrentPage={setCurrentPage}
     />
+  );
+}
+
+// Full-screen, WhatsApp-only shell. Shows just the chats (no sidebar, no other
+// admin data) with a top bar whose 3-dot menu holds Logout + Exit. Because the
+// login cookie lasts 30 days and the mode is remembered in localStorage, opening
+// the installed app drops the user straight back here until they log out.
+function WhatsAppFocusApp({
+  user,
+  onLogout,
+  onExit,
+}: {
+  user: User | null;
+  onLogout: () => void;
+  onExit: () => void;
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-gray-100">
+      {/* Top bar */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+            <MessageSquareText className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-sm truncate">EzyLoan WhatsApp</div>
+            <div className="text-[11px] text-white/80 truncate">{user?.name || user?.username || 'Signed in'}</div>
+          </div>
+        </div>
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="p-2 rounded-full hover:bg-white/15 transition"
+            aria-label="Menu"
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 mt-1 w-48 bg-white text-gray-700 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-10">
+              <button
+                onClick={() => { setMenuOpen(false); onExit(); }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+              >
+                <LayoutDashboard className="w-4 h-4 text-gray-500" /> Full admin panel
+              </button>
+              <button
+                onClick={() => { setMenuOpen(false); onLogout(); }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-50 text-red-600 text-left border-t border-gray-100"
+              >
+                <LogOut className="w-4 h-4" /> Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Chat body */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+        <WhatsAppChatsManager />
+      </div>
+    </div>
   );
 }
 

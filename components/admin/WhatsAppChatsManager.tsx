@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import {
   MessageSquareText, RefreshCw, Search, Trash2, User, Bot, Phone, AlertCircle, ChevronLeft, Clock,
-  Send, Zap, Hand, Loader2, Smile, Mic, Reply, X,
+  Send, Zap, Hand, Loader2, Smile, Mic, Reply, X, MoreVertical, Download, Smartphone,
 } from 'lucide-react';
 
 // WhatsApp Chats — read the actual conversations users have with the Ezy AI
@@ -110,6 +110,8 @@ export default function WhatsAppChatsManager() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [listening, setListening] = useState(false);
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const [openMsgMenu, setOpenMsgMenu] = useState<string | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -248,9 +250,16 @@ export default function WhatsAppChatsManager() {
     try { rec.start(); } catch { setListening(false); recognitionRef.current = null; }
   }, []);
 
-  // Delete a single message bubble (from our transcript only).
-  const deleteMessage = useCallback(async (id: string) => {
-    if (!confirm('Delete this message from the chat?')) return;
+  // Delete a single message bubble. WhatsApp's business API can't unsend from the
+  // user's phone, so BOTH scopes really just remove our stored copy — the
+  // "everyone" confirm makes that limitation explicit rather than pretending.
+  const deleteMessage = useCallback(async (id: string, scope: 'me' | 'everyone') => {
+    setOpenMsgMenu(null);
+    const msg =
+      scope === 'everyone'
+        ? 'Delete for everyone?\n\nNote: WhatsApp does not allow removing a message from the user\'s phone via the business API, so this only removes it from your admin panel.'
+        : 'Delete this message from your admin panel?';
+    if (!confirm(msg)) return;
     // Optimistic removal for a snappy feel.
     setMessages((prev) => prev.filter((m) => m._id !== id));
     try {
@@ -260,6 +269,37 @@ export default function WhatsAppChatsManager() {
       if (selected) fetchConvo(selected, true); // resync on failure
     }
   }, [selected, fetchConvo]);
+
+  // Enter the standalone "app" view (only WhatsApp chats). The admin shell reacts
+  // to this via the 'wa-focus-change' event.
+  const enterAccess = useCallback(() => {
+    localStorage.setItem('wa_focus', '1');
+    window.dispatchEvent(new Event('wa-focus-change'));
+  }, []);
+
+  // Register the service worker (needed for install) and capture the browser's
+  // install prompt so the "Install app" button can trigger it on demand.
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    const onPrompt = (e: any) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', onPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', onPrompt);
+  }, []);
+
+  const installApp = useCallback(async () => {
+    if (!installPrompt) {
+      alert(
+        'To install: open this page in Chrome, tap the ⋮ menu → "Add to Home screen" / "Install app". ' +
+        'On iPhone use Safari → Share → "Add to Home Screen".',
+      );
+      return;
+    }
+    installPrompt.prompt();
+    try { await installPrompt.userChoice; } catch {}
+    setInstallPrompt(null);
+  }, [installPrompt]);
 
   useEffect(() => {
     fetchList();
@@ -296,6 +336,7 @@ export default function WhatsAppChatsManager() {
     prevCountRef.current = 0;
     setReplyTo(null);
     setShowEmoji(false);
+    setOpenMsgMenu(null);
   }, [selected]);
 
   const onSearch = (e: React.FormEvent) => {
@@ -332,12 +373,28 @@ export default function WhatsAppChatsManager() {
             <p className="text-sm text-gray-500">Read real conversations users have with the Ezy AI WhatsApp bot.</p>
           </div>
         </div>
-        <button
-          onClick={fetchList}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
-        >
-          <RefreshCw className={`w-4 h-4 ${loadingList ? 'animate-spin' : ''}`} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={installApp}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
+            title="Install this as an app on your phone"
+          >
+            <Download className="w-4 h-4" /> Install app
+          </button>
+          <button
+            onClick={enterAccess}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+            title="Open the chats full-screen, like a standalone app"
+          >
+            <Smartphone className="w-4 h-4" /> Open as app
+          </button>
+          <button
+            onClick={fetchList}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
+          >
+            <RefreshCw className={`w-4 h-4 ${loadingList ? 'animate-spin' : ''}`} /> Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -502,22 +559,39 @@ export default function WhatsAppChatsManager() {
                       const isAdmin = m.source === 'admin';
                       return (
                         <div key={m._id} className="group relative space-y-2">
-                          {/* Hover actions: reply to / delete this message */}
-                          <div className="absolute -top-2 right-2 z-10 hidden group-hover:flex items-center gap-1 bg-white border border-gray-200 rounded-full shadow-sm px-1 py-0.5">
+                          {/* Per-message actions: a 3-dot menu above the bubble */}
+                          <div className="absolute -top-2 right-2 z-20">
                             <button
-                              onClick={() => { setReplyTo(m); textareaRef.current?.focus(); }}
-                              className="p-1 rounded-full text-gray-500 hover:text-blue-600 hover:bg-blue-50"
-                              title="Reply to this message"
+                              onClick={() => setOpenMsgMenu((cur) => (cur === m._id ? null : m._id))}
+                              className={`p-1 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 hover:text-gray-800 ${
+                                openMsgMenu === m._id ? 'flex' : 'hidden group-hover:flex'
+                              }`}
+                              title="Message options"
                             >
-                              <Reply className="w-3.5 h-3.5" />
+                              <MoreVertical className="w-3.5 h-3.5" />
                             </button>
-                            <button
-                              onClick={() => deleteMessage(m._id)}
-                              className="p-1 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50"
-                              title="Delete this message"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {openMsgMenu === m._id && (
+                              <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
+                                <button
+                                  onClick={() => { setReplyTo(m); setOpenMsgMenu(null); textareaRef.current?.focus(); }}
+                                  className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
+                                >
+                                  <Reply className="w-4 h-4 text-blue-500" /> Reply
+                                </button>
+                                <button
+                                  onClick={() => deleteMessage(m._id, 'me')}
+                                  className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left border-t border-gray-100"
+                                >
+                                  <Trash2 className="w-4 h-4 text-gray-500" /> Delete for me
+                                </button>
+                                <button
+                                  onClick={() => deleteMessage(m._id, 'everyone')}
+                                  className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-red-600 hover:bg-red-50 text-left border-t border-gray-100"
+                                >
+                                  <Trash2 className="w-4 h-4" /> Delete for everyone
+                                </button>
+                              </div>
+                            )}
                           </div>
                           {/* User bubble (right) — only when the user actually said something */}
                           {m.userMessage && (
@@ -580,6 +654,10 @@ export default function WhatsAppChatsManager() {
                   )}
                   {/* Scroll anchor — keeps the newest message pinned to the bottom */}
                   <div ref={endRef} />
+                  {/* Click-away backdrop for the open message menu */}
+                  {openMsgMenu && (
+                    <div className="fixed inset-0 z-10" onClick={() => setOpenMsgMenu(null)} />
+                  )}
                 </div>
 
                 {/* Composer — send a manual WhatsApp reply to this user */}
