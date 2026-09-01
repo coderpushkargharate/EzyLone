@@ -1,9 +1,9 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import {
   MessageSquareText, RefreshCw, Search, Trash2, User, Bot, Phone, AlertCircle, ChevronLeft, Clock,
-  Send, Zap, Hand, Loader2,
+  Send, Zap, Hand, Loader2, Smile, Mic, Reply, X,
 } from 'lucide-react';
 
 // WhatsApp Chats — read the actual conversations users have with the Ezy AI
@@ -85,6 +85,15 @@ const SOURCE_LABEL: Record<string, string> = {
 
 type Mode = 'auto' | 'manual';
 
+// A compact, curated set of the emojis a support agent actually reaches for.
+// Kept inline (no extra dependency) so the picker "just works".
+const EMOJIS = [
+  '😊', '😀', '😅', '😂', '🙏', '👍', '👌', '🙌', '👏', '🤝',
+  '❤️', '🔥', '✅', '✔️', '⭐', '🎉', '💯', '📞', '📱', '💬',
+  '💰', '🏦', '🏠', '🚗', '📄', '📋', '⏰', '📅', '😉', '😇',
+  '🤔', '😃', '😍', '🥳', '👉', '👇', '➡️', '💡', '🙂', '🫶',
+];
+
 export default function WhatsAppChatsManager() {
   const [convos, setConvos] = useState<Convo[]>([]);
   const [loadingList, setLoadingList] = useState(false);
@@ -98,6 +107,17 @@ export default function WhatsAppChatsManager() {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [replyTo, setReplyTo] = useState<Msg | null>(null);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<any>(null);
+  // Remember how many messages we last saw so we only auto-scroll on genuinely
+  // new ones (not on every 8s poll that returns the same list).
+  const prevCountRef = useRef(0);
 
   const fetchList = useCallback(async () => {
     setLoadingList(true);
@@ -153,13 +173,22 @@ export default function WhatsAppChatsManager() {
   // conversation to manual, so we reflect that and reload the transcript.
   const sendManual = useCallback(async () => {
     const phone = selected;
-    const text = draft.trim();
+    let text = draft.trim();
     if (!phone || !text) return;
+    // If replying to a specific message, WhatsApp-style quote it on top so the
+    // user sees which message we're answering (Twilio free text has no native
+    // reply, so we prepend the quoted snippet).
+    if (replyTo) {
+      const quoted = (replyTo.userMessage || replyTo.botReply || '').slice(0, 160);
+      if (quoted) text = `> ${quoted.replace(/\n/g, ' ')}\n\n${text}`;
+    }
     setSending(true);
     setSendError(null);
     try {
       await axios.post(`/api/admin/whatsapp-chats/${encodeURIComponent(phone)}`, { message: text });
       setDraft('');
+      setReplyTo(null);
+      setShowEmoji(false);
       setMode('manual');
       await fetchConvo(phone, true);
       fetchList();
@@ -168,7 +197,69 @@ export default function WhatsAppChatsManager() {
     } finally {
       setSending(false);
     }
-  }, [selected, draft, fetchConvo, fetchList]);
+  }, [selected, draft, replyTo, fetchConvo, fetchList]);
+
+  // Insert an emoji at the cursor (or append) and keep focus in the box.
+  const insertEmoji = useCallback((emoji: string) => {
+    const el = textareaRef.current;
+    if (el && typeof el.selectionStart === 'number') {
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      setDraft((d) => d.slice(0, start) + emoji + d.slice(end));
+      // Restore caret just after the inserted emoji on the next tick.
+      requestAnimationFrame(() => {
+        el.focus();
+        const pos = start + emoji.length;
+        el.setSelectionRange(pos, pos);
+      });
+    } else {
+      setDraft((d) => d + emoji);
+    }
+  }, []);
+
+  // Voice-to-text using the browser's Web Speech API (Chrome/Edge). Tap the mic,
+  // speak, and the recognised words are appended to the message box.
+  const toggleMic = useCallback(() => {
+    const SR: any =
+      (typeof window !== 'undefined' && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)) || null;
+    if (!SR) {
+      setSendError('Voice typing is not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+    // Already listening → stop.
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+      setListening(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = 'en-IN';
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.onresult = (ev: any) => {
+      const said = Array.from(ev.results).map((r: any) => r[0]?.transcript || '').join(' ').trim();
+      if (said) setDraft((d) => (d ? `${d} ${said}` : said));
+    };
+    rec.onerror = () => { setListening(false); recognitionRef.current = null; };
+    rec.onend = () => { setListening(false); recognitionRef.current = null; };
+    recognitionRef.current = rec;
+    setListening(true);
+    try { rec.start(); } catch { setListening(false); recognitionRef.current = null; }
+  }, []);
+
+  // Delete a single message bubble (from our transcript only).
+  const deleteMessage = useCallback(async (id: string) => {
+    if (!confirm('Delete this message from the chat?')) return;
+    // Optimistic removal for a snappy feel.
+    setMessages((prev) => prev.filter((m) => m._id !== id));
+    try {
+      await axios.delete(`/api/admin/whatsapp-chats/message/${id}`);
+    } catch (e: any) {
+      setSendError(e?.response?.data?.message || 'Could not delete the message.');
+      if (selected) fetchConvo(selected, true); // resync on failure
+    }
+  }, [selected, fetchConvo]);
 
   useEffect(() => {
     fetchList();
@@ -182,6 +273,30 @@ export default function WhatsAppChatsManager() {
     const id = setInterval(() => fetchConvo(selected, true), 8000);
     return () => clearInterval(id);
   }, [selected, fetchConvo]);
+
+  // Keep the newest message at the BOTTOM (WhatsApp-style). On opening a chat we
+  // jump straight to the bottom; when new messages arrive we only auto-scroll if
+  // the admin is already near the bottom, so scrolling up to read history isn't
+  // yanked back down.
+  useEffect(() => {
+    const box = scrollRef.current;
+    if (!box) return;
+    const grew = messages.length > prevCountRef.current;
+    const firstLoad = prevCountRef.current === 0 && messages.length > 0;
+    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+    if (firstLoad || (grew && nearBottom)) {
+      endRef.current?.scrollIntoView({ block: 'end' });
+    }
+    prevCountRef.current = messages.length;
+  }, [messages]);
+
+  // Reset the message counter when switching conversations so the next one opens
+  // pinned to the bottom too.
+  useEffect(() => {
+    prevCountRef.current = 0;
+    setReplyTo(null);
+    setShowEmoji(false);
+  }, [selected]);
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -377,7 +492,7 @@ export default function WhatsAppChatsManager() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 max-h-[60vh]">
+                <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 max-h-[60vh]">
                   {loadingConvo ? (
                     <div className="text-center text-gray-400 text-sm py-8">Loading conversation…</div>
                   ) : messages.length === 0 ? (
@@ -386,7 +501,24 @@ export default function WhatsAppChatsManager() {
                     messages.map((m) => {
                       const isAdmin = m.source === 'admin';
                       return (
-                        <div key={m._id} className="space-y-2">
+                        <div key={m._id} className="group relative space-y-2">
+                          {/* Hover actions: reply to / delete this message */}
+                          <div className="absolute -top-2 right-2 z-10 hidden group-hover:flex items-center gap-1 bg-white border border-gray-200 rounded-full shadow-sm px-1 py-0.5">
+                            <button
+                              onClick={() => { setReplyTo(m); textareaRef.current?.focus(); }}
+                              className="p-1 rounded-full text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                              title="Reply to this message"
+                            >
+                              <Reply className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => deleteMessage(m._id)}
+                              className="p-1 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50"
+                              title="Delete this message"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                           {/* User bubble (right) — only when the user actually said something */}
                           {m.userMessage && (
                             <div className="flex justify-end">
@@ -446,10 +578,12 @@ export default function WhatsAppChatsManager() {
                       );
                     })
                   )}
+                  {/* Scroll anchor — keeps the newest message pinned to the bottom */}
+                  <div ref={endRef} />
                 </div>
 
                 {/* Composer — send a manual WhatsApp reply to this user */}
-                <div className="border-t border-gray-100 p-3 bg-white">
+                <div className="relative border-t border-gray-100 p-3 bg-white">
                   {sendError && (
                     <div className="flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
                       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {sendError}
@@ -460,10 +594,66 @@ export default function WhatsAppChatsManager() {
                       Sending a message will switch this chat to <span className="font-semibold text-blue-600">Manual</span> so the bot won't reply over you.
                     </div>
                   )}
-                  <div className="flex items-end gap-2">
+
+                  {/* Replying-to preview */}
+                  {replyTo && (
+                    <div className="flex items-start gap-2 mb-2 px-3 py-2 rounded-lg bg-gray-50 border-l-4 border-blue-400">
+                      <Reply className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[11px] font-semibold text-blue-600">
+                          Replying to {replyTo.userMessage ? 'user' : replyTo.source === 'admin' ? 'your message' : 'Ezy AI'}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {(replyTo.userMessage || replyTo.botReply || '').slice(0, 120)}
+                        </div>
+                      </div>
+                      <button onClick={() => setReplyTo(null)} className="p-0.5 rounded hover:bg-gray-200 text-gray-400" title="Cancel reply">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Emoji picker popover */}
+                  {showEmoji && (
+                    <div className="absolute bottom-full left-3 mb-2 w-64 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg p-2 grid grid-cols-8 gap-1 z-20">
+                      {EMOJIS.map((e) => (
+                        <button
+                          key={e}
+                          onClick={() => insertEmoji(e)}
+                          className="text-lg leading-none p-1 rounded hover:bg-gray-100"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-end gap-1.5">
+                    {/* Emoji */}
+                    <button
+                      onClick={() => setShowEmoji((v) => !v)}
+                      className={`p-2.5 rounded-xl border transition ${
+                        showEmoji ? 'bg-amber-50 border-amber-300 text-amber-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                      title="Add emoji"
+                    >
+                      <Smile className="w-5 h-5" />
+                    </button>
+                    {/* Mic (voice typing) */}
+                    <button
+                      onClick={toggleMic}
+                      className={`p-2.5 rounded-xl border transition ${
+                        listening ? 'bg-red-50 border-red-300 text-red-600 animate-pulse' : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                      title={listening ? 'Stop voice typing' : 'Speak to type'}
+                    >
+                      <Mic className="w-5 h-5" />
+                    </button>
                     <textarea
+                      ref={textareaRef}
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
+                      onFocus={() => setShowEmoji(false)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -471,7 +661,7 @@ export default function WhatsAppChatsManager() {
                         }
                       }}
                       rows={1}
-                      placeholder="Type a message to reply on WhatsApp…"
+                      placeholder={listening ? 'Listening… speak now' : 'Type a message to reply on WhatsApp…'}
                       className="flex-1 resize-none max-h-32 px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                     />
                     <button
