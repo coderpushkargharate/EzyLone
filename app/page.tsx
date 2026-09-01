@@ -1,6 +1,5 @@
 import HeroSection from '@/components/HeroSection';
 import Services from '@/components/Services';
-import InstallAppBanner from '@/components/InstallAppBanner';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 
@@ -15,7 +14,7 @@ const financialProductSchema = {
   '@type': 'FinancialProduct',
   name: 'Loan Facilitation - EzyLoan',
   description:
-    'Loan assistance with interest rates starting from 10%* p.a. Subject to lender approval and credit assessment.',
+    'Loan assistance with interest rates starting from 8%* p.a. Subject to lender approval and credit assessment.',
   provider: {
     '@type': 'FinancialService',
     name: 'EzyLoan (Dibyansh Associates)',
@@ -40,16 +39,16 @@ const financialProductSchema = {
 export const metadata = {
   title: 'EzyLoan - Quick & Easy Loans Online | Personal, Business, Car Loans',
   description:
-    'Get loan assistance with interest rates starting from 10%* p.a. | Tenure 12-60 months | Quick approval* | Serving customers across India. *Subject to lender approval.',
+    'Get loan assistance with interest rates starting from 8%* p.a. | Tenure 12-84 months | Quick approval* | Serving customers across India. *Subject to lender approval.',
   robots: 'index, follow',
   alternates: { canonical: '/' },
 };
 
 export default function Home() {
   const loanDetails = {
-    interestRate: 'Starting from 10%* p.a.',
-    processingFee: 'Up to 3% of loan amount*',
-    tenure: '12 – 60 months',
+    interestRate: 'Starting from 8%* p.a.',
+    processingFee: 'Up to 2% of loan amount*',
+    tenure: '12 – 84 months',
   };
   const eligibility = {
     age: '21 – 60 years',
@@ -115,9 +114,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* Install the website as an app (customer PWA) — button, QR & link. */}
-        <InstallAppBanner />
 
         <div className="px-4 sm:px-6 lg:px-8 mt-4" data-aos="fade-up">
           <div className="max-w-[85rem] mx-auto px-4 py-3 bg-amber-50 border-l-4 border-amber-500" role="note">
