@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTwilioSignature } from '@/lib/whatsapp';
-import { generateWhatsAppReply } from '@/lib/chatbot/whatsappBrain';
+import { generateWhatsAppReply, getContactMode, recordInboundMessage } from '@/lib/chatbot/whatsappBrain';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,6 +19,14 @@ export const dynamic = 'force-dynamic';
 function twimlReply(reply: string): NextResponse {
   const safe = reply.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const twiml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${safe}</Message></Response>`;
+  return new NextResponse(twiml, { status: 200, headers: { 'Content-Type': 'text/xml' } });
+}
+
+// Empty TwiML — acknowledges the inbound message to Twilio WITHOUT sending any
+// auto-reply. Used when an admin has put this conversation in "manual" mode and
+// will reply to the user by hand from the panel.
+function twimlSilent(): NextResponse {
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?><Response></Response>`;
   return new NextResponse(twiml, { status: 200, headers: { 'Content-Type': 'text/xml' } });
 }
 
@@ -45,6 +53,15 @@ export async function POST(req: NextRequest) {
   const from = params.From || 'unknown';
   const bodyText = (params.Body || '').toString();
   console.log(`📩 Inbound WhatsApp (Twilio) from ${from}: ${bodyText}`);
+
+  // If an admin has taken this conversation over (manual mode), stay silent:
+  // record the inbound message for the panel and let a human reply by hand.
+  const mode = await getContactMode(from);
+  if (mode === 'manual') {
+    console.log(`   ↳ manual mode — bot silent, awaiting human reply.`);
+    await recordInboundMessage(from, bodyText);
+    return twimlSilent();
+  }
 
   const reply = await generateWhatsAppReply(from, bodyText);
 

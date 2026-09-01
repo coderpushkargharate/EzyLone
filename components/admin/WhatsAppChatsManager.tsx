@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import {
   MessageSquareText, RefreshCw, Search, Trash2, User, Bot, Phone, AlertCircle, ChevronLeft, Clock,
+  Send, Zap, Hand, Loader2,
 } from 'lucide-react';
 
 // WhatsApp Chats — read the actual conversations users have with the Ezy AI
@@ -78,7 +79,11 @@ const SOURCE_LABEL: Record<string, string> = {
   llm: 'AI backup',
   fallback: 'Not answered',
   flow: 'Guided flow',
+  admin: 'You (manual)',
+  inbound: 'Awaiting reply',
 };
+
+type Mode = 'auto' | 'manual';
 
 export default function WhatsAppChatsManager() {
   const [convos, setConvos] = useState<Convo[]>([]);
@@ -88,6 +93,11 @@ export default function WhatsAppChatsManager() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [loadingConvo, setLoadingConvo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>('auto');
+  const [modeSaving, setModeSaving] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const fetchList = useCallback(async () => {
     setLoadingList(true);
@@ -104,26 +114,74 @@ export default function WhatsAppChatsManager() {
     }
   }, [search]);
 
-  const fetchConvo = useCallback(async (phone: string) => {
-    setSelected(phone);
-    setLoadingConvo(true);
-    setMessages([]);
+  const fetchConvo = useCallback(async (phone: string, silent = false) => {
+    if (!silent) {
+      setSelected(phone);
+      setLoadingConvo(true);
+      setMessages([]);
+    }
     try {
       const res = await axios.get(`/api/admin/whatsapp-chats/${encodeURIComponent(phone)}?_t=${Date.now()}`, {
         headers: { 'Cache-Control': 'no-cache' },
       });
       setMessages(Array.isArray(res.data?.messages) ? res.data.messages : []);
+      if (res.data?.mode) setMode(res.data.mode === 'manual' ? 'manual' : 'auto');
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'Could not load this conversation.');
+      if (!silent) setError(e?.response?.data?.message || 'Could not load this conversation.');
     } finally {
-      setLoadingConvo(false);
+      if (!silent) setLoadingConvo(false);
     }
   }, []);
+
+  // Change a conversation's mode: 'auto' (bot replies) vs 'manual' (human replies).
+  const changeMode = useCallback(async (phone: string, next: Mode) => {
+    setModeSaving(true);
+    setSendError(null);
+    // Optimistic — the toggle should feel instant.
+    setMode(next);
+    try {
+      await axios.patch(`/api/admin/whatsapp-chats/${encodeURIComponent(phone)}`, { mode: next });
+    } catch (e: any) {
+      setMode(next === 'manual' ? 'auto' : 'manual'); // revert on failure
+      setSendError(e?.response?.data?.message || 'Could not change mode.');
+    } finally {
+      setModeSaving(false);
+    }
+  }, []);
+
+  // Send a manual reply to the selected user. On success the server flips the
+  // conversation to manual, so we reflect that and reload the transcript.
+  const sendManual = useCallback(async () => {
+    const phone = selected;
+    const text = draft.trim();
+    if (!phone || !text) return;
+    setSending(true);
+    setSendError(null);
+    try {
+      await axios.post(`/api/admin/whatsapp-chats/${encodeURIComponent(phone)}`, { message: text });
+      setDraft('');
+      setMode('manual');
+      await fetchConvo(phone, true);
+      fetchList();
+    } catch (e: any) {
+      setSendError(e?.response?.data?.message || 'Could not send the message.');
+    } finally {
+      setSending(false);
+    }
+  }, [selected, draft, fetchConvo, fetchList]);
 
   useEffect(() => {
     fetchList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Live refresh of the open conversation so new inbound messages (and manual
+  // sends) appear without a manual reload. Every 8s while a chat is selected.
+  useEffect(() => {
+    if (!selected) return;
+    const id = setInterval(() => fetchConvo(selected, true), 8000);
+    return () => clearInterval(id);
+  }, [selected, fetchConvo]);
 
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,12 +322,58 @@ export default function WhatsAppChatsManager() {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={() => deleteConvo(selected)}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-red-600 text-xs font-medium hover:bg-red-50 transition"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" /> Delete
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Auto / Manual takeover toggle */}
+                    <div className="inline-flex items-center rounded-lg border border-gray-200 bg-white p-0.5 shadow-sm">
+                      <button
+                        onClick={() => changeMode(selected, 'auto')}
+                        disabled={modeSaving}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold transition ${
+                          mode === 'auto' ? 'bg-emerald-500 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title="Bot replies automatically"
+                      >
+                        <Zap className="w-3.5 h-3.5" /> Auto
+                      </button>
+                      <button
+                        onClick={() => changeMode(selected, 'manual')}
+                        disabled={modeSaving}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold transition ${
+                          mode === 'manual' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title="You reply manually; bot stays silent"
+                      >
+                        <Hand className="w-3.5 h-3.5" /> Manual
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => deleteConvo(selected)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-red-600 text-xs font-medium hover:bg-red-50 transition"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mode hint banner */}
+                <div
+                  className={`px-4 py-2 text-xs flex items-center gap-2 border-b ${
+                    mode === 'manual'
+                      ? 'bg-blue-50 border-blue-100 text-blue-700'
+                      : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+                  }`}
+                >
+                  {mode === 'manual' ? (
+                    <>
+                      <Hand className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Manual mode — the auto-reply bot is paused for this user. Type below to reply yourself.</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>Auto mode — the Ezy AI bot is replying automatically. Switch to Manual to chat yourself.</span>
+                    </>
+                  )}
                 </div>
 
                 {/* Messages */}
@@ -279,43 +383,106 @@ export default function WhatsAppChatsManager() {
                   ) : messages.length === 0 ? (
                     <div className="text-center text-gray-400 text-sm py-8">No messages.</div>
                   ) : (
-                    messages.map((m) => (
-                      <div key={m._id} className="space-y-2">
-                        {/* User bubble (right) */}
-                        <div className="flex justify-end">
-                          <div className="max-w-[80%]">
-                            <div className="bg-blue-600 text-white rounded-2xl rounded-br-sm px-3.5 py-2 text-sm whitespace-pre-wrap break-words shadow-sm">
-                              {m.userMessage || <span className="italic opacity-70">[non-text message]</span>}
+                    messages.map((m) => {
+                      const isAdmin = m.source === 'admin';
+                      return (
+                        <div key={m._id} className="space-y-2">
+                          {/* User bubble (right) — only when the user actually said something */}
+                          {m.userMessage && (
+                            <div className="flex justify-end">
+                              <div className="max-w-[80%]">
+                                <div className="bg-blue-600 text-white rounded-2xl rounded-br-sm px-3.5 py-2 text-sm whitespace-pre-wrap break-words shadow-sm">
+                                  {m.userMessage}
+                                </div>
+                                <div className="flex items-center justify-end gap-1 mt-1 pr-1">
+                                  <span className="text-[10px] text-gray-400">{fullTime(m.createdAt)}</span>
+                                  <User className="w-3 h-3 text-gray-400" />
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center justify-end gap-1 mt-1 pr-1">
-                              <span className="text-[10px] text-gray-400">{fullTime(m.createdAt)}</span>
-                              <User className="w-3 h-3 text-gray-400" />
+                          )}
+                          {/* Reply bubble (left) — either the Ezy AI bot or your manual reply */}
+                          {m.botReply && (
+                            <div className="flex justify-start">
+                              <div className="max-w-[80%]">
+                                <div
+                                  className={`rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm whitespace-pre-wrap break-words shadow-sm ${
+                                    isAdmin
+                                      ? 'bg-green-600 text-white'
+                                      : 'bg-white border border-gray-200 text-gray-800'
+                                  }`}
+                                >
+                                  {m.botReply}
+                                </div>
+                                <div className="flex items-center gap-1.5 mt-1 pl-1">
+                                  {isAdmin ? (
+                                    <>
+                                      <User className="w-3 h-3 text-green-600" />
+                                      <span className="text-[10px] text-gray-400">You</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Bot className="w-3 h-3 text-blue-500" />
+                                      <span className="text-[10px] text-gray-400">Ezy AI</span>
+                                    </>
+                                  )}
+                                  <span className="text-[10px] text-gray-400">· {fullTime(m.createdAt)}</span>
+                                  <span
+                                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                                      isAdmin
+                                        ? 'bg-green-100 text-green-700'
+                                        : m.matched
+                                          ? 'bg-emerald-100 text-emerald-700'
+                                          : 'bg-amber-100 text-amber-700'
+                                    }`}
+                                  >
+                                    {SOURCE_LABEL[m.source] || m.source}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
-                        {/* Bot bubble (left) */}
-                        <div className="flex justify-start">
-                          <div className="max-w-[80%]">
-                            <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm whitespace-pre-wrap break-words shadow-sm">
-                              {m.botReply || <span className="italic text-gray-400">[no reply]</span>}
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-1 pl-1">
-                              <Bot className="w-3 h-3 text-blue-500" />
-                              <span className="text-[10px] text-gray-400">Ezy AI</span>
-                              <span className="text-[10px] text-gray-400">· {fullTime(m.createdAt)}</span>
-                              <span
-                                className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                                  m.matched ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                }`}
-                              >
-                                {SOURCE_LABEL[m.source] || m.source}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
+                </div>
+
+                {/* Composer — send a manual WhatsApp reply to this user */}
+                <div className="border-t border-gray-100 p-3 bg-white">
+                  {sendError && (
+                    <div className="flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" /> {sendError}
+                    </div>
+                  )}
+                  {mode === 'auto' && (
+                    <div className="text-[11px] text-gray-400 mb-2">
+                      Sending a message will switch this chat to <span className="font-semibold text-blue-600">Manual</span> so the bot won't reply over you.
+                    </div>
+                  )}
+                  <div className="flex items-end gap-2">
+                    <textarea
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendManual();
+                        }
+                      }}
+                      rows={1}
+                      placeholder="Type a message to reply on WhatsApp…"
+                      className="flex-1 resize-none max-h-32 px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                    <button
+                      onClick={sendManual}
+                      disabled={sending || !draft.trim()}
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    >
+                      {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      Send
+                    </button>
+                  </div>
                 </div>
               </>
             )}

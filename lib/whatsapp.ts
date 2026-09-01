@@ -51,7 +51,12 @@ function isProductionSender(): boolean {
 // Low-level POST to Twilio's Messages API, shared by free-text and template
 // sends. Handles auth, the From-vs-MessagingService choice, and result logging.
 // Never throws — fire-and-forget, same contract as the callers.
-async function postToTwilio(cfg: TwilioConfig, fields: Record<string, string>): Promise<void> {
+interface SendResult {
+  ok: boolean;
+  error?: string;
+}
+
+async function postToTwilio(cfg: TwilioConfig, fields: Record<string, string>): Promise<SendResult> {
   // Prefer a Messaging Service (production) if configured; else the From number.
   if (cfg.messagingServiceSid) {
     fields.MessagingServiceSid = cfg.messagingServiceSid;
@@ -97,13 +102,15 @@ async function postToTwilio(cfg: TwilioConfig, fields: Record<string, string>): 
       console.error(
         `❌ WhatsApp send failed (HTTP ${res.status}, Twilio ${data?.code}): ${data?.message || ''}${hint} — lead still saved.`,
       );
-      return;
+      return { ok: false, error: `${data?.message || `Twilio error ${res.status}`}${hint}` };
     }
 
     // `status` is usually "queued"/"accepted" here; final delivery happens async.
     console.log(`✅ WhatsApp queued to ${fields.To} (SID ${data?.sid}, status ${data?.status}).`);
-  } catch (err) {
+    return { ok: true };
+  } catch (err: any) {
     console.error('WhatsApp send error (lead still saved):', err);
+    return { ok: false, error: err?.message || 'Network error contacting Twilio.' };
   }
 }
 
@@ -144,6 +151,25 @@ export async function sendWhatsAppMessage(toPhone: string | undefined | null, bo
   }
 
   await postToTwilio(cfg, { To: to, Body: body });
+}
+
+/**
+ * Manual admin reply from the "WhatsApp Chats" panel. A human is answering a
+ * user who just messaged us, so the 24-hour session window is open and free text
+ * is allowed (no template needed). Unlike the fire-and-forget lead sends, this
+ * RETURNS the outcome so the panel can show the admin whether it delivered.
+ */
+export async function sendWhatsAppManual(
+  toPhone: string | undefined | null,
+  body: string,
+): Promise<SendResult> {
+  const cfg = getConfig();
+  if (!cfg) return { ok: false, error: 'Twilio credentials are not configured on the server.' };
+
+  const to = toWhatsAppAddress(toPhone);
+  if (!to) return { ok: false, error: `Unusable phone number: ${toPhone}` };
+
+  return postToTwilio(cfg, { To: to, Body: body });
 }
 
 /**

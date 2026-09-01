@@ -21,6 +21,7 @@ import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from './knowledgeB
 import { connectDB } from '@/lib/db';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
 import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
+import { WhatsAppContact, WhatsAppMode } from '@/lib/models/WhatsAppContact';
 
 // Last 10 digits of a WhatsApp sender id ("whatsapp:+919518745854" → "9518745854")
 // so a direct-contact lead dedupes against a form/chat lead for the same person.
@@ -29,6 +30,98 @@ function normalizePhone(raw: string): string {
 }
 
 type Turn = { role: 'user' | 'assistant'; content: string };
+
+/**
+ * Whether this sender is on the auto-reply bot ('auto', default) or has been
+ * taken over by a human from the admin panel ('manual'). Never throws — on any
+ * DB hiccup it falls back to 'auto' so the bot keeps working as before.
+ */
+export async function getContactMode(phone: string): Promise<WhatsAppMode> {
+  try {
+    await connectDB();
+    const c = await WhatsAppContact.findOne({ phone }).lean();
+    return c?.mode === 'manual' ? 'manual' : 'auto';
+  } catch (e) {
+    console.error('WhatsApp contact mode load failed (defaulting to auto):', e);
+    return 'auto';
+  }
+}
+
+/**
+ * MANUAL mode path: the bot must stay silent, but we still have to (a) remember
+ * this user for the admin panel, (b) record their inbound message into the same
+ * durable transcript so it shows up in the chat, and (c) ensure a brand-new
+ * sender still becomes a CRM lead. No engine, no reply. Mirrors the persistence
+ * side-effects of generateWhatsAppReply without producing any answer.
+ * Fire-and-forget; never throws.
+ */
+export async function recordInboundMessage(phone: string, bodyText: string): Promise<void> {
+  const userText = (bodyText || '').trim() || '[non-text message]';
+
+  let history: Turn[] = [];
+  let dbReady = false;
+  let isNewSender = false;
+  try {
+    await connectDB();
+    const doc = await WhatsAppSession.findOne({ phone }).lean();
+    if (doc) {
+      history = (doc.history || []) as Turn[];
+    } else {
+      isNewSender = true;
+    }
+    dbReady = true;
+  } catch (e) {
+    console.error('WhatsApp manual-mode session load failed:', e);
+  }
+
+  // A first-time contact is still a lead even when a human handles the reply.
+  if (isNewSender) {
+    const digits = normalizePhone(phone);
+    if (digits.length >= 10) {
+      try {
+        await createLeadFromWebhook({
+          name: `WhatsApp ${digits}`,
+          phone: digits,
+          source: 'EzySaathi AI WhatsApp',
+          message: `Started a WhatsApp conversation: ${userText}`,
+          priority: 'WARM',
+          leadStage: 'New Lead',
+        });
+      } catch (e) {
+        console.error('WhatsApp manual-mode CRM lead failed:', e);
+      }
+    }
+  }
+
+  if (dbReady) {
+    // Inbound-only transcript row (no bot reply — a human will answer manually).
+    try {
+      await WhatsAppMessage.create({
+        phone,
+        userMessage: userText,
+        botReply: '',
+        source: 'inbound',
+        matched: false,
+        score: 0,
+        inFlow: false,
+      });
+    } catch (e) {
+      console.error('WhatsApp manual-mode transcript log failed:', e);
+    }
+
+    // Keep conversation memory current so a later switch back to auto has context.
+    try {
+      const newHistory = [...history, { role: 'user' as const, content: userText }].slice(-10);
+      await WhatsAppSession.findOneAndUpdate(
+        { phone },
+        { $set: { history: newHistory } },
+        { upsert: true, new: false },
+      );
+    } catch (e) {
+      console.error('WhatsApp manual-mode session save failed:', e);
+    }
+  }
+}
 
 // Public EMI calculator on the website. On WhatsApp we hand users this link so
 // they can calculate the EMI themselves, instead of the multi-step in-chat flow.
