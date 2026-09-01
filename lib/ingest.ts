@@ -1,6 +1,7 @@
 import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { Activity } from '@/lib/models/Activity';
+import { sendAdminPush } from '@/lib/push';
 
 export interface IngestResult {
   processed: number;
@@ -108,6 +109,15 @@ export async function createLeadFromWebhook(
     leadId: lead._id,
     type: 'created',
     description: `Lead received from ${input.source}`,
+  });
+
+  // A genuinely NEW lead (not a dedup/repeat) — alert the admin app right away,
+  // even when it's closed. Fire-and-forget; never blocks lead creation.
+  void sendAdminPush({
+    title: '🎯 New lead',
+    body: `${lead.name || 'Someone'} via ${input.source}`,
+    url: '/admin',
+    tag: 'lead',
   });
 
   return { created: true, leadId: String(lead._id) };

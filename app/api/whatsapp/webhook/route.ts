@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateTwilioSignature } from '@/lib/whatsapp';
 import { generateWhatsAppReply, getContactMode, recordInboundMessage } from '@/lib/chatbot/whatsappBrain';
+import { sendAdminPush } from '@/lib/push';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -53,6 +54,16 @@ export async function POST(req: NextRequest) {
   const from = params.From || 'unknown';
   const bodyText = (params.Body || '').toString();
   console.log(`📩 Inbound WhatsApp (Twilio) from ${from}: ${bodyText}`);
+
+  // Alert the admin app immediately (works even when it's closed). The sender's
+  // name (if Twilio provides one) or number, plus a short message preview.
+  const waWho = (params.ProfileName || '').trim() || from.replace('whatsapp:', '');
+  void sendAdminPush({
+    title: `New WhatsApp message from ${waWho}`,
+    body: bodyText ? bodyText.slice(0, 140) : 'Sent a message',
+    url: '/admin',
+    tag: 'wa',
+  });
 
   // If an admin has taken this conversation over (manual mode), stay silent:
   // record the inbound message for the panel and let a human reply by hand.

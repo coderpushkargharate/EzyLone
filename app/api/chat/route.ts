@@ -4,6 +4,7 @@ import { runEngine, ChatState } from '@/lib/chatbot/engine';
 import { buildSystemPrompt, llmReply } from '@/lib/chatbot/llm';
 import { captureLead } from '@/lib/chatbot/leadCapture';
 import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from '@/lib/chatbot/knowledgeBase';
+import { sendAdminPush } from '@/lib/push';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,11 +40,24 @@ export async function POST(req: NextRequest) {
   // for lead capture — it's deterministic and compliance-safe. We ALWAYS run it.
   const result = runEngine(message, state);
 
-  // Fire lead capture (CRM + WhatsApp) when the engine produced one.
+  // Fire lead capture (CRM + WhatsApp) when the engine produced one. (A NEW lead
+  // also pushes an admin alert from createLeadFromWebhook, so we don't duplicate
+  // that here.)
   if (result.lead) {
     // Don't block the reply on network I/O — but do await so serverless doesn't
     // freeze the function before the fetch resolves.
     await captureLead(result.lead);
+  }
+
+  // A live visitor asked to talk to a human (handoff). Alert the admin app right
+  // away — even when it's closed — so staff can jump in. Fire-and-forget.
+  if (result.handoff) {
+    void sendAdminPush({
+      title: '💬 Website chat needs you',
+      body: message ? `Visitor: ${message.slice(0, 140)}` : 'A visitor asked for a human agent.',
+      url: '/admin',
+      tag: 'chat-handoff',
+    });
   }
 
   // Inside a structured flow (EMI/eligibility/lead/callback) the deterministic

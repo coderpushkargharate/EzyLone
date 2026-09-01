@@ -55,6 +55,7 @@ import AutomationsManager from '@/components/admin/AutomationsManager';
 import EmployeesManager from '@/components/admin/EmployeesManager';
 import AccountManager from '@/components/admin/AccountManager';
 import { useWhatsAppUnread, requestNotifyPermission } from '@/components/admin/useWhatsAppUnread';
+import { usePushSubscribe } from '@/components/admin/usePushSubscribe';
 
 // TypeScript Interfaces
 interface User {
@@ -107,6 +108,13 @@ export default function AdminApp() {
   // New-WhatsApp-message counter (drives the red badge on the app symbol / tab
   // and the installed app-icon badge). Enabled once we're past the login screen.
   const { count: waUnread, markSeen: markWaSeen } = useWhatsAppUnread(currentPage !== 'login');
+  // Register this device for Web Push once logged in, so alerts arrive even when
+  // the app is fully closed. Ask for notification permission first (needed for
+  // both the push subscription and the open-app browser notification).
+  usePushSubscribe(currentPage !== 'login');
+  useEffect(() => {
+    if (currentPage !== 'login') requestNotifyPermission();
+  }, [currentPage]);
 
   useEffect(() => {
     const read = () => setWaFocus(typeof window !== 'undefined' && localStorage.getItem('wa_focus') === '1');

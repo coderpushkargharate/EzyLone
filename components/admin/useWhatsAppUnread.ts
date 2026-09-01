@@ -20,6 +20,49 @@ function getSeen(): number {
   return Number(localStorage.getItem(SEEN_KEY) || 0);
 }
 
+// Short "ring" when a new message arrives while the app is OPEN. Synthesised with
+// the Web Audio API so we don't need to ship an audio asset; on a closed app the
+// OS plays its own default notification sound for the pushed notification.
+function playRing() {
+  try {
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const beep = (freq: number, start: number, dur: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const t = ctx.currentTime + start;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
+    };
+    // Two quick rising tones — a friendly "ting-ting", WhatsApp-ish.
+    beep(880, 0, 0.15);
+    beep(1175, 0.16, 0.2);
+    setTimeout(() => ctx.close().catch(() => {}), 800);
+  } catch {
+    /* autoplay blocked / unsupported — ignore. */
+  }
+}
+
+// Let the service worker know the admin has seen the messages, so it clears the
+// closed-state home-screen icon badge too (the open-app path clears its own).
+function tellSWSeen() {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'seen' });
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 function setBadge(n: number) {
   try {
     const nav = navigator as any;
@@ -60,6 +103,7 @@ export function useWhatsAppUnread(enabled: boolean) {
             badge: '/icon-192.png',
             tag: 'wa-unread',
           });
+          playRing(); // audible ring while the app is open
         } catch {
           /* Notification construction can throw on some browsers — ignore. */
         }
@@ -83,6 +127,7 @@ export function useWhatsAppUnread(enabled: boolean) {
     prevCountRef.current = 0;
     setCount(0);
     setBadge(0);
+    tellSWSeen(); // clear the closed-state (service-worker) icon badge too
   }, []);
 
   return { count, markSeen, refresh: read };
