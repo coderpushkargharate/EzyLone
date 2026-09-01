@@ -207,6 +207,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
         <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
 
+        {/* Capture the PWA install prompt as early as possible so the admin's
+            "Install app" button can trigger it even if the event fired before
+            the React tab mounted. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();window.__bip=e;});`,
+          }}
+        />
+
         {/* ✅ INLINE CRITICAL CSS - Eliminates 670ms render-blocking */}
         <style dangerouslySetInnerHTML={{ __html: `
           .hero-section{position:relative;background:linear-gradient(135deg,#eff6ff,#fff,#ecfeff);padding-top:4rem}

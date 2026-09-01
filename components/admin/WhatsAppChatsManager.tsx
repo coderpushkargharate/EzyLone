@@ -94,7 +94,7 @@ const EMOJIS = [
   '🤔', '😃', '😍', '🥳', '👉', '👇', '➡️', '💡', '🙂', '🫶',
 ];
 
-export default function WhatsAppChatsManager() {
+export default function WhatsAppChatsManager({ embedded = false }: { embedded?: boolean } = {}) {
   const [convos, setConvos] = useState<Convo[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [search, setSearch] = useState('');
@@ -289,17 +289,65 @@ export default function WhatsAppChatsManager() {
   }, []);
 
   const installApp = useCallback(async () => {
-    if (!installPrompt) {
+    // The browser only lets us trigger install AFTER it has fired
+    // 'beforeinstallprompt'. We capture that both here and globally (in the app
+    // layout) so the event isn't missed if it fired before this tab mounted.
+    const bip = installPrompt || (typeof window !== 'undefined' && (window as any).__bip) || null;
+    if (!bip) {
+      const isIOS = typeof navigator !== 'undefined' && /iphone|ipad|ipod/i.test(navigator.userAgent);
       alert(
-        'To install: open this page in Chrome, tap the ⋮ menu → "Add to Home screen" / "Install app". ' +
-        'On iPhone use Safari → Share → "Add to Home Screen".',
+        isIOS
+          ? 'On iPhone: tap the Share button in Safari, then "Add to Home Screen".'
+          : 'Your browser will offer install once ready. On Android Chrome, also check the ⋮ menu → "Add to Home screen". Make sure you are NOT in private/incognito mode.',
       );
       return;
     }
-    installPrompt.prompt();
-    try { await installPrompt.userChoice; } catch {}
+    bip.prompt();
+    try { await bip.userChoice; } catch {}
     setInstallPrompt(null);
+    if (typeof window !== 'undefined') (window as any).__bip = null;
   }, [installPrompt]);
+
+  // The per-message actions menu (⋮) attached to a specific chat bubble.
+  // NOTE: touch devices have no hover, so the trigger is ALWAYS visible on
+  // mobile (opacity-100) and only fades in on hover on desktop (sm+). The menu
+  // opens UPWARD (bottom-full) so it isn't clipped for the newest messages that
+  // sit at the very bottom of the scroll area.
+  const renderMsgMenu = (m: Msg, key: string) => (
+    <div className="absolute -top-2 -right-1 z-20">
+      <button
+        onClick={() => setOpenMsgMenu((cur) => (cur === key ? null : key))}
+        className={`flex p-1 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 hover:text-gray-800 transition-opacity ${
+          openMsgMenu === key ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover/bub:opacity-100'
+        }`}
+        title="Message options"
+      >
+        <MoreVertical className="w-3.5 h-3.5" />
+      </button>
+      {openMsgMenu === key && (
+        <div className="absolute right-0 bottom-full mb-1 w-48 max-w-[70vw] bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden z-30">
+          <button
+            onClick={() => { setReplyTo(m); setOpenMsgMenu(null); textareaRef.current?.focus(); }}
+            className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
+          >
+            <Reply className="w-4 h-4 text-blue-500" /> Reply
+          </button>
+          <button
+            onClick={() => deleteMessage(m._id, 'me')}
+            className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left border-t border-gray-100"
+          >
+            <Trash2 className="w-4 h-4 text-gray-500" /> Delete for me
+          </button>
+          <button
+            onClick={() => deleteMessage(m._id, 'everyone')}
+            className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-red-600 hover:bg-red-50 text-left border-t border-gray-100"
+          >
+            <Trash2 className="w-4 h-4" /> Delete for everyone
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   useEffect(() => {
     fetchList();
@@ -323,9 +371,17 @@ export default function WhatsAppChatsManager() {
     if (!box) return;
     const grew = messages.length > prevCountRef.current;
     const firstLoad = prevCountRef.current === 0 && messages.length > 0;
-    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+    const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
     if (firstLoad || (grew && nearBottom)) {
-      endRef.current?.scrollIntoView({ block: 'end' });
+      // Pin the INNER transcript to the bottom directly (more reliable than
+      // scrollIntoView, which can scroll the wrong ancestor). Two rAFs so it runs
+      // after the new bubbles have actually been laid out.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const b = scrollRef.current;
+          if (b) b.scrollTop = b.scrollHeight;
+        });
+      });
     }
     prevCountRef.current = messages.length;
   }, [messages]);
@@ -364,35 +420,41 @@ export default function WhatsAppChatsManager() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <MessageSquareText className="w-6 h-6 text-white" />
+        {!embedded && (
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
+              <MessageSquareText className="w-6 h-6 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">WhatsApp Chats</h2>
+              <p className="hidden sm:block text-sm text-gray-500">Read real conversations users have with the Ezy AI WhatsApp bot.</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">WhatsApp Chats</h2>
-            <p className="text-sm text-gray-500">Read real conversations users have with the Ezy AI WhatsApp bot.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={installApp}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
-            title="Install this as an app on your phone"
-          >
-            <Download className="w-4 h-4" /> Install app
-          </button>
-          <button
-            onClick={enterAccess}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
-            title="Open the chats full-screen, like a standalone app"
-          >
-            <Smartphone className="w-4 h-4" /> Open as app
-          </button>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {!embedded && (
+            <>
+              <button
+                onClick={installApp}
+                className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
+                title="Install this as an app on your phone"
+              >
+                <Download className="w-4 h-4" /> <span className="hidden sm:inline">Install app</span>
+              </button>
+              <button
+                onClick={enterAccess}
+                className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition"
+                title="Open the chats full-screen, like a standalone app"
+              >
+                <Smartphone className="w-4 h-4" /> <span className="hidden sm:inline">Open as app</span>
+              </button>
+            </>
+          )}
           <button
             onClick={fetchList}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
+            className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition"
           >
-            <RefreshCw className={`w-4 h-4 ${loadingList ? 'animate-spin' : ''}`} /> Refresh
+            <RefreshCw className={`w-4 h-4 ${loadingList ? 'animate-spin' : ''}`} /> <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
@@ -558,45 +620,12 @@ export default function WhatsAppChatsManager() {
                     messages.map((m) => {
                       const isAdmin = m.source === 'admin';
                       return (
-                        <div key={m._id} className="group relative space-y-2">
-                          {/* Per-message actions: a 3-dot menu above the bubble */}
-                          <div className="absolute -top-2 right-2 z-20">
-                            <button
-                              onClick={() => setOpenMsgMenu((cur) => (cur === m._id ? null : m._id))}
-                              className={`p-1 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 hover:text-gray-800 ${
-                                openMsgMenu === m._id ? 'flex' : 'hidden group-hover:flex'
-                              }`}
-                              title="Message options"
-                            >
-                              <MoreVertical className="w-3.5 h-3.5" />
-                            </button>
-                            {openMsgMenu === m._id && (
-                              <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden">
-                                <button
-                                  onClick={() => { setReplyTo(m); setOpenMsgMenu(null); textareaRef.current?.focus(); }}
-                                  className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
-                                >
-                                  <Reply className="w-4 h-4 text-blue-500" /> Reply
-                                </button>
-                                <button
-                                  onClick={() => deleteMessage(m._id, 'me')}
-                                  className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left border-t border-gray-100"
-                                >
-                                  <Trash2 className="w-4 h-4 text-gray-500" /> Delete for me
-                                </button>
-                                <button
-                                  onClick={() => deleteMessage(m._id, 'everyone')}
-                                  className="w-full flex items-center gap-2 px-3.5 py-2 text-sm text-red-600 hover:bg-red-50 text-left border-t border-gray-100"
-                                >
-                                  <Trash2 className="w-4 h-4" /> Delete for everyone
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                        <div key={m._id} className="space-y-2">
                           {/* User bubble (right) — only when the user actually said something */}
                           {m.userMessage && (
                             <div className="flex justify-end">
-                              <div className="max-w-[80%]">
+                              <div className="max-w-[80%] relative group/bub">
+                                {renderMsgMenu(m, m._id + '-u')}
                                 <div className="bg-blue-600 text-white rounded-2xl rounded-br-sm px-3.5 py-2 text-sm whitespace-pre-wrap break-words shadow-sm">
                                   {m.userMessage}
                                 </div>
@@ -610,7 +639,8 @@ export default function WhatsAppChatsManager() {
                           {/* Reply bubble (left) — either the Ezy AI bot or your manual reply */}
                           {m.botReply && (
                             <div className="flex justify-start">
-                              <div className="max-w-[80%]">
+                              <div className="max-w-[80%] relative group/bub">
+                                {renderMsgMenu(m, m._id + '-b')}
                                 <div
                                   className={`rounded-2xl rounded-bl-sm px-3.5 py-2 text-sm whitespace-pre-wrap break-words shadow-sm ${
                                     isAdmin
@@ -693,7 +723,7 @@ export default function WhatsAppChatsManager() {
 
                   {/* Emoji picker popover */}
                   {showEmoji && (
-                    <div className="absolute bottom-full left-3 mb-2 w-64 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg p-2 grid grid-cols-8 gap-1 z-20">
+                    <div className="absolute bottom-full left-3 right-3 sm:right-auto mb-2 sm:w-64 max-h-48 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg p-2 grid grid-cols-8 gap-1 z-30">
                       {EMOJIS.map((e) => (
                         <button
                           key={e}
@@ -745,10 +775,10 @@ export default function WhatsAppChatsManager() {
                     <button
                       onClick={sendManual}
                       disabled={sending || !draft.trim()}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex-shrink-0"
                     >
                       {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                      Send
+                      <span className="hidden sm:inline">Send</span>
                     </button>
                   </div>
                 </div>

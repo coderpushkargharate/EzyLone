@@ -249,8 +249,8 @@ function WhatsAppFocusApp({
       </div>
 
       {/* Chat body */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4">
-        <WhatsAppChatsManager />
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+        <WhatsAppChatsManager embedded />
       </div>
     </div>
   );
