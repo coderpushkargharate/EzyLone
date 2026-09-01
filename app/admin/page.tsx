@@ -36,7 +36,8 @@ import {
   BookOpen,
   Settings as SettingsIcon,
   ChevronDown,
-  MoreVertical
+  MoreVertical,
+  Home
 } from 'lucide-react';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
@@ -231,9 +232,16 @@ function WhatsAppFocusApp({
           </button>
           {menuOpen && (
             <div className="absolute right-0 mt-1 w-48 bg-white text-gray-700 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-10">
+              <a
+                href="/"
+                onClick={() => setMenuOpen(false)}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+              >
+                <Home className="w-4 h-4 text-gray-500" /> Home page
+              </a>
               <button
                 onClick={() => { setMenuOpen(false); onExit(); }}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-gray-50 text-left border-t border-gray-100"
               >
                 <LayoutDashboard className="w-4 h-4 text-gray-500" /> Full admin panel
               </button>
@@ -248,8 +256,9 @@ function WhatsAppFocusApp({
         </div>
       </div>
 
-      {/* Chat body */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4">
+      {/* Chat body — fills the remaining height; the chat list/transcript scroll
+          internally so it feels like a real full-screen app (no double scroll). */}
+      <div className="flex-1 min-h-0 overflow-hidden p-2 sm:p-4">
         <WhatsAppChatsManager embedded />
       </div>
     </div>
@@ -769,7 +778,18 @@ function AdminDashboard({
               {activeItem?.name || 'Dashboard'}
             </h2>
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Back to the public website home page (the app opens straight into
+                admin, so this is the way out to the site). */}
+            <a
+              href="/"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium hover:bg-blue-100 transition"
+              title="Go to website home page"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </a>
+
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/ezy-logo.webp" alt="EzyLoan" className="h-8 w-auto lg:hidden" />
 
