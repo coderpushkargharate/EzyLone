@@ -3,7 +3,7 @@
 // cached shell when offline. It deliberately does NOT cache API/admin data, so
 // WhatsApp chats are always fetched fresh from the network.
 
-const CACHE = 'ezyloan-shell-v3';
+const CACHE = 'ezyloan-shell-v4';
 // Precache both app shells: "/" for the customer website app and "/admin" for
 // the admin/WhatsApp app.
 const SHELL = ['/', '/admin', '/favicon.ico', '/icon-192.png'];
@@ -57,6 +57,8 @@ self.addEventListener('fetch', (event) => {
 const BADGE_DB = 'ezy-push';
 const BADGE_STORE = 'kv';
 const BADGE_KEY = 'unread';
+const SEEN_IDS_KEY = 'seenIds'; // recently processed push ids (dedupe retries)
+const SEEN_IDS_MAX = 50;        // keep the list small; old ids age out
 
 function badgeDb() {
   return new Promise((resolve, reject) => {
@@ -67,31 +69,54 @@ function badgeDb() {
   });
 }
 
-function badgeGet() {
+// Generic KV read/write over the same store (used for both the unread counter
+// and the dedupe list).
+function kvGet(key, fallback) {
   return badgeDb()
     .then(
       (db) =>
         new Promise((resolve) => {
-          const r = db.transaction(BADGE_STORE, 'readonly').objectStore(BADGE_STORE).get(BADGE_KEY);
-          r.onsuccess = () => resolve(Number(r.result) || 0);
-          r.onerror = () => resolve(0);
+          const r = db.transaction(BADGE_STORE, 'readonly').objectStore(BADGE_STORE).get(key);
+          r.onsuccess = () => resolve(r.result === undefined ? fallback : r.result);
+          r.onerror = () => resolve(fallback);
         }),
     )
-    .catch(() => 0);
+    .catch(() => fallback);
 }
 
-function badgeSet(n) {
+function kvSet(key, value) {
   return badgeDb()
     .then(
       (db) =>
         new Promise((resolve) => {
           const tx = db.transaction(BADGE_STORE, 'readwrite');
-          tx.objectStore(BADGE_STORE).put(n, BADGE_KEY);
-          tx.oncomplete = () => resolve(n);
-          tx.onerror = () => resolve(n);
+          tx.objectStore(BADGE_STORE).put(value, key);
+          tx.oncomplete = () => resolve(value);
+          tx.onerror = () => resolve(value);
         }),
     )
-    .catch(() => n);
+    .catch(() => value);
+}
+
+function badgeGet() {
+  return kvGet(BADGE_KEY, 0).then((v) => Number(v) || 0);
+}
+
+function badgeSet(n) {
+  return kvSet(BADGE_KEY, n);
+}
+
+// Returns true if this push id was already processed (a webhook retry / repeat).
+// Records the id when it's new, so the same message never increments the badge
+// twice. No dedupeId → always treated as new (single, distinct event).
+function isDuplicatePush(id) {
+  if (!id) return Promise.resolve(false);
+  return kvGet(SEEN_IDS_KEY, []).then((raw) => {
+    const list = Array.isArray(raw) ? raw : [];
+    if (list.includes(id)) return true;
+    const next = list.concat(id).slice(-SEEN_IDS_MAX);
+    return kvSet(SEEN_IDS_KEY, next).then(() => false);
+  });
 }
 
 // Reflect a count on the installed app icon (Badging API). Silently ignored on
@@ -124,12 +149,16 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    badgeGet()
-      .then((n) => badgeSet(n + 1))
-      .then((n) => {
-        applyAppBadge(n);
-        return self.registration.showNotification(title, options);
-      }),
+    isDuplicatePush(data.dedupeId).then((dup) => {
+      // A retried webhook (same dedupeId) must NOT bump the count or re-alert.
+      if (dup) return undefined;
+      return badgeGet()
+        .then((n) => badgeSet(n + 1))
+        .then((n) => {
+          applyAppBadge(n);
+          return self.registration.showNotification(title, options);
+        });
+    }),
   );
 });
 

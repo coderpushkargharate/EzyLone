@@ -118,6 +118,8 @@ export async function createLeadFromWebhook(
     body: `${lead.name || 'Someone'} via ${input.source}`,
     url: '/admin',
     tag: 'lead',
+    // Dedup on the source message id so a retried webhook doesn't double-count.
+    dedupeId: input.sourceMessageId || undefined,
   });
 
   return { created: true, leadId: String(lead._id) };

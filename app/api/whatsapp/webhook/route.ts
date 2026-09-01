@@ -63,6 +63,9 @@ export async function POST(req: NextRequest) {
     body: bodyText ? bodyText.slice(0, 140) : 'Sent a message',
     url: '/admin',
     tag: 'wa',
+    // MessageSid is identical across Twilio's webhook retries, so the SW can
+    // ignore a retry and avoid double-counting the icon badge.
+    dedupeId: params.MessageSid || params.SmsMessageSid || undefined,
   });
 
   // If an admin has taken this conversation over (manual mode), stay silent:

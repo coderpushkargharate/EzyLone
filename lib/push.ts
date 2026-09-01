@@ -38,8 +38,11 @@ function ensureConfigured(): boolean {
 export interface AdminPushInput {
   title: string;
   body: string;
-  url?: string;   // where clicking the notification should take the admin
-  tag?: string;   // groups/replaces notifications of the same kind
+  url?: string;      // where clicking the notification should take the admin
+  tag?: string;      // groups/replaces notifications of the same kind
+  dedupeId?: string; // stable id for THIS event (e.g. Twilio MessageSid). The
+                     // service worker uses it to ignore webhook retries so the
+                     // icon badge doesn't over-count the same message.
 }
 
 /**
@@ -59,6 +62,7 @@ export async function sendAdminPush(input: AdminPushInput): Promise<void> {
       body: input.body,
       url: input.url || '/admin',
       tag: input.tag || 'ezy-admin',
+      ...(input.dedupeId ? { dedupeId: input.dedupeId } : {}),
     });
 
     await Promise.all(
