@@ -25,6 +25,11 @@ const BASE_URL = 'https://www.ezyloan.co.in';
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  // Default PWA for the whole public site: installs the customer app that opens
+  // the website home (start_url "/") so visitors can browse and fill the loan
+  // form — NO admin access. The admin area overrides this with /admin.webmanifest
+  // (start_url "/admin") in app/admin/layout.tsx.
+  manifest: '/manifest.webmanifest',
   title: {
     default: 'EzyLoan - Quick & Easy Loans Online | Personal, Business, Car Loans',
     template: '%s | EzyLoan',

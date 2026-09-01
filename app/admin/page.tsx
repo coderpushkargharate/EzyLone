@@ -54,6 +54,7 @@ import TeamManager from '@/components/admin/TeamManager';
 import AutomationsManager from '@/components/admin/AutomationsManager';
 import EmployeesManager from '@/components/admin/EmployeesManager';
 import AccountManager from '@/components/admin/AccountManager';
+import { useWhatsAppUnread, requestNotifyPermission } from '@/components/admin/useWhatsAppUnread';
 
 // TypeScript Interfaces
 interface User {
@@ -103,6 +104,9 @@ export default function AdminApp() {
   // "Exit". Kept in sync via the 'wa-focus-change' window event.
   const [waFocus, setWaFocus] = useState(false);
   const router = useRouter();
+  // New-WhatsApp-message counter (drives the red badge on the app symbol / tab
+  // and the installed app-icon badge). Enabled once we're past the login screen.
+  const { count: waUnread, markSeen: markWaSeen } = useWhatsAppUnread(currentPage !== 'login');
 
   useEffect(() => {
     const read = () => setWaFocus(typeof window !== 'undefined' && localStorage.getItem('wa_focus') === '1');
@@ -173,7 +177,15 @@ export default function AdminApp() {
 
   // Standalone WhatsApp-chat app mode (only after we've confirmed a session).
   if (waFocus && currentPage !== 'login') {
-    return <WhatsAppFocusApp user={user} onLogout={handleLogout} onExit={exitAccess} />;
+    return (
+      <WhatsAppFocusApp
+        user={user}
+        onLogout={handleLogout}
+        onExit={exitAccess}
+        unread={waUnread}
+        onSeen={markWaSeen}
+      />
+    );
   }
 
   return (
@@ -182,6 +194,8 @@ export default function AdminApp() {
       onLogout={handleLogout}
       currentPage={currentPage}
       setCurrentPage={setCurrentPage}
+      waUnread={waUnread}
+      markWaSeen={markWaSeen}
     />
   );
 }
@@ -194,10 +208,14 @@ function WhatsAppFocusApp({
   user,
   onLogout,
   onExit,
+  unread = 0,
+  onSeen,
 }: {
   user: User | null;
   onLogout: () => void;
   onExit: () => void;
+  unread?: number;
+  onSeen?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -208,15 +226,29 @@ function WhatsAppFocusApp({
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
+  // Opening the app = the admin is here to read chats, so ask for notification
+  // permission once (enables background alerts for the next new message).
+  useEffect(() => { requestNotifyPermission(); }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-gray-100">
       {/* Top bar */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+          {/* App symbol with a red "new messages" badge on its top-left. Tap it
+              to mark everything as seen (clears the badge). */}
+          <button
+            onClick={() => onSeen?.()}
+            className="relative w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0"
+            title={unread > 0 ? `${unread} new message${unread === 1 ? '' : 's'} — tap to clear` : 'WhatsApp chats'}
+          >
             <MessageSquareText className="w-5 h-5" />
-          </div>
+            {unread > 0 && (
+              <span className="absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-green-600">
+                {unread > 99 ? '99+' : unread}
+              </span>
+            )}
+          </button>
           <div className="min-w-0">
             <div className="font-semibold text-sm truncate">EzyLoan WhatsApp</div>
             <div className="text-[11px] text-white/80 truncate">{user?.name || user?.username || 'Signed in'}</div>
@@ -266,16 +298,20 @@ function WhatsAppFocusApp({
 }
 
 // Main Dashboard Component
-function AdminDashboard({ 
-  user, 
-  onLogout, 
-  currentPage, 
-  setCurrentPage 
-}: { 
-  user: User | null; 
-  onLogout: () => void; 
-  currentPage: string; 
+function AdminDashboard({
+  user,
+  onLogout,
+  currentPage,
+  setCurrentPage,
+  waUnread = 0,
+  markWaSeen,
+}: {
+  user: User | null;
+  onLogout: () => void;
+  currentPage: string;
   setCurrentPage: (page: string) => void;
+  waUnread?: number;
+  markWaSeen?: () => void;
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -381,6 +417,11 @@ function AdminDashboard({
     if (currentPage === 'dashboard') {
       fetchDashboardStats();
     }
+    // Viewing the WhatsApp chats = everything so far is seen; clear the badge.
+    if (currentPage === 'whatsappChats') {
+      markWaSeen?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   // Fetch data when components are accessed
@@ -728,18 +769,26 @@ function AdminDashboard({
                 <div className="space-y-1">
                   {groupItems.map((item) => {
                     const Icon = item.icon;
+                    const showWaBadge = item.id === 'whatsappChats' && waUnread > 0;
                     return (
                       <button
                         key={item.id}
                         onClick={() => {
                           setCurrentPage(item.id);
                           setIsMobileMenuOpen(false);
+                          // Opening the chats tab clears the new-message badge.
+                          if (item.id === 'whatsappChats') markWaSeen?.();
                         }}
                         className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors
                         ${currentPage === item.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
                       >
                         <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
                         <span className="truncate">{item.name}</span>
+                        {showWaBadge && (
+                          <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+                            {waUnread > 99 ? '99+' : waUnread}
+                          </span>
+                        )}
                       </button>
                     );
                   })}

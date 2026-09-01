@@ -1,5 +1,6 @@
 import HeroSection from '@/components/HeroSection';
 import Services from '@/components/Services';
+import InstallAppBanner from '@/components/InstallAppBanner';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 
@@ -114,6 +115,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Install the website as an app (customer PWA) — button, QR & link. */}
+        <InstallAppBanner />
 
         <div className="px-4 sm:px-6 lg:px-8 mt-4" data-aos="fade-up">
           <div className="max-w-[85rem] mx-auto px-4 py-3 bg-amber-50 border-l-4 border-amber-500" role="note">

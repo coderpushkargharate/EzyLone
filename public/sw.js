@@ -3,8 +3,10 @@
 // cached shell when offline. It deliberately does NOT cache API/admin data, so
 // WhatsApp chats are always fetched fresh from the network.
 
-const CACHE = 'ezyloan-shell-v1';
-const SHELL = ['/admin', '/favicon.ico', '/icon-192.png'];
+const CACHE = 'ezyloan-shell-v2';
+// Precache both app shells: "/" for the customer website app and "/admin" for
+// the admin/WhatsApp app.
+const SHELL = ['/', '/admin', '/favicon.ico', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -32,6 +34,12 @@ self.addEventListener('fetch', (event) => {
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(req).then((hit) => hit || caches.match('/admin'))),
+      .catch(() =>
+        caches.match(req).then(
+          // Offline fallback: admin routes fall back to the admin shell, every
+          // other page to the customer website home.
+          (hit) => hit || caches.match(new URL(req.url).pathname.startsWith('/admin') ? '/admin' : '/'),
+        ),
+      ),
   );
 });
