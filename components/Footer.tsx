@@ -251,6 +251,18 @@ const Footer = memo(() => {
                     </div>
                   </a>
                   <a
+                    href="tel:+919692429674"
+                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-cyan-500/30"
+                  >
+                    <div className="w-9 h-9 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                      <Phone className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <span className="text-white font-semibold text-base">+91 9692429674</span>
+                      <p className="text-cyan-300/90 text-xs">Mon-Sat, 9AM-8PM IST</p>
+                    </div>
+                  </a>
+                  <a
                     href="https://wa.me/916372977626"
                     target="_blank"
                     rel="noopener noreferrer"

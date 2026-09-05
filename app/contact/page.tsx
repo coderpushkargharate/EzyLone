@@ -83,6 +83,7 @@ const Contact = () => {
 
   const contactInfo = [
     { icon: Phone, title: 'Call Us', details: '+91 6372977626', subtitle: 'Mon-Sat 9AM-7PM IST', href: 'tel:+916372977626' },
+    { icon: Phone, title: 'Call Us', details: '+91 9692429674', subtitle: 'Mon-Sat 9AM-7PM IST', href: 'tel:+919692429674' },
     { icon: Mail, title: 'Email Us', details: 'care@ezyloan.co.in', subtitle: 'Response within 24-48 hrs', href: 'mailto:care@ezyloan.co.in' },
     { icon: MapPin, title: 'Visit Us', details: '1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha - 753011', subtitle: 'Head Office', href: 'https://maps.app.goo.gl/your-map-link' },
     { icon: Clock, title: 'Business Hours', details: '9:00 AM - 7:00 PM', subtitle: 'Monday to Saturday', href: null }
