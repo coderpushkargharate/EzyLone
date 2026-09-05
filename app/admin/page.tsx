@@ -420,6 +420,21 @@ function AdminDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentPage]);
 
+  // Deep-link from a push notification: opening "/admin?tab=whatsappChats" (what a
+  // new-WhatsApp-message push points to) lands straight on that tab instead of the
+  // dashboard. Runs once after login, and only if the user may reach that tab
+  // (RBAC preserved). Manual navigation afterwards is never overridden.
+  const deepLinkedRef = useRef(false);
+  useEffect(() => {
+    if (!user || deepLinkedRef.current || typeof window === 'undefined') return;
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    if (tab && reachableItems.some((i) => i.id === tab)) {
+      deepLinkedRef.current = true;
+      setCurrentPage(tab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, reachableItems]);
+
   // Fetch dashboard stats
   useEffect(() => {
     if (currentPage === 'dashboard') {
