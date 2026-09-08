@@ -155,6 +155,17 @@ export async function sendAdminPush(input: AdminPushInput): Promise<PushSendResu
           await webpush.sendNotification(
             { endpoint: s.endpoint, keys: s.keys as { p256dh: string; auth: string } },
             payload,
+            {
+              // 'high' tells FCM/APNs this is time-sensitive so it is delivered
+              // IMMEDIATELY even when an Android device is in Doze/background —
+              // without this, normal-priority pushes are deferred and only
+              // surface when the phone next wakes (i.e. when the app is opened).
+              urgency: 'high',
+              // Retain for 24h if the device is temporarily offline, so a missed
+              // lead/message alert still arrives once it reconnects (rather than
+              // being dropped) — but not so long that stale alerts pile up.
+              TTL: 60 * 60 * 24,
+            },
           );
           result.sent++;
         } catch (err: any) {
