@@ -226,10 +226,16 @@ export async function sendWhatsAppTemplate(
 export async function sendLeadConfirmationWhatsApp(
   toPhone: string | undefined | null,
   name: string,
+  loanType?: string,
 ): Promise<void> {
   const firstName = (name || '').trim().split(/\s+/)[0] || 'there';
+  // The approved "ezyloan_form_followup" template has TWO placeholders:
+  //   {{1}} = first name, {{2}} = the loan type the visitor asked about.
+  // Twilio rejects the send (error 21655/21656) if a required variable is missing,
+  // so we always supply a sensible fallback for {{2}}.
+  const loanLabel = (loanType || '').trim() || 'your loan enquiry';
   console.log(
-    `📤 WhatsApp confirmation → provider=twilio, to=${toPhone || '(none)'}, name=${firstName}`,
+    `📤 WhatsApp confirmation → provider=twilio, to=${toPhone || '(none)'}, name=${firstName}, loanType=${loanLabel}`,
   );
 
   const templateSid = process.env.TWILIO_WHATSAPP_TEMPLATE_SID;
@@ -238,7 +244,7 @@ export async function sendLeadConfirmationWhatsApp(
   // the ONLY thing that delivers outside the 24-hour window (the normal case).
   if (templateSid) {
     console.log(`   ↳ Twilio path: approved template (${templateSid})`);
-    await sendWhatsAppTemplate(toPhone, templateSid, { '1': firstName });
+    await sendWhatsAppTemplate(toPhone, templateSid, { '1': firstName, '2': loanLabel });
     return;
   }
 

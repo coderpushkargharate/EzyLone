@@ -92,7 +92,7 @@ export async function captureLead(lead: LeadData): Promise<void> {
   // 4) WhatsApp confirmation to the lead (template/free-text auto-picked by env).
   if (phoneNumber) {
     try {
-      await sendLeadConfirmationWhatsApp(phoneNumber, fullName);
+      await sendLeadConfirmationWhatsApp(phoneNumber, fullName, loanType);
     } catch (e) {
       console.error('Chat lead WhatsApp failed (lead still saved):', e);
     }

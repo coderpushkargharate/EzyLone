@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
       source: 'Website Apply Now',
     }).catch((e) => console.error('CRM sync error (application still saved):', e));
 
-    void sendLeadConfirmationWhatsApp(indianPhone, fullName).catch((e) =>
+    void sendLeadConfirmationWhatsApp(indianPhone, fullName, loanType).catch((e) =>
       console.error('WhatsApp send error (application still saved):', e),
     );
 
