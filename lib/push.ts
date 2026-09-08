@@ -37,6 +37,12 @@ function ensureConfigured(): boolean {
       privateKey,
     );
     configured = true;
+    // One-time positive confirmation the running process CAN send push. Booleans
+    // only — never the key material itself.
+    console.log(
+      '[push] VAPID configured OK (server) — ' +
+        `publicKey=present privateKey=present subject=${process.env.VAPID_SUBJECT ? 'set' : 'default'}`,
+    );
     return true;
   } catch (e) {
     console.error('Web Push VAPID config failed:', e);
@@ -121,7 +127,15 @@ export interface AdminPushInput {
  */
 export async function sendAdminPush(input: AdminPushInput): Promise<PushSendResult> {
   const result: PushSendResult = { configured: false, total: 0, sent: 0, removed: 0, failed: 0, errors: [] };
-  if (!ensureConfigured()) return result; // keys not set — logged in ensureConfigured()
+  // Proves — in PM2 logs — that the webhook (or lead/chat flow) actually reached
+  // the push sender for this event. No secrets, no endpoints, no message body.
+  console.log(`[push] sendAdminPush() invoked (tag=${input.tag || 'ezy-admin'}, dedupeId=${input.dedupeId ? 'yes' : 'no'})`);
+  if (!ensureConfigured()) {
+    // ensureConfigured() already logged WHICH key is missing. This makes the
+    // early-return explicit so it's obvious no push was attempted.
+    console.warn('[push] sendAdminPush() aborted — VAPID not configured at runtime; no push sent.');
+    return result;
+  }
   result.configured = true;
 
   const hostOf = (ep: string) => {
@@ -136,6 +150,7 @@ export async function sendAdminPush(input: AdminPushInput): Promise<PushSendResu
     await connectDB();
     const subs = await PushSubscription.find().lean();
     result.total = subs.length;
+    console.log(`[push] subscriptions found in DB: ${subs.length}`);
     if (!subs.length) {
       console.warn('[push] no subscriptions in DB — nothing to deliver to.');
       return result;
@@ -174,6 +189,7 @@ export async function sendAdminPush(input: AdminPushInput): Promise<PushSendResu
           // don't keep pushing to a dead endpoint.
           if (code === 404 || code === 410) {
             result.removed++;
+            console.warn(`[push] pruning expired subscription (status ${code}) at ${hostOf(s.endpoint)}`);
             try {
               await PushSubscription.deleteOne({ endpoint: s.endpoint });
             } catch {
@@ -189,8 +205,16 @@ export async function sendAdminPush(input: AdminPushInput): Promise<PushSendResu
         }
       }),
     );
+
+    // Final, at-a-glance outcome for PM2 logs. Status codes only (e.g. 403/500),
+    // never endpoints/keys/payload.
+    console.log(
+      `[push] delivery summary: configured=${result.configured} total=${result.total} ` +
+        `sent=${result.sent} failed=${result.failed} removed=${result.removed}` +
+        (result.errors.length ? ` errorStatus=[${result.errors.map((e) => e.statusCode ?? '?').join(',')}]` : ''),
+    );
   } catch (e) {
-    console.error('sendAdminPush failed (ignored):', e);
+    console.error('[push] sendAdminPush failed (ignored):', e);
   }
   return result;
 }
