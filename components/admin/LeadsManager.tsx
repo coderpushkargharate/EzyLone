@@ -40,6 +40,9 @@ export interface Lead {
   status: string;
   groups?: string[];
   source?: string;
+  ip?: string;
+  country?: string;
+  countryCode?: string;
   opportunitySize?: string;
   leadStage?: string;
   followUpDate?: string;
@@ -732,6 +735,32 @@ function LeadDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   <p className="text-xs font-semibold text-gray-500 tracking-wide mb-1.5">SOURCE</p>
                   <p className="text-sm text-gray-700">{lead.source || 'Manual'}</p>
                 </div>
+
+                {/* Origin — IP address + detected country (captured by the
+                    India-only geo gate at lead ingest). Only shown when present;
+                    manually-added and older leads won't have it. */}
+                {(lead.ip || lead.country) && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 tracking-wide mb-1.5">ORIGIN</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {lead.ip && (
+                        <span className="text-sm text-gray-700 font-mono">{lead.ip}</span>
+                      )}
+                      {lead.country && (
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full',
+                            lead.countryCode === 'IN'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-red-100 text-red-700',
+                          )}
+                        >
+                          {lead.countryCode === 'IN' ? '🇮🇳' : '🌐'} {lead.country}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Notes */}
                 <div>
