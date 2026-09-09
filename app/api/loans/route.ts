@@ -8,6 +8,7 @@ import { syncLeadToCrm } from '@/lib/crm';
 import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 import { normalizeIndianMobile } from '@/lib/phone';
+import { geoGateIndia } from '@/lib/geo';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,16 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const limited = formRateLimit(req);
   if (limited) return limited;
+
+  // India-only gate: block submissions from non-India IP addresses and record
+  // the origin. Fails open for private/unresolvable IPs (see lib/geo.ts).
+  const geo = await geoGateIndia(req);
+  if (!geo.allowed) {
+    return NextResponse.json(
+      { message: 'We currently serve customers in India only.' },
+      { status: 403 },
+    );
+  }
 
   try {
     const body = await req.json();
@@ -81,6 +92,9 @@ export async function POST(req: NextRequest) {
         phone: indianPhone,
         message: leadMessage,
         source: 'Website Apply Now',
+        ip: geo.ip,
+        country: geo.country || undefined,
+        countryCode: geo.countryCode || undefined,
       });
     } catch (crmErr) {
       console.error('Lead capture failed (application still saved):', crmErr);

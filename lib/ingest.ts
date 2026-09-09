@@ -24,6 +24,10 @@ export interface WebhookLeadInput {
   loanType?: string;
   city?: string;
   leadStage?: string;
+  // Network origin (captured by the India-only geo gate in the form routes).
+  ip?: string;
+  country?: string;
+  countryCode?: string;
 }
 
 // Map an AI lead priority to a CRM group tag (used for filtering in the panel).
@@ -102,6 +106,9 @@ export async function createLeadFromWebhook(
     sourceMessageId: input.sourceMessageId,
     status: 'New',
     leadStage,
+    ip: input.ip,
+    country: input.country,
+    countryCode: input.countryCode,
     groups: groups.length ? groups : undefined,
   });
 

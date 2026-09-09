@@ -40,6 +40,15 @@ const nextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-XSS-Protection', value: '1; mode=block' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // HSTS: force HTTPS for 2 years incl. subdomains and opt into the
+          // browser preload list. Fixes the "HSTS header missing" site-health
+          // check. Only honoured by browsers over HTTPS, so it's a no-op in
+          // local http dev — safe to ship. (Behind the Hostinger CDN/nginx the
+          // site is always HTTPS, so every real visitor gets it.)
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          // Lock down powerful browser features the site never uses. Low-risk
+          // hardening — no page here requests camera/mic/geolocation.
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
         ],
       },
       {

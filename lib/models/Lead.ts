@@ -27,6 +27,11 @@ export interface ILead extends Document {
   sourceMessageId?: string;
   opportunitySize?: string;
   leadStage?: string;
+  // Network origin of the lead — captured at ingest so out-of-India traffic is
+  // auditable and the India-only gate is traceable.
+  ip?: string;
+  country?: string;
+  countryCode?: string;
   followUpDate?: Date;
   lastActivity?: Date;
   assignedTo?: mongoose.Types.ObjectId;
@@ -45,6 +50,9 @@ const LeadSchema = new Schema<ILead>(
     notes: { type: String },
     opportunitySize: { type: String, trim: true },
     leadStage: { type: String, trim: true },
+    ip: { type: String, trim: true },
+    country: { type: String, trim: true },
+    countryCode: { type: String, trim: true, uppercase: true },
     status: {
       type: String,
       enum: ['New', 'No Response', 'Cold', 'Warm', '1. Interested', '0. Not Interested', 'Lost', 'Converted', 'Out Of Odisha'],
