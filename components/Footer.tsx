@@ -263,7 +263,7 @@ const Footer = memo(() => {
                     </div>
                   </a>
                   <a
-                    href="https://wa.me/916372977626"
+                    href="https://wa.me/919692429674?text=Hi%2C%20I'm%20interested%20in%20getting%20a%20loan"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center space-x-3 p-3 bg-emerald-900/40 rounded-lg border border-emerald-500/30"
@@ -272,7 +272,21 @@ const Footer = memo(() => {
                       <span className="text-white text-sm font-bold">💬</span>
                     </div>
                     <div>
-                      <span className="text-white font-semibold text-base">WhatsApp Chat</span>
+                      <span className="text-white font-semibold text-base">WhatsApp: +91 96924 29674</span>
+                      <p className="text-emerald-300/90 text-xs">Instant support available</p>
+                    </div>
+                  </a>
+                  <a
+                    href="https://wa.me/916372977626?text=Hi%2C%20I'm%20interested%20in%20getting%20a%20loan"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-3 p-3 bg-emerald-900/40 rounded-lg border border-emerald-500/30"
+                  >
+                    <div className="w-9 h-9 bg-gradient-to-r from-emerald-500 to-green-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                      <span className="text-white text-sm font-bold">💬</span>
+                    </div>
+                    <div>
+                      <span className="text-white font-semibold text-base">WhatsApp: +91 63729 77626</span>
                       <p className="text-emerald-300/90 text-xs">Instant support available</p>
                     </div>
                   </a>

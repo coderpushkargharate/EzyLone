@@ -265,7 +265,8 @@ export default function TermsPage() {
           </p>
           <ul className="list-none space-y-1 mt-2 text-gray-700">
             <li>📧 Email: <a href="mailto:care@ezyloan.co.in" className="text-blue-600 hover:underline">care@ezyloan.co.in</a></li>
-            <li>📞 Phone: <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a></li>
+            <li>📞 Phone: <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a> / <a href="tel:+919692429674" className="text-blue-600 hover:underline">+91 96924 29674</a></li>
+            <li>💬 WhatsApp: <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 96924 29674</a></li>
             <li>⏱ Response Time: Within 15 business days as per IT Rules, 2021</li>
           </ul>
           <p className="mt-3 text-sm text-gray-600">
@@ -319,7 +320,8 @@ export default function TermsPage() {
             <p><span className="font-medium">GST:</span> [21CNXPM8317C1ZV
 ]</p>
             <p><span className="font-medium">Email:</span> <a href="mailto:care@ezyloan.co.in" className="text-blue-600 hover:underline">care@ezyloan.co.in</a></p>
-            <p><span className="font-medium">Phone:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a></p>
+            <p><span className="font-medium">Phone:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a> / <a href="tel:+919692429674" className="text-blue-600 hover:underline">+91 96924 29674</a></p>
+            <p><span className="font-medium">WhatsApp:</span> <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 96924 29674</a></p>
             <p><span className="font-medium">Address:</span> 1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha – 753011, India</p>
             <p><span className="font-medium">Business Hours:</span> Monday – Saturday, 10:00 AM – 7:00 PM IST</p>
           </div>

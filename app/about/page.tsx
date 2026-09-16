@@ -730,7 +730,8 @@ const About = () => {
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800">Call Us</h4>
-                        <p className="text-[#2563eb] font-medium hover:underline">+91 6372977626</p>
+                        <p className="text-[#2563eb] font-medium hover:underline">+91 63729 77626</p>
+                        <p className="text-[#2563eb] font-medium hover:underline">+91 96924 29674</p>
                         <p className="text-sm text-slate-500/80">Mon-Sat: 9AM to 7PM</p>
                       </div>
                     </a>

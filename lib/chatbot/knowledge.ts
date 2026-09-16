@@ -12,8 +12,8 @@ export const COMPANY = {
   name: 'EzyLoan',
   legalName: 'Dibyansh Associates',
   type: 'Loan facilitator / Direct Selling Agent (DSA) — NOT a direct lender',
-  phone: '+91 6372977626',
-  whatsapp: 'https://wa.me/916372977626',
+  phone: '+91 6372977626 / +91 9692429674',
+  whatsapp: 'https://wa.me/919692429674',
   email: 'care@ezyloan.co.in',
   website: 'https://www.ezyloan.co.in',
   address:

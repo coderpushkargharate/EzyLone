@@ -907,7 +907,7 @@ function AdminDashboard({
                     <a href="/faq" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
                       <BookOpen size={15} className="text-gray-400" /> User Guide
                     </a>
-                    <a href="https://wa.me/916372977626" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
+                    <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
                       <MessageCircle size={15} className="text-gray-400" /> Live Chat Support
                     </a>
                   </div>

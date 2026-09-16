@@ -182,7 +182,8 @@ export default function LoanDisclosurePage() {
           </h2>
           <div className="bg-gray-50 border border-gray-200 p-5 rounded-xl space-y-3 text-gray-700">
             <p><span className="font-medium">Customer Support Email:</span> <a href="mailto:care@ezyloan.co.in" className="text-blue-600 hover:underline">care@ezyloan.co.in</a></p>
-            <p><span className="font-medium">Phone / WhatsApp:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 6372977626</a></p>
+            <p><span className="font-medium">Phone:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a> / <a href="tel:+919692429674" className="text-blue-600 hover:underline">+91 96924 29674</a></p>
+            <p><span className="font-medium">WhatsApp:</span> <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 96924 29674</a> / <a href="https://wa.me/916372977626" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 63729 77626</a></p>
             <p><span className="font-medium">Office Address:</span> 1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha – 753011</p>
             <p><span className="font-medium">Business Hours:</span> Monday – Saturday, 10:00 AM – 7:00 PM IST</p>
             <div className="pt-3 border-t border-gray-200">

@@ -221,7 +221,7 @@ export default function TeamManager() {
             <p className="text-sm text-gray-600 mt-3">Adding team members and subteams can be enabled for your EzyLoan CRM account. Reach out to us to set it up.</p>
             <div className="flex gap-3 mt-6">
               <button onClick={() => setShowPlanModal(false)} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-50">Close</button>
-              <a href="https://wa.me/916372977626" target="_blank" rel="noopener noreferrer" className="flex-1 text-center bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700">Let&apos;s Talk</a>
+              <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="flex-1 text-center bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700">Let&apos;s Talk</a>
             </div>
           </div>
         </div>

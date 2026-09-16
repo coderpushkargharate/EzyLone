@@ -109,8 +109,8 @@ export async function sendWelcomeEmail(customerName: string, email?: string, sub
         </div>
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
           <p style="margin: 5px 0;"><strong>For any assistance, feel free to reach us:</strong></p>
-          <p style="margin: 5px 0;">📞 +91 6372977626 (Mon–Sat, 9 AM – 8 PM)</p>
-          <p style="margin: 5px 0;">💬 WhatsApp Support: Instant assistance available</p>
+          <p style="margin: 5px 0;">📞 Call: +91 63729 77626 &nbsp;|&nbsp; +91 96924 29674 (Mon–Sat, 9 AM – 8 PM)</p>
+          <p style="margin: 5px 0;">💬 WhatsApp: <a href="https://wa.me/919692429674" style="color: #16a34a;">+91 96924 29674</a> &nbsp;|&nbsp; <a href="https://wa.me/916372977626" style="color: #16a34a;">+91 63729 77626</a></p>
           <p style="margin: 5px 0;">📧 <a href="mailto:contact@ezyloan.co.in" style="color: #2563eb;">contact@ezyloan.co.in</a></p>
           <p style="margin: 5px 0;">🌐 <a href="https://www.ezyloan.co.in" style="color: #2563eb;">www.ezyloan.co.in</a></p>
         </div>
@@ -157,8 +157,8 @@ export async function sendLoanApprovalEmail(loan: { fullName: string; email?: st
         </div>
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
           <p style="margin: 5px 0;"><strong>For any assistance, feel free to reach us:</strong></p>
-          <p style="margin: 5px 0;">📞 +91 6372977626 (Mon–Sat, 9 AM – 8 PM)</p>
-          <p style="margin: 5px 0;">💬 WhatsApp Support: Instant assistance available</p>
+          <p style="margin: 5px 0;">📞 Call: +91 63729 77626 &nbsp;|&nbsp; +91 96924 29674 (Mon–Sat, 9 AM – 8 PM)</p>
+          <p style="margin: 5px 0;">💬 WhatsApp: <a href="https://wa.me/919692429674" style="color: #16a34a;">+91 96924 29674</a> &nbsp;|&nbsp; <a href="https://wa.me/916372977626" style="color: #16a34a;">+91 63729 77626</a></p>
           <p style="margin: 5px 0;">📧 <a href="mailto:contact@ezyloan.co.in" style="color: #2563eb;">contact@ezyloan.co.in</a></p>
           <p style="margin: 5px 0;">🌐 <a href="https://www.ezyloan.co.in" style="color: #2563eb;">www.ezyloan.co.in</a></p>
         </div>
@@ -208,8 +208,8 @@ export async function sendLoanRejectionEmail(loan: { fullName: string; email?: s
         </div>
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
           <p style="margin: 5px 0;"><strong>For any clarification or assistance, feel free to reach us:</strong></p>
-          <p style="margin: 5px 0;">📞 +91 6372977626 (Mon–Sat, 9 AM – 8 PM)</p>
-          <p style="margin: 5px 0;">💬 WhatsApp Support: Instant assistance available</p>
+          <p style="margin: 5px 0;">📞 Call: +91 63729 77626 &nbsp;|&nbsp; +91 96924 29674 (Mon–Sat, 9 AM – 8 PM)</p>
+          <p style="margin: 5px 0;">💬 WhatsApp: <a href="https://wa.me/919692429674" style="color: #16a34a;">+91 96924 29674</a> &nbsp;|&nbsp; <a href="https://wa.me/916372977626" style="color: #16a34a;">+91 63729 77626</a></p>
           <p style="margin: 5px 0;">📧 <a href="mailto:contact@ezyloan.co.in" style="color: #2563eb;">contact@ezyloan.co.in</a></p>
           <p style="margin: 5px 0;">🌐 <a href="https://www.ezyloan.co.in" style="color: #2563eb;">www.ezyloan.co.in</a></p>
         </div>

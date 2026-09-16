@@ -398,6 +398,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                       <div>
                         <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Call Us</h4>
                         <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">+91 63729 77626</p>
+                        <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">+91 96924 29674</p>
                         <p className="text-xs text-slate-500/80 hidden sm:block">Mon-Sat: 9AM to 7PM</p>
                       </div>
                     </a>

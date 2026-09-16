@@ -271,12 +271,19 @@ const ThankYouPage = () => {
               <p className="font-medium text-gray-800 flex items-center gap-2">
                 <Phone className="w-4 h-4" aria-hidden="true" /> Call us:
               </p>
-              <a 
-                href="tel:+916372977626" 
+              <a
+                href="tel:+916372977626"
                 className="text-blue-600 hover:underline block mt-1"
                 aria-label="Call EzyLoan support"
               >
                 +91 63729 77626
+              </a>
+              <a
+                href="tel:+919692429674"
+                className="text-blue-600 hover:underline block mt-1"
+                aria-label="Call EzyLoan support (WhatsApp number)"
+              >
+                +91 96924 29674
               </a>
               <p className="text-xs text-gray-500 mt-1">Mon-Sat: 9:00 AM - 7:00 PM IST</p>
             </div>

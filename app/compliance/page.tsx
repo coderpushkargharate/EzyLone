@@ -52,7 +52,8 @@ export default function CompliancePage() {
             <p><span className="font-semibold text-gray-700">Business Name:</span> EzyLoan (operated by Dibyansh Associates)</p>
             <p><span className="font-semibold text-gray-700">Nature of Business:</span> Loan Facilitation Service Provider (Direct Selling Agent / DSA) for Banks & NBFCs</p>
             <p><span className="font-semibold text-gray-700">Registered Address:</span> 1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha – 753011, India</p>
-            <p><span className="font-semibold text-gray-700">Contact Phone:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a></p>
+            <p><span className="font-semibold text-gray-700">Contact Phone:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a> / <a href="tel:+919692429674" className="text-blue-600 hover:underline">+91 96924 29674</a></p>
+            <p><span className="font-semibold text-gray-700">WhatsApp:</span> <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 96924 29674</a></p>
             <p><span className="font-semibold text-gray-700">Contact Email:</span> <a href="mailto:care@ezyloan.co.in" className="text-blue-600 hover:underline">care@ezyloan.co.in</a></p>
             <p><span className="font-semibold text-gray-700">Website:</span> <a href="https://www.ezyloan.co.in" className="text-blue-600 hover:underline">www.ezyloan.co.in</a></p>
             <p><span className="font-semibold text-gray-700">GST Number:</span> <span className="font-mono bg-gray-200 px-2 py-1 rounded">21CNXPM8317C1ZV</span></p>

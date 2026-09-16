@@ -431,7 +431,9 @@ const CarLoanRefinance: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
                       <div className="flex items-center text-white group cursor-pointer hover:text-blue-200 transition-colors">
                         <Phone className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 group-hover:scale-110 transition-transform duration-300" />
-                        <a href="tel:+916372977626" className="text-base sm:text-lg font-medium hover:underline">+91 6372977626</a>
+                        <a href="tel:+916372977626" className="text-base sm:text-lg font-medium hover:underline">+91 63729 77626</a>
+                        <span className="mx-2 opacity-60">/</span>
+                        <a href="tel:+919692429674" className="text-base sm:text-lg font-medium hover:underline">+91 96924 29674</a>
                       </div>
                       <div className="flex items-center text-white group cursor-pointer hover:text-blue-200 transition-colors">
                         <Mail className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 group-hover:scale-110 transition-transform duration-300" />
@@ -500,7 +502,7 @@ const CarLoanRefinance: React.FC = () => {
                   </span>
                 </h2>
                 <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
-                  If you have additional questions, please give us a call at +91 6372977626 or email us at Contact@ezyloan.co.in
+                  If you have additional questions, please give us a call at +91 63729 77626 or +91 96924 29674 (WhatsApp) or email us at Contact@ezyloan.co.in
                 </p>
               </div>
 

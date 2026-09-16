@@ -306,7 +306,7 @@ export function buildLeadConfirmationMessage(name: string): string {
     `will contact you shortly.\n\n` +
     `Please note: Ezyloan is a loan *facilitator* (not a lender) and works with multiple ` +
     `Banks/NBFCs to find suitable options for you.\n\n` +
-    `📞 +91 6372977626 (Mon–Sat, 9 AM – 8 PM)\n` +
+    `📞 +91 63729 77626 / +91 96924 29674 (Mon–Sat, 9 AM – 8 PM)\n` +
     `🌐 www.ezyloan.co.in`
   );
 }
@@ -346,6 +346,6 @@ export function buildAutoReplyMessage(): string {
     `Thanks for messaging *Ezyloan*! 🙏\n\n` +
     `We've received your message and a team member will respond during business hours ` +
     `(Mon–Sat, 9 AM – 8 PM).\n\n` +
-    `For a faster response you can call 📞 +91 6372977626 or visit 🌐 www.ezyloan.co.in`
+    `For a faster response you can call 📞 +91 63729 77626 or +91 96924 29674 or visit 🌐 www.ezyloan.co.in`
   );
 }

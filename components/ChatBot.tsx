@@ -322,7 +322,7 @@ const ChatBot: React.FC = () => {
           {
             role: 'assistant',
             content:
-              'I’m having trouble connecting right now. Please call us on +91 6372977626 or try again in a moment.',
+              'I’m having trouble connecting right now. Please call us on +91 63729 77626 or +91 96924 29674 (WhatsApp) or try again in a moment.',
           },
         ]);
       } finally {

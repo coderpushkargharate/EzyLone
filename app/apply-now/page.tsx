@@ -691,6 +691,7 @@ const ApplyNowPage: React.FC = () => {
                         <div>
                           <p className="text-sm font-medium text-slate-800">Call Us</p>
                           <p className="text-[#2563eb] text-sm font-medium hover:underline">+91 63729 77626</p>
+                          <p className="text-[#2563eb] text-sm font-medium hover:underline">+91 96924 29674</p>
                         </div>
                       </a>
                       {/* Email - Clickable */}

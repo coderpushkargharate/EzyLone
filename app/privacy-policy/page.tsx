@@ -386,7 +386,8 @@ const PrivacyPolicyPage = () => {
                   </p>
                   <p className="text-gray-600 mt-3">
                     <strong>General Inquiries:</strong><br />
-                    Phone: <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a><br />
+                    Phone: <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a> / <a href="tel:+919692429674" className="text-blue-600 hover:underline">+91 96924 29674</a><br />
+                    WhatsApp: <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 96924 29674</a><br />
                     Email: <a href="mailto:care@ezyloan.co.in" className="text-blue-600 hover:underline">care@ezyloan.co.in</a>
                   </p>
                   <p className="text-gray-600 mt-3">
