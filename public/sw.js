@@ -3,7 +3,7 @@
 // cached shell when offline. It deliberately does NOT cache API/admin data, so
 // WhatsApp chats are always fetched fresh from the network.
 
-const CACHE = 'ezyloan-shell-v4';
+const CACHE = 'ezyloan-shell-v5';
 // Precache both app shells: "/" for the customer website app and "/admin" for
 // the admin/WhatsApp app.
 const SHELL = ['/', '/admin', '/favicon.ico', '/icon-192.png'];
@@ -145,20 +145,43 @@ self.addEventListener('push', (event) => {
     badge: '/icon-192.png',
     tag: data.tag || 'ezy-admin',
     renotify: true, // buzz again even if a notification with this tag exists
+    requireInteraction: true, // stay in the tray until the admin acts (WhatsApp-like)
+    vibrate: [200, 100, 200],
     data: { url: data.url || '/admin' },
   };
 
   event.waitUntil(
-    isDuplicatePush(data.dedupeId).then((dup) => {
-      // A retried webhook (same dedupeId) must NOT bump the count or re-alert.
-      if (dup) return undefined;
-      return badgeGet()
-        .then((n) => badgeSet(n + 1))
-        .then((n) => {
-          applyAppBadge(n);
-          return self.registration.showNotification(title, options);
-        });
-    }),
+    (async () => {
+      // HARDENING: the dedupe/badge bookkeeping uses IndexedDB, which can be slow
+      // (or hang) when the SW is COLD-STARTED in the background by a push. That must
+      // NEVER block the actual notification. So:
+      //   1) dedupe check is bounded by a 1.5s race — if IndexedDB is slow we assume
+      //      "not a duplicate" and alert anyway (a missed lead is worse than a rare
+      //      double-alert on a webhook retry).
+      //   2) showNotification() runs FIRST and is what event.waitUntil holds open.
+      //   3) badge counting is best-effort AFTER, and its failure is swallowed.
+      let dup = false;
+      try {
+        dup = await Promise.race([
+          isDuplicatePush(data.dedupeId),
+          new Promise((resolve) => setTimeout(() => resolve(false), 1500)),
+        ]);
+      } catch {
+        dup = false;
+      }
+      if (dup) return;
+
+      // The user-visible guarantee — always fire this.
+      await self.registration.showNotification(title, options);
+
+      // Best-effort home-screen icon badge; must not affect delivery.
+      try {
+        const n = await badgeGet().then((x) => badgeSet(x + 1));
+        applyAppBadge(n);
+      } catch {
+        /* ignore */
+      }
+    })(),
   );
 });
 
