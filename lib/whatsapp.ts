@@ -223,17 +223,45 @@ export async function sendWhatsAppTemplate(
  * (regardless of sender mode). Free text is only a fallback for quick manual
  * sandbox tests done inside an open 24-hour window.
  */
+// Turn a raw form loan value into a clean, human label for the WhatsApp message.
+// Handles slug forms ("used-car-loan" → "Used Car Loan"), underscores, and a few
+// known abbreviations. Long free-text values (e.g. a chatbot enquiry sentence) are
+// left mostly as-is. Always returns a non-empty string so {{2}} is never blank.
+export function prettifyLoanType(raw: string | undefined | null): string {
+  const val = (raw || '').trim();
+  if (!val) return 'your loan enquiry';
+
+  // A long sentence (chatbot free text) — keep it verbatim, just trimmed.
+  if (val.length > 40 || /\s{2,}/.test(val)) return val;
+
+  return val
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map((w) => {
+      const lw = w.toLowerCase();
+      if (lw === 'topup') return 'Top-Up';
+      if (lw === 'bt') return 'BT';
+      if (lw === 'cv') return 'CV';
+      if (lw === 'emi') return 'EMI';
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
+
 export async function sendLeadConfirmationWhatsApp(
   toPhone: string | undefined | null,
   name: string,
   loanType?: string,
 ): Promise<void> {
   const firstName = (name || '').trim().split(/\s+/)[0] || 'there';
-  // The approved "ezyloan_form_followup" template has TWO placeholders:
+  // The approved template has TWO placeholders:
   //   {{1}} = first name, {{2}} = the loan type the visitor asked about.
   // Twilio rejects the send (error 21655/21656) if a required variable is missing,
-  // so we always supply a sensible fallback for {{2}}.
-  const loanLabel = (loanType || '').trim() || 'your loan enquiry';
+  // so we always supply a sensible fallback for {{2}}. We also prettify the raw
+  // form value ("used-car-loan" → "Used Car Loan") so it reads cleanly in the msg.
+  const loanLabel = prettifyLoanType(loanType);
   console.log(
     `📤 WhatsApp confirmation → provider=twilio, to=${toPhone || '(none)'}, name=${firstName}, loanType=${loanLabel}`,
   );
