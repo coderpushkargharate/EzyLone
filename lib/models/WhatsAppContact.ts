@@ -32,6 +32,9 @@ export interface IWhatsAppContact extends Document {
   manualUntil?: Date | null;
   geoStateStatus: GeoStateStatus;
   geoState?: string;
+  // Last detected reply language ('en' | 'hi' | 'or') so fixed messages stay
+  // consistent when a turn's language can't be detected. Default English.
+  lang: 'en' | 'hi' | 'or';
   leadCreated: boolean;
   leadCreatedAt?: Date | null;
   questionsSinceLead: number;
@@ -46,6 +49,7 @@ const WhatsAppContactSchema = new Schema<IWhatsAppContact>(
     manualUntil: { type: Date, default: null },
     geoStateStatus: { type: String, enum: ['new', 'asked', 'verified', 'rejected'], default: 'new' },
     geoState: { type: String, default: '' },
+    lang: { type: String, enum: ['en', 'hi', 'or'], default: 'en' },
     leadCreated: { type: Boolean, default: false },
     leadCreatedAt: { type: Date, default: null },
     questionsSinceLead: { type: Number, default: 0 },

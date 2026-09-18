@@ -12,6 +12,7 @@
 //                    (bot goes silent forever; a human can take over from admin).
 //   2) LEAD FORM   — collect the contact-form fields once (name, city, email,
 //        phone, loan amount, loan type), thank them, and create ONE CRM lead.
+//        The loan-type question is a NUMBERED menu (pick a number OR type it).
 //   3) Q&A MODE    — after the lead exists we never push lead creation again; we
 //        just answer questions (self-trained knowledge base + rule engine for
 //        product/EMI/FAQ info, EMI handed off to the online calculator link).
@@ -19,12 +20,17 @@
 //        they're dropped into a 2-hour manual cooldown (auto-reverts to auto),
 //        after which they get a fresh batch of questions — but the lead stays one.
 //
+// LANGUAGE: every FIXED controller string is served in the user's language
+// (English default, Hindi/Hinglish, or Odia) — see lib/chatbot/waLang.ts. Free-
+// form Q&A answers come from the trained knowledge base / engine as authored.
+//
 // Contract: never throws. On any DB hiccup it degrades to a safe deterministic
 // reply so the user always gets an answer.
 
 import { runEngine, LeadData } from './engine';
 import { captureLead } from './leadCapture';
 import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from './knowledgeBase';
+import { T, Lang, detectLang, loanTypePrompt, resolveLoanTypePick } from './waLang';
 import { connectDB } from '@/lib/db';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
 import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
@@ -112,7 +118,7 @@ async function loadContact(phone: string): Promise<Partial<IWhatsAppContact>> {
   } catch (e) {
     console.error('WhatsApp contact load failed (using defaults):', e);
   }
-  return { phone, mode: 'auto', geoStateStatus: 'new', leadCreated: false, questionsSinceLead: 0 };
+  return { phone, mode: 'auto', geoStateStatus: 'new', lang: 'en', leadCreated: false, questionsSinceLead: 0 };
 }
 
 async function saveContact(phone: string, updates: Record<string, any>, unset?: Record<string, ''>): Promise<void> {
@@ -169,8 +175,8 @@ async function saveFormState(phone: string, form: Record<string, any>, formStep:
 /**
  * MANUAL mode path: the bot stays silent, but we still record the inbound message
  * into the durable transcript + rolling history so the admin panel shows it. No
- * lead is created here anymore — a lead is only created once the user completes
- * the Odisha lead form (see the auto path). Fire-and-forget; never throws.
+ * lead is created here — a lead is only created once the user completes the
+ * Odisha lead form (see the auto path). Fire-and-forget; never throws.
  */
 export async function recordInboundMessage(phone: string, bodyText: string): Promise<void> {
   const userText = (bodyText || '').trim() || '[non-text message]';
@@ -184,55 +190,44 @@ function isOdisha(text: string): boolean {
   return ODISHA_TOKENS.some((tok) => t.includes(tok));
 }
 
-const ASK_STATE_MSG =
-  `Namaste 🙏 *EzyLoan* me aapka swagat hai. Main *EzySaathi AI* hoon.\n\n` +
-  `Filhal hum apni services *Odisha* me de rahe hain. Aage badhne se pehle bataiye — ` +
-  `aap *kis state* se hain?`;
-
-const OUT_OF_STATE_MSG =
-  `Dhanyavaad aapke sampark ke liye 🙏\n\n` +
-  `Filhal hum apni loan services *sirf Odisha* me de rahe hain, isliye hum abhi aapki ` +
-  `request aage nahi le paa rahe. Jaise hi hum aapke area me shuru karenge, aapko ` +
-  `zaroor sampark karenge. Dhanyavaad!`;
-
 // ── Lead form ────────────────────────────────────────────────────────────────
-interface FormStep {
-  key: 'name' | 'city' | 'email' | 'phone' | 'amount' | 'loanType';
-  prompt: string;
-}
-const FORM_STEPS: FormStep[] = [
-  { key: 'name', prompt: 'Bahut badhiya! 😊 Shuru karte hain — aapka *pura naam* kya hai?' },
-  { key: 'city', prompt: 'Aap Odisha me *kis city / district* se hain?' },
-  { key: 'email', prompt: 'Aapki *email id* bataiye. (nahi dena chahte to "skip" likh dein)' },
-  { key: 'phone', prompt: 'Aapse sampark ke liye best *mobile number* (10 digit)?' },
-  { key: 'amount', prompt: 'Aapko kitna *loan amount* chahiye? (e.g. 5 lakh)' },
-  { key: 'loanType', prompt: 'Aakhri sawaal — *kis type ka loan* chahiye?\n(e.g. Car Loan Top-Up, New Car, Used Car, Personal Loan, Loan Against Property)' },
-];
+type FormKey = 'name' | 'city' | 'email' | 'phone' | 'amount' | 'loanType';
+const FORM_KEYS: FormKey[] = ['name', 'city', 'email', 'phone', 'amount', 'loanType'];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Validate + normalise one answer. Returns { value } to accept, or { error } to
-// reprompt with a hint.
-function validateForm(step: FormStep, raw: string): { value?: string; error?: string } {
+// The question text for a form step in the user's language. Loan type is a
+// numbered menu; everything else is a single localized prompt.
+function formPrompt(key: FormKey, lang: Lang): string {
+  if (key === 'loanType') return loanTypePrompt(lang);
+  return T[lang].form[key];
+}
+
+// Validate + normalise one answer. Returns { value } to accept, or { invalid:true }
+// to reprompt (caller supplies the localized hint).
+function validateForm(key: FormKey, raw: string): { value?: string; invalid?: boolean } {
   const text = (raw || '').trim();
-  switch (step.key) {
+  switch (key) {
     case 'name':
-      return text.length >= 2 ? { value: text } : { error: 'Kripya apna pura naam likhein.' };
+      return text.length >= 2 ? { value: text } : { invalid: true };
     case 'city':
-      return text.length >= 2 ? { value: text } : { error: 'Kripya apni city / district ka naam likhein.' };
+      return text.length >= 2 ? { value: text } : { invalid: true };
     case 'email':
       if (/^(skip|nahi|no|na)$/i.test(text)) return { value: '' };
-      return EMAIL_RE.test(text) ? { value: text } : { error: 'Kripya sahi email likhein (e.g. name@gmail.com), ya "skip" likhein.' };
+      return EMAIL_RE.test(text) ? { value: text } : { invalid: true };
     case 'phone': {
       const digits = (raw.match(/\d/g) || []).join('');
-      return digits.length >= 10 ? { value: digits.slice(-10) } : { error: 'Kripya sahi 10-digit mobile number dein.' };
+      return digits.length >= 10 ? { value: digits.slice(-10) } : { invalid: true };
     }
     case 'amount': {
       const n = parseAmount(raw);
-      return n && n > 0 ? { value: String(n) } : { error: 'Kripya approximate amount dein, e.g. "5 lakh" ya 500000.' };
+      return n && n > 0 ? { value: String(n) } : { invalid: true };
     }
-    case 'loanType':
-      return text.length >= 2 ? { value: text } : { error: 'Kripya loan type likhein, e.g. Car Loan Top-Up.' };
+    case 'loanType': {
+      const picked = resolveLoanTypePick(raw); // bare number → option
+      if (picked) return { value: picked };
+      return text.length >= 2 ? { value: text } : { invalid: true };
+    }
   }
 }
 
@@ -258,39 +253,19 @@ function buildFormLead(phone: string, form: Record<string, any>): LeadData {
   };
 }
 
-function thankYouMsg(form: Record<string, any>): string {
-  const first = form.name ? String(form.name).split(' ')[0] : 'ji';
-  return (
-    `Shukriya ${first}! ✅ Aapki details hamari team ko mil gayi hain. ` +
-    `Hamara loan specialist jald hi aapse *${form.phone}* par sampark karega.\n\n` +
-    `Tab tak agar aapka koi sawaal ho — EMI, interest rate, documents ya process — ` +
-    `to beshak poochiye, main yahin hoon 😊`
-  );
-}
-
 // ── Q&A mode (after the lead exists) ─────────────────────────────────────────
-// Intents that would restart data collection. We never do that once a lead
-// exists — instead we reassure the user their details are already with the team.
-const ALREADY_NOTED_MSG =
-  `Aapki details already hamari team ke paas hain ✅ — woh aapse jald sampark karenge. ` +
-  `Tab tak main aapke kisi bhi sawaal (EMI, interest rate, documents, process) ka jawab de sakta hoon 😊`;
-
-const COOLDOWN_MSG =
-  `Aapke aur sawaalon ke liye ab hamari team aapse *personally* baat karegi — thodi hi der me ` +
-  `hamara specialist aapse connect karega 🙏 Dhanyavaad!`;
-
 // Produce an informational answer using the self-trained knowledge base first,
 // then the rule engine (products / FAQ / EMI). We run the engine STATELESSLY so
 // it can never get stuck in — or restart — a data-collection flow. Returns the
 // reply plus a source tag for logging.
-async function answerQuestion(userText: string): Promise<{ reply: string; source: string; score: number }> {
+async function answerQuestion(userText: string, lang: Lang): Promise<{ reply: string; source: string }> {
   // 1) Self-trained knowledge base (high confidence only).
   try {
     const kb = await matchKnowledge(userText, 'whatsapp');
     if (kb && kb.score >= HIGH_CONFIDENCE) {
       bumpHits(kb.entryId);
       await logChat({ question: userText, answer: kb.answer, source: 'knowledge', matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'whatsapp' });
-      return { reply: kb.answer, source: 'knowledge', score: kb.score };
+      return { reply: kb.answer, source: 'knowledge' };
     }
   } catch (e) {
     console.error('WhatsApp KB match failed:', e);
@@ -299,25 +274,23 @@ async function answerQuestion(userText: string): Promise<{ reply: string; source
   // 2) Rule engine — stateless, concise. Used only for informational intents.
   const r = runEngine(userText, {}, { concise: true });
 
-  // EMI → hand off to the online calculator (no multi-step Q&A on WhatsApp).
+  // EMI → hand off to the online calculator (localized, no multi-step Q&A here).
   if (r.state.flow === 'emi') {
-    const reply =
-      `🧮 Apni EMI aap turant yahaan calculate kar sakte hain:\n\n${EMI_CALCULATOR_URL}\n\n` +
-      `Bas loan amount, interest rate aur tenure daaliye. Aur koi help chahiye to bataiye 😊`;
+    const reply = T[lang].emi(EMI_CALCULATOR_URL);
     await logChat({ question: userText, answer: reply, source: 'engine', matched: true, score: 0, channel: 'whatsapp' });
-    return { reply, source: 'engine', score: 0 };
+    return { reply, source: 'engine' };
   }
 
   // Any data-collection / lead / eligibility / callback intent → don't restart it.
   const collectFlows = ['collect', 'lead', 'callback', 'topupgate', 'eligibility'];
   if (r.lead || (r.state.flow && collectFlows.includes(r.state.flow))) {
-    return { reply: ALREADY_NOTED_MSG, source: 'flow', score: 0 };
+    return { reply: T[lang].alreadyNoted, source: 'flow' };
   }
 
   // Otherwise use the engine's informational reply (products, FAQ, greeting…).
   const source = r.fallback ? 'fallback' : 'engine';
   await logChat({ question: userText, answer: r.reply, source, matched: !r.fallback, score: 0, channel: 'whatsapp' });
-  return { reply: r.reply, source, score: 0 };
+  return { reply: r.reply, source };
 }
 
 /**
@@ -330,32 +303,40 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
   const contact = await loadContact(phone);
   const { history, form, formStep } = await loadSession(phone);
 
+  // Pick the reply language: detect this turn, else keep the last known, else en.
+  const detected = detectLang(userText);
+  const lang: Lang = detected || (contact.lang as Lang) || 'en';
+  if (detected && detected !== contact.lang) await saveContact(phone, { lang: detected });
+
   // ── STAGE 1: STATE GATE ─────────────────────────────────────────────────────
   const status = contact.geoStateStatus || 'new';
 
   if (status === 'new') {
     await saveContact(phone, { geoStateStatus: 'asked' });
-    await record(phone, userText, ASK_STATE_MSG, 'flow', history);
-    return ASK_STATE_MSG;
+    const msg = T[lang].askState;
+    await record(phone, userText, msg, 'flow', history);
+    return msg;
   }
 
   if (status === 'asked') {
     // Ignore empty / non-text answers — ask once more.
     if (userText === '[non-text message]') {
-      await record(phone, userText, ASK_STATE_MSG, 'flow', history);
-      return ASK_STATE_MSG;
+      const msg = T[lang].askState;
+      await record(phone, userText, msg, 'flow', history);
+      return msg;
     }
     if (isOdisha(userText)) {
       await saveContact(phone, { geoStateStatus: 'verified', geoState: 'Odisha' });
-      const first = FORM_STEPS[0].prompt;
       await saveFormState(phone, {}, 0);
+      const first = formPrompt('name', lang);
       await record(phone, userText, first, 'flow', history);
       return first;
     }
     // Outside Odisha → polite decline + PERMANENT manual (bot silent hereafter).
     await saveContact(phone, { geoStateStatus: 'rejected', geoState: userText, mode: 'manual' }, { manualUntil: '' });
-    await record(phone, userText, OUT_OF_STATE_MSG, 'flow', history);
-    return OUT_OF_STATE_MSG;
+    const msg = T[lang].outOfState;
+    await record(phone, userText, msg, 'flow', history);
+    return msg;
   }
 
   // status 'rejected' but reached here means an admin re-enabled auto — fall
@@ -367,35 +348,38 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
     if (asked > MAX_QUESTIONS_AFTER_LEAD) {
       // Too many questions → 2-hour manual cooldown (auto-reverts), fresh batch after.
       await saveContact(phone, { mode: 'manual', manualUntil: new Date(Date.now() + MANUAL_COOLDOWN_MS), questionsSinceLead: 0 });
-      await record(phone, userText, COOLDOWN_MSG, 'flow', history);
-      return COOLDOWN_MSG;
+      const msg = T[lang].cooldown;
+      await record(phone, userText, msg, 'flow', history);
+      return msg;
     }
     await saveContact(phone, { questionsSinceLead: asked });
-    const { reply, source } = await answerQuestion(userText);
+    const { reply, source } = await answerQuestion(userText, lang);
     await record(phone, userText, reply, source, history);
     return reply;
   }
 
   // ── STAGE 2: LEAD FORM (Odisha, no lead yet) ────────────────────────────────
-  const step = FORM_STEPS[formStep];
-  const { value, error } = validateForm(step, bodyText);
-  if (error) {
-    await record(phone, userText, error, 'flow', history);
-    return error;
+  const key = FORM_KEYS[formStep];
+  const { value, invalid } = validateForm(key, bodyText);
+  if (invalid) {
+    const err = T[lang].err[key];
+    await record(phone, userText, err, 'flow', history);
+    return err;
   }
-  form[step.key] = value;
+  form[key] = value;
 
   const nextStep = formStep + 1;
-  if (nextStep < FORM_STEPS.length) {
-    let prompt = FORM_STEPS[nextStep].prompt;
-    if (step.key === 'name' && value) prompt = `Thanks, ${value.split(' ')[0]}! ` + prompt;
+  if (nextStep < FORM_KEYS.length) {
+    let prompt = formPrompt(FORM_KEYS[nextStep], lang);
+    if (key === 'name' && value) prompt = T[lang].thanksPrefix(value.split(' ')[0]) + prompt;
     await saveFormState(phone, form, nextStep);
     await record(phone, userText, prompt, 'flow', history);
     return prompt;
   }
 
   // Form complete → create ONE lead, thank the user, enter Q&A mode.
-  const reply = thankYouMsg(form);
+  const first = form.name ? String(form.name).split(' ')[0] : '';
+  const reply = T[lang].thankYou(first, form.phone);
   await saveContact(phone, { leadCreated: true, leadCreatedAt: new Date(), questionsSinceLead: 0 });
   await saveFormState(phone, {}, 0); // clear in-progress form
   await record(phone, userText, reply, 'flow', history);
