@@ -17,7 +17,14 @@ import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLoanAdminNotification, sendWelcomeEmail } from '@/lib/email';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 
-export async function captureLead(lead: LeadData): Promise<void> {
+// `skipWhatsAppConfirmation` is set by the WhatsApp bot: the user is already in a
+// live WhatsApp chat and we thank them inline in that same reply, so sending an
+// extra template confirmation would be a duplicate message (and an extra Twilio
+// credit). The website chat leaves it false so the visitor still gets a WhatsApp.
+export async function captureLead(
+  lead: LeadData,
+  opts: { skipWhatsAppConfirmation?: boolean } = {},
+): Promise<void> {
   const fullName = lead.name || 'Ezy AI Lead';
   const email = lead.email || undefined;
   const phoneNumber = lead.phone || '';
@@ -90,7 +97,7 @@ export async function captureLead(lead: LeadData): Promise<void> {
   }
 
   // 4) WhatsApp confirmation to the lead (template/free-text auto-picked by env).
-  if (phoneNumber) {
+  if (phoneNumber && !opts.skipWhatsAppConfirmation) {
     try {
       await sendLeadConfirmationWhatsApp(phoneNumber, fullName, loanType);
     } catch (e) {

@@ -49,9 +49,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { phone: str
     const mode = body?.mode === 'manual' ? 'manual' : 'auto';
     await connectDB();
     const phone = decodePhone(params.phone);
+    // An admin decision is deliberate: clear any bot-imposed temporary cooldown
+    // so 'manual' stays permanent (human takeover) and 'auto' resumes cleanly.
     await WhatsAppContact.findOneAndUpdate(
       { phone },
-      { $set: { mode } },
+      { $set: { mode }, $unset: { manualUntil: '' } },
       { upsert: true, new: true },
     );
     return NextResponse.json({ phone, mode });
@@ -98,7 +100,7 @@ export async function POST(req: NextRequest, { params }: { params: { phone: stri
     });
     await WhatsAppContact.findOneAndUpdate(
       { phone },
-      { $set: { mode: 'manual' } },
+      { $set: { mode: 'manual' }, $unset: { manualUntil: '' } },
       { upsert: true },
     );
     // Keep conversation memory in sync so a later switch back to auto has context.
