@@ -1839,25 +1839,33 @@ function BlogsManager({
             )}
           </div>
 
-          {/* SEO checklist */}
-          <div className={`rounded-lg p-4 border ${seo.level === 'error' ? 'bg-red-50 border-red-200' : seo.level === 'warning' ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              {seo.level === 'error' ? <XCircle className="h-4 w-4 text-red-600" /> : seo.level === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
-              <span className="text-sm font-semibold">
-                SEO status: {seo.level === 'error' ? 'Errors — cannot publish' : seo.level === 'warning' ? 'Ready with warnings' : 'Ready to publish'}
-              </span>
+          {/* SEO checklist — only shown once you've started writing, so a blank
+              form isn't greeted with a wall of red. Warnings are tips only and
+              never block publishing; only the few red errors do. */}
+          {(formData.title.trim() || formData.content.trim()) ? (
+            <div className={`rounded-lg p-4 border ${seo.level === 'error' ? 'bg-red-50 border-red-200' : seo.level === 'warning' ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                {seo.level === 'error' ? <XCircle className="h-4 w-4 text-red-600" /> : seo.level === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
+                <span className="text-sm font-semibold">
+                  SEO status: {seo.level === 'error' ? 'Fix required before publishing' : seo.level === 'warning' ? 'Good to publish — optional tips below' : 'All good — ready to publish'}
+                </span>
+              </div>
+              {seo.errors.length > 0 && (
+                <ul className="text-sm text-red-700 list-disc pl-5 space-y-0.5 mb-1">
+                  {seo.errors.map((x, i) => <li key={`e${i}`}>{x}</li>)}
+                </ul>
+              )}
+              {seo.warnings.length > 0 && (
+                <ul className="text-sm text-amber-700 list-disc pl-5 space-y-0.5">
+                  {seo.warnings.map((x, i) => <li key={`w${i}`}>💡 {x}</li>)}
+                </ul>
+              )}
             </div>
-            {seo.errors.length > 0 && (
-              <ul className="text-sm text-red-700 list-disc pl-5 space-y-0.5 mb-1">
-                {seo.errors.map((x, i) => <li key={`e${i}`}>{x}</li>)}
-              </ul>
-            )}
-            {seo.warnings.length > 0 && (
-              <ul className="text-sm text-amber-700 list-disc pl-5 space-y-0.5">
-                {seo.warnings.map((x, i) => <li key={`w${i}`}>{x}</li>)}
-              </ul>
-            )}
-          </div>
+          ) : (
+            <div className="rounded-lg p-4 border border-gray-200 bg-gray-50 text-sm text-gray-500">
+              Start with a <strong>title</strong> and <strong>content</strong> — SEO tips and the publish check will appear here as you type.
+            </div>
+          )}
 
           {error && <div className="bg-red-50 text-red-800 p-3 rounded-lg text-sm border border-red-200 whitespace-pre-line">{error}</div>}
 

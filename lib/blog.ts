@@ -96,10 +96,16 @@ export function runSeoChecklist(b: SeoCheckInput): SeoCheckResult {
   else passed.push('Valid slug');
 
   const contentLen = textContentLength(b.content || '');
-  if (contentLen < 300) errors.push('Content is too thin (aim for real, useful content, not a stub).');
-  else passed.push('Content has substance');
+  if (contentLen === 0) {
+    errors.push('Content is required.');
+  } else {
+    passed.push('Content present');
+    if (contentLen < 300) warnings.push('Content looks short — aim for genuinely useful, in-depth content.');
+  }
 
-  if (!b.image || !b.image.trim()) errors.push('A featured image is required.');
+  // A featured image is strongly recommended (listing card, social share, SEO)
+  // but not a hard blocker — a post can be published without one.
+  if (!b.image || !b.image.trim()) warnings.push('Add a featured image (recommended for listing, social shares & SEO).');
   else passed.push('Featured image present');
 
   if (b.canonicalUrl && b.canonicalUrl.trim()) {
