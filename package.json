@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "migrate:blogs": "node --env-file=.env.local scripts/migrate-blog-status.mjs",
     "test:twilio": "node --env-file=.env.local scripts/test-twilio.mjs"
   },
   "dependencies": {

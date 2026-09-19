@@ -37,8 +37,13 @@ import {
   Settings as SettingsIcon,
   ChevronDown,
   MoreVertical,
-  Home
+  Home,
+  Send,
+  Archive,
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
+import { runSeoChecklist, sanitizeSlug, type SeoCheckResult } from '@/lib/blog';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
 import EzyBrainManager from '@/components/admin/EzyBrainManager';
@@ -73,6 +78,8 @@ interface LoginResponse {
   user: User;
 }
 
+type BlogStatus = 'draft' | 'pending' | 'published' | 'rejected' | 'archived';
+
 interface Blog {
   _id: string;
   title: string;
@@ -81,6 +88,21 @@ interface Blog {
   content: string;
   category: string;
   image: string;
+  status?: BlogStatus;
+  rejectionReason?: string;
+  featuredImageAlt?: string;
+  author?: string;
+  authorBio?: string;
+  tags?: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  focusKeyword?: string;
+  secondaryKeywords?: string[];
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  publishedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +114,18 @@ interface BlogFormData {
   content: string;
   category: string;
   image: string;
+  featuredImageAlt: string;
+  author: string;
+  authorBio: string;
+  tags: string;
+  seoTitle: string;
+  seoDescription: string;
+  focusKeyword: string;
+  secondaryKeywords: string;
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImage: string;
 }
 
 // Main Admin Application
@@ -725,7 +759,7 @@ function AdminDashboard({
 
   const handleDeleteBlog = async (blogId: string) => {
     if (!window.confirm('Are you sure you want to delete this blog?')) return;
-    
+
     try {
       await axios.delete(`/api/blogs/${blogId}`);
       fetchBlogs();
@@ -733,6 +767,21 @@ function AdminDashboard({
     } catch (error) {
       console.error('Error deleting blog:', error);
       alert('Failed to delete blog. Please try again.');
+    }
+  };
+
+  // 🔥 NEW: Blog approval-workflow status change (submit / approve / reject / unpublish)
+  const handleBlogStatus = async (blogId: string, status: BlogStatus, rejectionReason?: string) => {
+    try {
+      await axios.post(`/api/blogs/${blogId}/status`, { status, rejectionReason });
+      fetchBlogs();
+      return { success: true };
+    } catch (error: any) {
+      const data = error.response?.data;
+      const msg = data?.errors?.length
+        ? `${data.message}\n\n• ${data.errors.join('\n• ')}`
+        : data?.message || 'Failed to update status';
+      return { success: false, message: msg };
     }
   };
 
@@ -965,6 +1014,7 @@ function AdminDashboard({
             onCreateBlog={handleCreateBlog}
             onUpdateBlog={handleUpdateBlog}
             onDeleteBlog={handleDeleteBlog}
+            onBlogStatus={handleBlogStatus}
             loadingBlogs={loading.blogs}
             // Testimonials props
             testimonials={testimonials}
@@ -1452,149 +1502,156 @@ function StatusBadge({ status, large = false }: { status: string; large?: boolea
   return (<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.textClass}`}><span className={`inline-block w-2 h-2 mr-1 rounded-full ${config.dot}`}></span>{large ? config.text.toUpperCase() : config.text}</span>);
 }
 
-// 🔥 FIXED: Blogs Manager Component - Image Upload Now Uses /api/banners Endpoint
+// Blog Manager — create/edit + approval workflow (draft → pending → published /
+// rejected / archived) + SEO controls, preview and checklist. A blog is public
+// ONLY when published; publishing is gated server-side by the SEO checklist.
+const BLOG_STATUS_META: Record<string, { label: string; cls: string }> = {
+  draft: { label: 'Draft', cls: 'bg-gray-100 text-gray-700' },
+  pending: { label: 'Pending Review', cls: 'bg-amber-100 text-amber-800' },
+  published: { label: 'Published', cls: 'bg-green-100 text-green-800' },
+  rejected: { label: 'Rejected', cls: 'bg-red-100 text-red-800' },
+  archived: { label: 'Archived', cls: 'bg-slate-200 text-slate-700' },
+};
+
+function BlogStatusBadge({ status }: { status?: BlogStatus }) {
+  const meta = BLOG_STATUS_META[status || 'published'] || BLOG_STATUS_META.draft;
+  return <span className={`px-2 py-1 text-xs rounded-full font-medium ${meta.cls}`}>{meta.label}</span>;
+}
+
+const SITE_ORIGIN = 'https://www.ezyloan.co.in';
+
 function BlogsManager({
-  blogs, selectedBlog, setSelectedBlog, onCreateBlog, onUpdateBlog, onDeleteBlog, loadingBlogs
+  blogs, selectedBlog, setSelectedBlog, onCreateBlog, onUpdateBlog, onDeleteBlog, onBlogStatus, loadingBlogs
 }: {
   blogs: Blog[]; selectedBlog: Blog | null; setSelectedBlog: (blog: Blog | null) => void;
   onCreateBlog: (data: BlogFormData) => Promise<{ success: boolean; message?: string }>;
   onUpdateBlog: (id: string, data: Partial<BlogFormData>) => Promise<{ success: boolean; message?: string }>;
-  onDeleteBlog: (id: string) => void; loadingBlogs: boolean;
+  onDeleteBlog: (id: string) => void;
+  onBlogStatus: (id: string, status: BlogStatus, rejectionReason?: string) => Promise<{ success: boolean; message?: string }>;
+  loadingBlogs: boolean;
 }) {
-  const [formData, setFormData] = useState<BlogFormData>({
-    title: '', slug: '', excerpt: '', content: '', category: 'Personal', image: ''
-  });
+  const emptyForm: BlogFormData = {
+    title: '', slug: '', excerpt: '', content: '', category: 'Personal', image: '',
+    featuredImageAlt: '', author: '', authorBio: '', tags: '',
+    seoTitle: '', seoDescription: '', focusKeyword: '', secondaryKeywords: '',
+    canonicalUrl: '', ogTitle: '', ogDescription: '', ogImage: '',
+  };
+  const [formData, setFormData] = useState<BlogFormData>(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
-  
-  // 🔥 NEW: Image upload states
+  const [showSeo, setShowSeo] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | BlogStatus>('all');
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>('');
 
-  // 🔥 UPDATED: Categories array as per your request
   const categories = [
-    'Personal',
-    'Property Loans',
-    'Business',
-    'car-loan-bt',
-    'car-loan-new',
-    'used-car-loan',
-    'car-loan-topup',
-    'commercial-vehicle'
+    'Personal', 'Property Loans', 'Business',
+    'car-loan-bt', 'car-loan-new', 'used-car-loan', 'car-loan-topup', 'commercial-vehicle',
   ];
 
   useEffect(() => {
     if (selectedBlog) {
       setFormData({
-        title: selectedBlog.title,
-        slug: selectedBlog.slug,
-        excerpt: selectedBlog.excerpt,
-        content: selectedBlog.content,
-        category: selectedBlog.category,
-        image: selectedBlog.image
+        title: selectedBlog.title || '',
+        slug: selectedBlog.slug || '',
+        excerpt: selectedBlog.excerpt || '',
+        content: selectedBlog.content || '',
+        category: selectedBlog.category || 'Personal',
+        image: selectedBlog.image || '',
+        featuredImageAlt: selectedBlog.featuredImageAlt || '',
+        author: selectedBlog.author || '',
+        authorBio: selectedBlog.authorBio || '',
+        tags: (selectedBlog.tags || []).join(', '),
+        seoTitle: selectedBlog.seoTitle || '',
+        seoDescription: selectedBlog.seoDescription || '',
+        focusKeyword: selectedBlog.focusKeyword || '',
+        secondaryKeywords: (selectedBlog.secondaryKeywords || []).join(', '),
+        canonicalUrl: selectedBlog.canonicalUrl || '',
+        ogTitle: selectedBlog.ogTitle || '',
+        ogDescription: selectedBlog.ogDescription || '',
+        ogImage: selectedBlog.ogImage || '',
       });
-      setImagePreview(selectedBlog.image);
+      setImagePreview(selectedBlog.image || '');
       setIsEditing(true);
+      setShowSeo(true);
     } else {
-      setFormData({ title: '', slug: '', excerpt: '', content: '', category: 'Personal', image: '' });
+      setFormData(emptyForm);
       setImagePreview('');
       setIsEditing(false);
     }
     setError('');
     setImageFile(null);
-  }, [selectedBlog]);
+  }, [selectedBlog]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Live SEO checklist for the form (recommendations, not ranking guarantees).
+  const seo: SeoCheckResult = React.useMemo(() => runSeoChecklist({
+    title: formData.title, slug: formData.slug, content: formData.content,
+    excerpt: formData.excerpt, image: formData.image, featuredImageAlt: formData.featuredImageAlt,
+    category: formData.category, author: formData.author, seoTitle: formData.seoTitle,
+    seoDescription: formData.seoDescription, focusKeyword: formData.focusKeyword, canonicalUrl: formData.canonicalUrl,
+  }), [formData]);
+
+  // Warn about a substantially similar existing post (duplicate protection).
+  const duplicate = React.useMemo(() => {
+    const t = formData.title.trim().toLowerCase();
+    if (!t) return null;
+    return blogs.find((b) => b._id !== selectedBlog?._id && (b.title || '').trim().toLowerCase() === t) || null;
+  }, [formData.title, blogs, selectedBlog]);
 
   const handleGenerateSlug = () => {
-    if (formData.title) {
-      const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      setFormData(prev => ({ ...prev, slug }));
-    }
+    if (formData.title) setFormData((p) => ({ ...p, slug: sanitizeSlug(formData.title) }));
   };
 
-  // 🔥 NEW: Handle image file selection and preview
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size should be less than 5MB');
-      return;
-    }
-
+    if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('File size should be less than 5MB'); return; }
     setImageFile(file);
-    
-    // Create preview URL
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
-    
-    // Clear the input value so same file can be selected again
+    setImagePreview(URL.createObjectURL(file));
     event.target.value = '';
   };
 
-  // 🔥 FIXED: Upload image using EXISTING /api/banners endpoint (no backend changes needed!)
   const uploadImage = async (file: File): Promise<string> => {
-    const uploadFormData = new FormData();
-    uploadFormData.append('image', file);
-    uploadFormData.append('page', 'blog'); // Use 'blog' as page identifier
-    
-    try {
-      const response = await axios.post(`/api/banners`, uploadFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      // The banners endpoint returns the created banner object
-      // Extract the image URL from the response
-      const uploadedBanner = response.data;
-      return uploadedBanner.image;
-    } catch (error) {
-      console.error('Error uploading blog image:', error);
-      throw new Error('Failed to upload image. Please try again.');
-    }
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('page', 'blog');
+    const response = await axios.post(`/api/banners`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return response.data.image;
   };
+
+  const set = (k: keyof BlogFormData, v: string) => setFormData((p) => ({ ...p, [k]: v }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.slug || !formData.excerpt || !formData.content) {
-      setError('Please fill all required fields');
-      return;
-    }
+    if (!formData.title || !formData.content) { setError('Title and content are required'); return; }
     setIsSubmitting(true);
     setError('');
-    
     try {
       let finalImageUrl = formData.image;
-      
-      // 🔥 NEW: If new image file selected, upload it first using banners endpoint
       if (imageFile) {
         setIsUploadingImage(true);
         finalImageUrl = await uploadImage(imageFile);
         setIsUploadingImage(false);
       }
-      
-      const blogData: BlogFormData = {
-        ...formData,
-        image: finalImageUrl
-      };
-      
-      if (isEditing && selectedBlog) {
-        await onUpdateBlog(selectedBlog._id, blogData);
+      const blogData: BlogFormData = { ...formData, image: finalImageUrl, slug: sanitizeSlug(formData.slug || formData.title) };
+
+      const res = isEditing && selectedBlog
+        ? await onUpdateBlog(selectedBlog._id, blogData)
+        : await onCreateBlog(blogData);
+
+      if (res.success) {
+        setFormData(emptyForm);
+        setImageFile(null);
+        setImagePreview('');
+        setSelectedBlog(null);
+        setIsEditing(false);
       } else {
-        await onCreateBlog(blogData);
+        setError(res.message || 'Failed to save blog');
       }
-      
-      // Cleanup
-      setFormData({ title: '', slug: '', excerpt: '', content: '', category: 'Personal', image: '' });
-      setImageFile(null);
-      setImagePreview('');
-      setSelectedBlog(null);
-      setIsEditing(false);
     } catch (err: any) {
       setError(err.message || 'Failed to save blog');
       setIsUploadingImage(false);
@@ -1604,27 +1661,48 @@ function BlogsManager({
 
   const handleCancel = () => {
     setSelectedBlog(null);
-    setFormData({ title: '', slug: '', excerpt: '', content: '', category: 'Personal', image: '' });
+    setFormData(emptyForm);
     setImageFile(null);
     setImagePreview('');
     setIsEditing(false);
     setError('');
   };
 
-  // Cleanup preview URL on unmount
-  useEffect(() => {
-    return () => {
-      if (imagePreview && imagePreview.startsWith('blob:')) {
-        URL.revokeObjectURL(imagePreview);
-      }
-    };
-  }, [imagePreview]);
+  const doStatus = async (blog: Blog, status: BlogStatus) => {
+    let reason: string | undefined;
+    if (status === 'rejected') {
+      reason = window.prompt('Reason for rejecting this blog (shown to editors):') || '';
+      if (!reason.trim()) return;
+    }
+    const verb = status === 'published' ? 'publish' : status === 'archived' ? 'unpublish' : status;
+    if (status === 'archived' && !window.confirm('Unpublish this blog? It will be removed from the site and sitemap.')) return;
+    const res = await onBlogStatus(blog._id, status, reason);
+    if (!res.success) alert(res.message || `Failed to ${verb} blog`);
+  };
+
+  useEffect(() => () => { if (imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview); }, [imagePreview]);
+
+  const filtered = statusFilter === 'all'
+    ? blogs
+    : blogs.filter((b) => (b.status || 'published') === statusFilter);
+
+  const counts = blogs.reduce((acc: Record<string, number>, b) => {
+    const s = b.status || 'published';
+    acc[s] = (acc[s] || 0) + 1;
+    return acc;
+  }, {});
+
+  const previewTitle = (formData.seoTitle || formData.title || 'Blog title').slice(0, 60);
+  const previewDesc = (formData.seoDescription || formData.excerpt || 'Meta description preview…').slice(0, 160);
+  const previewUrl = `${SITE_ORIGIN}/blog/${sanitizeSlug(formData.slug || formData.title) || 'your-slug'}`;
+
+  const inputCls = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500';
 
   return (
     <div>
       <div className="mb-6">
         <h3 className="text-2xl font-bold text-gray-800 mb-2">Blog Management</h3>
-        <p className="text-gray-600">Create, edit, and manage your blog posts</p>
+        <p className="text-gray-600">Create, review and publish blog posts. A blog goes live only after it is <strong>Published</strong>.</p>
       </div>
 
       {/* Blog Form */}
@@ -1634,105 +1712,247 @@ function BlogsManager({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-              <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Enter blog title" />
+              <input type="text" value={formData.title} onChange={(e) => set('title', e.target.value)} required className={inputCls} placeholder="Enter blog title" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label>
               <div className="flex gap-2">
-                <input type="text" value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} required className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="blog-title-slug" />
-                <button type="button" onClick={handleGenerateSlug} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors text-sm">Generate</button>
+                <input type="text" value={formData.slug} onChange={(e) => set('slug', e.target.value)} className={`flex-1 ${inputCls}`} placeholder="blog-title-slug" />
+                <button type="button" onClick={handleGenerateSlug} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm">Generate</button>
               </div>
+              {isEditing && <p className="text-xs text-gray-400 mt-1">Changing a published slug auto-creates a 301 redirect from the old URL.</p>}
             </div>
           </div>
+
+          {duplicate && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-lg text-sm flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              A blog with this exact title already exists (“{duplicate.title}”). Avoid publishing duplicate content.
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              <select value={formData.category} onChange={(e) => set('category', e.target.value)} className={inputCls}>
+                {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
-            {/* 🔥 FIXED: Image Upload Section - Uses /api/banners endpoint */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Featured Image</label>
               <div className="flex items-center gap-3">
-                <label className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer">
+                <label className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer">
                   <Upload className="h-4 w-4 mr-2" />
                   {isUploadingImage ? 'Uploading...' : 'Choose Image'}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageSelect} 
-                    disabled={isUploadingImage} 
-                    className="hidden" 
-                  />
+                  <input type="file" accept="image/*" onChange={handleImageSelect} disabled={isUploadingImage} className="hidden" />
                 </label>
-                {imagePreview && (
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="w-16 h-16 rounded object-cover border border-gray-200"
-                    onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/64x64?text=No+Image'; }}
-                  />
-                )}
+                {imagePreview && <img src={imagePreview} alt="Preview" className="w-16 h-16 rounded object-cover border border-gray-200" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
               </div>
-              {formData.image && !imageFile && (
-                <p className="text-xs text-gray-500 mt-1 truncate max-w-xs">
-                  Current: {formData.image}
-                </p>
-              )}
             </div>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt *</label>
-            <textarea value={formData.excerpt} onChange={(e) => setFormData({...formData, excerpt: e.target.value})} required rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Short description for blog listing..." />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image ALT text</label>
+            <input type="text" value={formData.featuredImageAlt} onChange={(e) => set('featuredImageAlt', e.target.value)} className={inputCls} placeholder="Describe the image for accessibility & SEO (not keyword stuffing)" />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt</label>
+            <textarea value={formData.excerpt} onChange={(e) => set('excerpt', e.target.value)} rows={2} className={inputCls} placeholder="Short description for listing & meta description fallback..." />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Content *</label>
-            <textarea value={formData.content} onChange={(e) => setFormData({...formData, content: e.target.value})} required rows={10} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono" placeholder="Write your blog content here (HTML supported)..." />
-            <p className="text-xs text-gray-500 mt-1">💡 Tip: You can use HTML tags like &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;a&gt; for formatting</p>
+            <textarea value={formData.content} onChange={(e) => set('content', e.target.value)} required rows={12} className={`${inputCls} font-mono`} placeholder="Write your blog content here (HTML supported)..." />
+            <p className="text-xs text-gray-500 mt-1">💡 Use &lt;h2&gt;, &lt;h3&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;table&gt;, &lt;a&gt;. The title is the page H1 — don’t add another &lt;h1&gt;.</p>
           </div>
-          {error && <div className="bg-red-50 text-red-800 p-3 rounded-lg text-sm border border-red-200">{error}</div>}
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={isSubmitting || isUploadingImage} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2">
-              {isSubmitting || isUploadingImage ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : <><Save className="h-4 w-4" /> {isEditing ? 'Update Blog' : 'Publish Blog'}</>}
+
+          {/* SEO panel */}
+          <div className="border border-gray-200 rounded-lg">
+            <button type="button" onClick={() => setShowSeo((s) => !s)} className="w-full flex items-center justify-between px-4 py-3 text-left">
+              <span className="font-semibold text-gray-800">🔍 SEO settings</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${showSeo ? 'rotate-180' : ''}`} />
             </button>
-            {isEditing && <button type="button" onClick={handleCancel} className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">Cancel</button>}
+            {showSeo && (
+              <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4">
+                {/* Google preview */}
+                <div className="bg-white border border-gray-200 rounded-lg p-3">
+                  <p className="text-xs text-gray-400 mb-1">Google preview</p>
+                  <p className="text-[#1a0dab] text-lg leading-tight truncate">{previewTitle}</p>
+                  <p className="text-[#006621] text-sm truncate">{previewUrl}</p>
+                  <p className="text-sm text-gray-600 line-clamp-2">{previewDesc}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SEO Title <span className="text-gray-400">({formData.seoTitle.length}/60)</span></label>
+                    <input type="text" value={formData.seoTitle} onChange={(e) => set('seoTitle', e.target.value)} className={inputCls} placeholder="Falls back to the blog title" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Focus Keyword</label>
+                    <input type="text" value={formData.focusKeyword} onChange={(e) => set('focusKeyword', e.target.value)} className={inputCls} placeholder="e.g. car loan in Odisha" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">SEO Description <span className="text-gray-400">({formData.seoDescription.length}/160)</span></label>
+                  <textarea value={formData.seoDescription} onChange={(e) => set('seoDescription', e.target.value)} rows={2} className={inputCls} placeholder="Falls back to the excerpt. Aim for ~120-155 characters." />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Secondary Keywords</label>
+                    <input type="text" value={formData.secondaryKeywords} onChange={(e) => set('secondaryKeywords', e.target.value)} className={inputCls} placeholder="comma, separated, keywords" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                    <input type="text" value={formData.tags} onChange={(e) => set('tags', e.target.value)} className={inputCls} placeholder="comma, separated, tags" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Canonical URL <span className="text-gray-400">(optional — auto self-canonical if blank)</span></label>
+                  <input type="url" value={formData.canonicalUrl} onChange={(e) => set('canonicalUrl', e.target.value)} className={inputCls} placeholder="https://www.ezyloan.co.in/blog/..." />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">OG Title</label>
+                    <input type="text" value={formData.ogTitle} onChange={(e) => set('ogTitle', e.target.value)} className={inputCls} placeholder="Falls back to SEO/blog title" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">OG Image URL</label>
+                    <input type="url" value={formData.ogImage} onChange={(e) => set('ogImage', e.target.value)} className={inputCls} placeholder="Falls back to featured image" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">OG Description</label>
+                  <textarea value={formData.ogDescription} onChange={(e) => set('ogDescription', e.target.value)} rows={2} className={inputCls} placeholder="Falls back to SEO description" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Author</label>
+                    <input type="text" value={formData.author} onChange={(e) => set('author', e.target.value)} className={inputCls} placeholder="Real author name (trust for financial content)" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Author Bio</label>
+                    <input type="text" value={formData.authorBio} onChange={(e) => set('authorBio', e.target.value)} className={inputCls} placeholder="Short professional bio" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SEO checklist */}
+          <div className={`rounded-lg p-4 border ${seo.level === 'error' ? 'bg-red-50 border-red-200' : seo.level === 'warning' ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'}`}>
+            <div className="flex items-center gap-2 mb-2">
+              {seo.level === 'error' ? <XCircle className="h-4 w-4 text-red-600" /> : seo.level === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
+              <span className="text-sm font-semibold">
+                SEO status: {seo.level === 'error' ? 'Errors — cannot publish' : seo.level === 'warning' ? 'Ready with warnings' : 'Ready to publish'}
+              </span>
+            </div>
+            {seo.errors.length > 0 && (
+              <ul className="text-sm text-red-700 list-disc pl-5 space-y-0.5 mb-1">
+                {seo.errors.map((x, i) => <li key={`e${i}`}>{x}</li>)}
+              </ul>
+            )}
+            {seo.warnings.length > 0 && (
+              <ul className="text-sm text-amber-700 list-disc pl-5 space-y-0.5">
+                {seo.warnings.map((x, i) => <li key={`w${i}`}>{x}</li>)}
+              </ul>
+            )}
+          </div>
+
+          {error && <div className="bg-red-50 text-red-800 p-3 rounded-lg text-sm border border-red-200 whitespace-pre-line">{error}</div>}
+
+          <div className="flex flex-wrap gap-3 pt-2">
+            <button type="submit" disabled={isSubmitting || isUploadingImage} className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+              {isSubmitting || isUploadingImage ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : <><Save className="h-4 w-4" /> {isEditing ? 'Save Changes' : 'Save as Draft'}</>}
+            </button>
+            {isEditing && <button type="button" onClick={handleCancel} className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">Cancel</button>}
           </div>
         </form>
       </div>
 
+      {/* Status filter */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {(['all', 'draft', 'pending', 'published', 'rejected', 'archived'] as const).map((s) => (
+          <button key={s} onClick={() => setStatusFilter(s)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border ${statusFilter === s ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+            {s === 'all' ? 'All' : BLOG_STATUS_META[s].label} {s === 'all' ? `(${blogs.length})` : `(${counts[s] || 0})`}
+          </button>
+        ))}
+      </div>
+
       {/* Blogs List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">All Blogs ({blogs.length})</h4></div>
+        <div className="p-4 md:p-6 border-b border-gray-200"><h4 className="text-lg font-semibold text-gray-800">Blogs ({filtered.length})</h4></div>
         <div className="overflow-x-auto">
-          {loadingBlogs ? (<div className="flex justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>) : blogs.length === 0 ? (
-            <div className="text-center py-12"><FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-500 text-lg">No blogs found</p><p className="text-gray-400 mt-2">Create your first blog to get started</p></div>
+          {loadingBlogs ? (
+            <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div></div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-12"><FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" /><p className="text-gray-500 text-lg">No blogs in this view</p></div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50"><tr><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blog</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Category</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th><th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr></thead>
+              <thead className="bg-gray-50"><tr>
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Blog</th>
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Category</th>
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Date</th>
+                <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr></thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {blogs.map((blog) => (
-                  <tr key={blog._id} className="hover:bg-gray-50">
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        {blog.image && <img src={blog.image} alt={blog.title} className="w-12 h-12 rounded object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48x48?text=No+Image'; }} />}
-                        <div>
-                          <p className="font-medium text-gray-900">{blog.title}</p>
-                          <p className="text-sm text-gray-500 truncate max-w-xs">{blog.excerpt}</p>
+                {filtered.map((blog) => {
+                  const status = (blog.status || 'published') as BlogStatus;
+                  const rowSeo = runSeoChecklist({
+                    title: blog.title, slug: blog.slug, content: blog.content, excerpt: blog.excerpt,
+                    image: blog.image, featuredImageAlt: blog.featuredImageAlt, category: blog.category,
+                    author: blog.author, seoTitle: blog.seoTitle, seoDescription: blog.seoDescription,
+                    focusKeyword: blog.focusKeyword, canonicalUrl: blog.canonicalUrl,
+                  });
+                  const dot = rowSeo.level === 'error' ? 'bg-red-500' : rowSeo.level === 'warning' ? 'bg-amber-500' : 'bg-green-500';
+                  return (
+                    <tr key={blog._id} className="hover:bg-gray-50 align-top">
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {blog.image && <img src={blog.image} alt={blog.featuredImageAlt || blog.title} className="w-12 h-12 rounded object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 flex items-center gap-2">
+                              <span className={`inline-block w-2 h-2 rounded-full ${dot}`} title={`SEO: ${rowSeo.level}`}></span>
+                              {blog.title}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate max-w-xs">{blog.excerpt}</p>
+                            {status === 'rejected' && blog.rejectionReason && <p className="text-xs text-red-600 mt-1">Rejected: {blog.rejectionReason}</p>}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden md:table-cell"><span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-800">{blog.category}</span></td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">{new Date(blog.createdAt).toLocaleDateString()}</td>
-                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                      <div className="flex space-x-2">
-                        <a href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 transition-colors p-1 hover:bg-blue-50 rounded-full" title="View live"><Eye className="h-4 w-4" /></a>
-                        <button onClick={() => setSelectedBlog(blog)} className="text-indigo-600 hover:text-indigo-800 transition-colors p-1 hover:bg-indigo-50 rounded-full" title="Edit"><Edit className="h-4 w-4" /></button>
-                        <button onClick={() => onDeleteBlog(blog._id)} className="text-red-600 hover:text-red-800 transition-colors p-1 hover:bg-red-50 rounded-full" title="Delete"><Trash2 className="h-4 w-4" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap"><BlogStatusBadge status={status} /></td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap hidden md:table-cell"><span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-800">{blog.category}</span></td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">{new Date(blog.publishedAt || blog.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {status === 'published' && (
+                            <a href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:bg-blue-50 p-1 rounded-full" title="View live"><Eye className="h-4 w-4" /></a>
+                          )}
+                          <button onClick={() => setSelectedBlog(blog)} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded-full" title="Edit"><Edit className="h-4 w-4" /></button>
+
+                          {status === 'draft' && (
+                            <button onClick={() => doStatus(blog, 'pending')} className="text-amber-600 hover:bg-amber-50 p-1 rounded-full" title="Submit for review"><Send className="h-4 w-4" /></button>
+                          )}
+                          {(status === 'draft' || status === 'pending' || status === 'archived') && (
+                            <button onClick={() => doStatus(blog, 'published')} className="text-green-600 hover:bg-green-50 p-1 rounded-full" title={status === 'archived' ? 'Re-publish' : 'Approve & publish'}><CheckCircle className="h-4 w-4" /></button>
+                          )}
+                          {status === 'pending' && (
+                            <button onClick={() => doStatus(blog, 'rejected')} className="text-red-600 hover:bg-red-50 p-1 rounded-full" title="Reject"><XCircle className="h-4 w-4" /></button>
+                          )}
+                          {status === 'published' && (
+                            <button onClick={() => doStatus(blog, 'archived')} className="text-slate-600 hover:bg-slate-100 p-1 rounded-full" title="Unpublish (archive)"><Archive className="h-4 w-4" /></button>
+                          )}
+                          {status === 'rejected' && (
+                            <button onClick={() => doStatus(blog, 'draft')} className="text-gray-600 hover:bg-gray-100 p-1 rounded-full" title="Back to draft"><Clock className="h-4 w-4" /></button>
+                          )}
+                          <button onClick={() => onDeleteBlog(blog._id)} className="text-red-600 hover:bg-red-50 p-1 rounded-full" title="Delete"><Trash2 className="h-4 w-4" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
@@ -1741,6 +1961,7 @@ function BlogsManager({
     </div>
   );
 }
+
 
 // Testimonials Manager Component
 function TestimonialsManager({

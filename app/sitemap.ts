@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { connectDB } from '@/lib/db';
 import { Blog } from '@/lib/models/Blog';
+import { PUBLIC_BLOG_FILTER } from '@/lib/blog';
 
 const BASE_URL = 'https://www.ezyloan.co.in';
 
@@ -46,14 +47,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   }));
 
-  // Dynamic: every published blog post.
+  // Dynamic: ONLY published blog posts. Drafts, pending, rejected and archived
+  // posts are excluded automatically — when a post is unpublished it disappears
+  // from here on the next revalidation (and immediately via revalidatePath).
   let blogEntries: MetadataRoute.Sitemap = [];
   try {
     await connectDB();
-    const blogs = await Blog.find({}, 'slug updatedAt createdAt').lean();
+    const blogs = await Blog.find(PUBLIC_BLOG_FILTER, 'slug modifiedAt publishedAt updatedAt createdAt').lean();
     blogEntries = blogs.map((b: any) => ({
       url: `${BASE_URL}/blog/${b.slug}`,
-      lastModified: b.updatedAt || b.createdAt || now,
+      lastModified: b.modifiedAt || b.updatedAt || b.publishedAt || b.createdAt || now,
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }));
