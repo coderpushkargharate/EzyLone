@@ -38,6 +38,19 @@ export interface IWhatsAppContact extends Document {
   leadCreated: boolean;
   leadCreatedAt?: Date | null;
   questionsSinceLead: number;
+  // Product + name captured when the lead completes, so post-lead Q&A stays
+  // product-aware (e.g. LAP ownership answers) without asking the user to repeat
+  // their loan type, and answers can address them by name.
+  loanType?: string;
+  leadName?: string;
+  leadPhone?: string;
+  // Appointment / callback state (blueprint §10). callbackRequested = user asked
+  // for a human call; awaitingCallbackTime = we asked for a preferred time and
+  // are waiting for it; preferredCallbackTime = the noted time (preference only —
+  // NOT a booked calendar appointment).
+  callbackRequested?: boolean;
+  awaitingCallbackTime?: boolean;
+  preferredCallbackTime?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +66,12 @@ const WhatsAppContactSchema = new Schema<IWhatsAppContact>(
     leadCreated: { type: Boolean, default: false },
     leadCreatedAt: { type: Date, default: null },
     questionsSinceLead: { type: Number, default: 0 },
+    loanType: { type: String, default: '' },
+    leadName: { type: String, default: '' },
+    leadPhone: { type: String, default: '' },
+    callbackRequested: { type: Boolean, default: false },
+    awaitingCallbackTime: { type: Boolean, default: false },
+    preferredCallbackTime: { type: String, default: '' },
   },
   { timestamps: true }
 );

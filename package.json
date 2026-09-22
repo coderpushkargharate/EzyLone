@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "migrate:blogs": "node --env-file=.env.local scripts/migrate-blog-status.mjs",
-    "test:twilio": "node --env-file=.env.local scripts/test-twilio.mjs"
+    "test:twilio": "node --env-file=.env.local scripts/test-twilio.mjs",
+    "test:ezysaathi": "node scripts/run-ezysaathi-tests.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",

@@ -27,14 +27,35 @@
 // Contract: never throws. On any DB hiccup it degrades to a safe deterministic
 // reply so the user always gets an answer.
 
-import { runEngine, LeadData } from './engine';
+import { LeadData } from './engine';
 import { captureLead } from './leadCapture';
 import { matchKnowledge, logChat, bumpHits, HIGH_CONFIDENCE } from './knowledgeBase';
+import { classifyIntent, ConvContext, Intent, IntentResult } from './intent';
+import { altClarificationAnswer } from './answers';
 import { T, Lang, detectLang, loanTypePrompt, resolveLoanTypePick } from './waLang';
 import { connectDB } from '@/lib/db';
+import { createLeadFromWebhook } from '@/lib/ingest';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
 import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
 import { WhatsAppContact, WhatsAppMode, IWhatsAppContact } from '@/lib/models/WhatsAppContact';
+
+// Knowledge-type intents where an ADMIN-TRAINED knowledge-base entry (if it
+// matches confidently) should override our built-in answer. Deliberately excludes
+// EMI (we want the live calculation), property ownership (our nuanced answer is
+// better) and all conversational/appointment intents.
+const KB_OVERRIDE_INTENTS = new Set<Intent>([
+  'DOCUMENTS', 'ELIGIBILITY', 'INTEREST_RATE', 'PROCESSING_FEE', 'TENURE', 'CIBIL',
+  'INCOME_REQUIREMENT', 'LOAN_AMOUNT', 'APPLICATION_PROCESS', 'APPROVAL_PROCESS',
+  'DISBURSEMENT', 'FORECLOSURE', 'BALANCE_TRANSFER', 'TOP_UP', 'LOAN_PRODUCT_INFO',
+  'COMPANY_INFO', 'CONTACT_INFORMATION',
+]);
+
+// Map an intent result's internal source tag to a valid ChatLog source enum.
+function chatLogSource(r: IntentResult): 'knowledge' | 'engine' | 'fallback' {
+  if (r.source === 'knowledge') return 'knowledge';
+  if (r.intent === 'UNKNOWN' || r.source === 'clarification') return 'fallback';
+  return 'engine';
+}
 
 // ── Tunables ──────────────────────────────────────────────────────────────────
 // How many questions a lead may ask before the bot hands off to a human for a
@@ -42,9 +63,6 @@ import { WhatsAppContact, WhatsAppMode, IWhatsAppContact } from '@/lib/models/Wh
 const MAX_QUESTIONS_AFTER_LEAD = 15;
 // Temporary manual cooldown length once that cap is hit (auto-reverts to auto).
 const MANUAL_COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2 hours
-// Public EMI calculator — on WhatsApp we hand users this instead of a multi-step
-// in-chat EMI Q&A, keeping the conversation short.
-const EMI_CALCULATOR_URL = 'https://www.ezyloan.co.in/emi-calculator';
 
 // Odisha (and its common city/district names) so a user who answers with their
 // city — not the state — still passes the gate. Anything else is treated as
@@ -148,27 +166,52 @@ async function record(phone: string, userText: string, reply: string, source: st
   }
 }
 
-// Load conversation memory (in-progress form lives in session.state.form).
-async function loadSession(phone: string): Promise<{ history: Turn[]; form: Record<string, any>; formStep: number }> {
+// Load conversation memory (in-progress form lives in session.state.form; the
+// Q&A loop-protection meta lives in session.state.qna).
+async function loadSession(phone: string): Promise<{ history: Turn[]; form: Record<string, any>; formStep: number; qna: { lastReplyHash?: string; lastUserHash?: string; lastIntent?: string } }> {
   try {
     await connectDB();
     const doc = await WhatsAppSession.findOne({ phone }).lean();
     if (doc) {
       const st = (doc.state || {}) as any;
-      return { history: (doc.history || []) as Turn[], form: st.form || {}, formStep: st.formStep || 0 };
+      return { history: (doc.history || []) as Turn[], form: st.form || {}, formStep: st.formStep || 0, qna: st.qna || {} };
     }
   } catch (e) {
     console.error('WhatsApp session load failed:', e);
   }
-  return { history: [], form: {}, formStep: 0 };
+  return { history: [], form: {}, formStep: 0, qna: {} };
 }
 
 async function saveFormState(phone: string, form: Record<string, any>, formStep: number): Promise<void> {
   try {
-    await WhatsAppSession.findOneAndUpdate({ phone }, { $set: { state: { form, formStep } } }, { upsert: true });
+    // Merge (don't overwrite the whole state) so Q&A meta on the same doc survives.
+    await WhatsAppSession.findOneAndUpdate({ phone }, { $set: { 'state.form': form, 'state.formStep': formStep } }, { upsert: true });
   } catch (e) {
     console.error('WhatsApp form state save failed:', e);
   }
+}
+
+// Persist the loop-protection meta for the last Q&A turn.
+async function saveQnaMeta(phone: string, qna: { lastReplyHash: string; lastUserHash: string; lastIntent: string }): Promise<void> {
+  try {
+    await WhatsAppSession.findOneAndUpdate({ phone }, { $set: { 'state.qna': qna } }, { upsert: true });
+  } catch (e) {
+    console.error('WhatsApp Q&A meta save failed:', e);
+  }
+}
+
+// Normalised hash of a message for loop detection (case/space-insensitive).
+function textHash(s: string): string {
+  return (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// The last assistant message in the rolling history — key context for short
+// replies like "Tomorrow 11am" (blueprint §14).
+function lastAssistant(history: Turn[]): string | undefined {
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].role === 'assistant') return history[i].content;
+  }
+  return undefined;
 }
 
 // ── MANUAL mode side-effects (bot silent, human replies) ─────────────────────
@@ -253,44 +296,146 @@ function buildFormLead(phone: string, form: Record<string, any>): LeadData {
   };
 }
 
-// ── Q&A mode (after the lead exists) ─────────────────────────────────────────
-// Produce an informational answer using the self-trained knowledge base first,
-// then the rule engine (products / FAQ / EMI). We run the engine STATELESSLY so
-// it can never get stuck in — or restart — a data-collection flow. Returns the
-// reply plus a source tag for logging.
-async function answerQuestion(userText: string, lang: Lang): Promise<{ reply: string; source: string }> {
-  // 1) Self-trained knowledge base (high confidence only).
-  try {
-    const kb = await matchKnowledge(userText, 'whatsapp');
-    if (kb && kb.score >= HIGH_CONFIDENCE) {
-      bumpHits(kb.entryId);
-      await logChat({ question: userText, answer: kb.answer, source: 'knowledge', matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'whatsapp' });
-      return { reply: kb.answer, source: 'knowledge' };
+// ── Q&A mode (after the lead exists) — context-aware ─────────────────────────
+// Every post-lead message is CLASSIFIED using the current message PLUS the
+// previous assistant message, the selected loan product and the callback state
+// (blueprint §3/§4/§13/§14) — never the message alone. This is what stops the
+// bot from repeating the generic introduction for questions it should understand
+// (e.g. "Tomorrow 11am", "Fix appointment", "Property not in my name").
+//
+// Order: (1) contextual intent → its compliance-safe answer; (2) for pure
+// knowledge intents, let a confident ADMIN-TRAINED KB entry override; (3) apply
+// any follow-up action (store callback time, request a human, etc.); (4) loop
+// protection so the same reply is never sent twice for different messages.
+async function answerInQnA(
+  phone: string,
+  userText: string,
+  contact: Partial<IWhatsAppContact>,
+  history: Turn[],
+  qnaMeta: { lastReplyHash?: string; lastUserHash?: string; lastIntent?: string },
+): Promise<{ reply: string; source: string }> {
+  const ctx: ConvContext = {
+    loanType: contact.loanType || undefined,
+    leadName: contact.leadName ? String(contact.leadName).split(' ')[0] : undefined,
+    leadPhone: contact.leadPhone || contact.phone ? (contact.leadPhone || normalizePhone(String(contact.phone))) : undefined,
+    previousAssistant: lastAssistant(history),
+    callbackRequested: !!contact.callbackRequested,
+    awaitingCallbackTime: !!contact.awaitingCallbackTime,
+    preferredCallbackTime: contact.preferredCallbackTime || undefined,
+  };
+
+  const result = classifyIntent(userText, ctx);
+
+  // Admin-trained knowledge-base override for pure knowledge intents.
+  let kbUsed = false;
+  if (KB_OVERRIDE_INTENTS.has(result.intent)) {
+    try {
+      const kb = await matchKnowledge(userText, 'whatsapp');
+      if (kb && kb.score >= HIGH_CONFIDENCE) {
+        bumpHits(kb.entryId);
+        result.reply = kb.answer;
+        result.source = 'knowledge';
+        kbUsed = true;
+        await logChat({ question: userText, answer: kb.answer, source: 'knowledge', matched: true, score: kb.score, matchedEntry: kb.entryId, channel: 'whatsapp' });
+      }
+    } catch (e) {
+      console.error('WhatsApp KB match failed:', e);
     }
+  }
+
+  // Apply follow-up actions (callback/appointment state + CRM note).
+  await applyIntentAction(phone, contact, result);
+
+  // Loop protection (§18): if we're about to send the exact same reply we sent
+  // last turn for a DIFFERENT message, and it was an uncertain answer, swap in a
+  // distinct clarification instead of repeating ourselves.
+  const replyHash = textHash(result.reply);
+  const userHash = textHash(userText);
+  const uncertain = result.intent === 'UNKNOWN' || result.source === 'clarification';
+  if (uncertain && replyHash === qnaMeta.lastReplyHash && userHash !== qnaMeta.lastUserHash) {
+    result.reply = altClarificationAnswer();
+    result.source = 'clarification';
+  }
+
+  if (!kbUsed) {
+    await logChat({
+      question: userText,
+      answer: result.reply,
+      source: chatLogSource(result),
+      matched: result.intent !== 'UNKNOWN' && result.source !== 'clarification',
+      score: result.confidence,
+      channel: 'whatsapp',
+    });
+  }
+
+  // Dev-mode structured trace (never logs credentials/OTP — none are handled here).
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(
+      `[EZYSAAI] state="LEAD_COMPLETED" loanType="${contact.loanType || ''}" ` +
+        `prevIntent="${qnaMeta.lastIntent || ''}" msg=${JSON.stringify(userText.slice(0, 80))} ` +
+        `intent="${result.intent}" confidence=${result.confidence.toFixed(2)} action="${result.action}" source="${textHashSourceSafe(result)}"`,
+    );
+  }
+
+  await saveQnaMeta(phone, { lastReplyHash: textHash(result.reply), lastUserHash: userHash, lastIntent: result.intent });
+  return { reply: result.reply, source: result.source };
+}
+
+// Small helper so the dev log line never trips on undefined.
+function textHashSourceSafe(r: IntentResult): string {
+  return r.source || 'intent';
+}
+
+// Apply the follow-up action an intent asked for: persist callback/appointment
+// state on the contact and record a callback preference on the CRM lead. We only
+// ever note a *preference* — we never claim a calendar appointment was booked.
+async function applyIntentAction(phone: string, contact: Partial<IWhatsAppContact>, result: IntentResult): Promise<void> {
+  switch (result.action) {
+    case 'ASK_CALLBACK_TIME':
+      await saveContact(phone, { callbackRequested: true, awaitingCallbackTime: true });
+      break;
+    case 'REQUEST_CALLBACK':
+      await saveContact(phone, { callbackRequested: true });
+      break;
+    case 'SET_CALLBACK_TIME':
+      if (result.callbackTime) {
+        await saveContact(phone, { callbackRequested: true, awaitingCallbackTime: false, preferredCallbackTime: result.callbackTime });
+        await noteCallbackOnLead(contact, result.callbackTime);
+      }
+      break;
+    case 'CONFIRM_CALLBACK':
+      await saveContact(phone, { callbackRequested: true, awaitingCallbackTime: false });
+      break;
+    case 'HANDOFF':
+      await saveContact(phone, { callbackRequested: true });
+      break;
+    case 'NONE':
+    default:
+      // A non-appointment answer clears any pending "awaiting time" so a later,
+      // unrelated time expression isn't misread as this callback's time.
+      if (contact.awaitingCallbackTime) await saveContact(phone, { awaitingCallbackTime: false });
+      break;
+  }
+}
+
+// Record a callback preference as a timeline note on the EXISTING CRM lead
+// (deduped by phone — never creates a duplicate LoanApplication). Best-effort.
+async function noteCallbackOnLead(contact: Partial<IWhatsAppContact>, time: string): Promise<void> {
+  const leadPhone = contact.leadPhone || (contact.phone ? normalizePhone(String(contact.phone)) : '');
+  if (!leadPhone) return;
+  try {
+    await createLeadFromWebhook({
+      name: contact.leadName || undefined,
+      phone: leadPhone,
+      message: `Preferred callback time: ${time}`,
+      source: 'EzySaathi AI WhatsApp',
+      priority: 'HOT',
+      loanType: contact.loanType || undefined,
+      leadStage: 'Callback Requested',
+    });
   } catch (e) {
-    console.error('WhatsApp KB match failed:', e);
+    console.error('WhatsApp callback CRM note failed (non-fatal):', e);
   }
-
-  // 2) Rule engine — stateless, concise. Used only for informational intents.
-  const r = runEngine(userText, {}, { concise: true });
-
-  // EMI → hand off to the online calculator (localized, no multi-step Q&A here).
-  if (r.state.flow === 'emi') {
-    const reply = T[lang].emi(EMI_CALCULATOR_URL);
-    await logChat({ question: userText, answer: reply, source: 'engine', matched: true, score: 0, channel: 'whatsapp' });
-    return { reply, source: 'engine' };
-  }
-
-  // Any data-collection / lead / eligibility / callback intent → don't restart it.
-  const collectFlows = ['collect', 'lead', 'callback', 'topupgate', 'eligibility'];
-  if (r.lead || (r.state.flow && collectFlows.includes(r.state.flow))) {
-    return { reply: T[lang].alreadyNoted, source: 'flow' };
-  }
-
-  // Otherwise use the engine's informational reply (products, FAQ, greeting…).
-  const source = r.fallback ? 'fallback' : 'engine';
-  await logChat({ question: userText, answer: r.reply, source, matched: !r.fallback, score: 0, channel: 'whatsapp' });
-  return { reply: r.reply, source };
 }
 
 /**
@@ -301,7 +446,7 @@ async function answerQuestion(userText: string, lang: Lang): Promise<{ reply: st
 export async function generateWhatsAppReply(phone: string, bodyText: string): Promise<string> {
   const userText = (bodyText || '').trim() || '[non-text message]';
   const contact = await loadContact(phone);
-  const { history, form, formStep } = await loadSession(phone);
+  const { history, form, formStep, qna } = await loadSession(phone);
 
   // Pick the reply language: detect this turn, else keep the last known, else en.
   const detected = detectLang(userText);
@@ -353,7 +498,7 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
       return msg;
     }
     await saveContact(phone, { questionsSinceLead: asked });
-    const { reply, source } = await answerQuestion(userText, lang);
+    const { reply, source } = await answerInQnA(phone, userText, contact, history, qna);
     await record(phone, userText, reply, source, history);
     return reply;
   }
@@ -377,10 +522,19 @@ export async function generateWhatsAppReply(phone: string, bodyText: string): Pr
     return prompt;
   }
 
-  // Form complete → create ONE lead, thank the user, enter Q&A mode.
+  // Form complete → create ONE lead, thank the user, enter Q&A mode. Persist the
+  // product / name / phone so post-lead Q&A stays product-aware (e.g. LAP
+  // ownership answers) and can address the user by name and confirm callbacks.
   const first = form.name ? String(form.name).split(' ')[0] : '';
   const reply = T[lang].thankYou(first, form.phone);
-  await saveContact(phone, { leadCreated: true, leadCreatedAt: new Date(), questionsSinceLead: 0 });
+  await saveContact(phone, {
+    leadCreated: true,
+    leadCreatedAt: new Date(),
+    questionsSinceLead: 0,
+    loanType: form.loanType || '',
+    leadName: form.name || '',
+    leadPhone: form.phone || normalizePhone(phone),
+  });
   await saveFormState(phone, {}, 0); // clear in-progress form
   await record(phone, userText, reply, 'flow', history);
   try {
