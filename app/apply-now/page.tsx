@@ -295,9 +295,9 @@ const ApplyNowPage: React.FC = () => {
         itemType="https://schema.org/WebPage"
         role="main"
       >
+        {/* Hero Image Section (banner) — hidden per request. Kept commented so it can be restored later. */}
+        {/*
         <div className="max-w-[85rem] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 relative z-10 pt-20 sm:pt-20 lg:pt-24 xl:pt-28">
-          
-          {/* Hero Image Section - Responsive padding & sizing */}
           <div className="relative mb-8 sm:mb-10 lg:mb-12 xl:mb-16 overflow-hidden rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl mt-8">
             <HeroSection
               page="apply"
@@ -306,11 +306,11 @@ const ApplyNowPage: React.FC = () => {
             />
           </div>
         </div>
-
-      
+        */}
 
         {/* Form + Benefits Section - Fully Responsive Layout */}
-        <div className="pt-4 sm:pt-6 lg:pt-8 xl:pt-10 pb-8 sm:pb-10 lg:pb-12">
+        {/* Top padding clears the fixed header now that the banner above is hidden, so the form sits near the top without blank space. */}
+        <div className="pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-10 lg:pb-12">
           <div className="max-w-[85rem] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 xl:gap-12">
               
