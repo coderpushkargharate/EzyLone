@@ -40,7 +40,6 @@ const Footer = memo(() => {
       { name: "Contact", href: "/contact" },
       { name: "Careers", href: "/careers" },
       { name: "Blogs", href: "/blogs" },
-      { name: "Admin", href: "/admin" },
     ],
     resources: [
       { name: "EMI Calculator", href: "/emi-calculator" },

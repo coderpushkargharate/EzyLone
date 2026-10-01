@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const result = await sendAdminPush({
     title: '✅ EzyLoan test push',
     body: 'If you see this with the app CLOSED, background push works.',
-    url: '/admin',
+    url: '/ezyadmin',
     tag: 'ezy-test',
     dedupeId: `test-${Date.now()}`, // unique so it always shows (never deduped)
   });

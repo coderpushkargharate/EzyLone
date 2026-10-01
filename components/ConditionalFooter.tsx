@@ -7,7 +7,7 @@ import ChatBotLoader from '@/components/ChatBotLoader';
 import FixedFooter from '@/components/FixedFooter';
 
 // Hide the public footer + floating widgets on the admin/login dashboard.
-const HIDDEN_PREFIXES = ['/admin', '/login'];
+const HIDDEN_PREFIXES = ['/ezyadmin', '/ezylogin'];
 
 export default function ConditionalFooter() {
   const pathname = usePathname();

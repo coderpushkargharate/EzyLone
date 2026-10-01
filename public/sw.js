@@ -3,10 +3,10 @@
 // cached shell when offline. It deliberately does NOT cache API/admin data, so
 // WhatsApp chats are always fetched fresh from the network.
 
-const CACHE = 'ezyloan-shell-v5';
-// Precache both app shells: "/" for the customer website app and "/admin" for
-// the admin/WhatsApp app.
-const SHELL = ['/', '/admin', '/favicon.ico', '/icon-192.png'];
+const CACHE = 'ezyloan-shell-v6';
+// Precache both app shells: "/" for the customer website app and "/ezyadmin" for
+// the admin/WhatsApp app (the admin panel lives on an obscured path).
+const SHELL = ['/', '/ezyadmin', '/favicon.ico', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -38,7 +38,7 @@ self.addEventListener('fetch', (event) => {
         caches.match(req).then(
           // Offline fallback: admin routes fall back to the admin shell, every
           // other page to the customer website home.
-          (hit) => hit || caches.match(new URL(req.url).pathname.startsWith('/admin') ? '/admin' : '/'),
+          (hit) => hit || caches.match(new URL(req.url).pathname.startsWith('/ezyadmin') ? '/ezyadmin' : '/'),
         ),
       ),
   );
@@ -147,7 +147,7 @@ self.addEventListener('push', (event) => {
     renotify: true, // buzz again even if a notification with this tag exists
     requireInteraction: true, // stay in the tray until the admin acts (WhatsApp-like)
     vibrate: [200, 100, 200],
-    data: { url: data.url || '/admin' },
+    data: { url: data.url || '/ezyadmin' },
   };
 
   event.waitUntil(
@@ -187,7 +187,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/admin';
+  const url = (event.notification.data && event.notification.data.url) || '/ezyadmin';
 
   event.waitUntil(
     (async () => {
@@ -197,7 +197,7 @@ self.addEventListener('notificationclick', (event) => {
 
       const all = await clients.matchAll({ type: 'window', includeUncontrolled: true });
       // Focus an already-open admin window if there is one, else open a new one.
-      const existing = all.find((c) => c.url.includes('/admin'));
+      const existing = all.find((c) => c.url.includes('/ezyadmin'));
       if (existing) return existing.focus();
       if (clients.openWindow) return clients.openWindow(url);
     })(),

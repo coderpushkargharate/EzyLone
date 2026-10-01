@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-// The admin area installs its OWN PWA (start_url "/admin", green theme) so the
+// The admin area installs its OWN PWA (start_url "/ezyadmin", green theme) so the
 // admin/WhatsApp app keeps opening straight into the panel. This overrides the
 // site-wide customer manifest linked in the root layout. Keep this a server
 // component (metadata export) — it only wraps the client admin page.

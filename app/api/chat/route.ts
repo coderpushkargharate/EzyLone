@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     void sendAdminPush({
       title: '💬 Website chat needs you',
       body: message ? `Visitor: ${message.slice(0, 140)}` : 'A visitor asked for a human agent.',
-      url: '/admin',
+      url: '/ezyadmin',
       tag: 'chat-handoff',
     });
   }

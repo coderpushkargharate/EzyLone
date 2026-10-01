@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     title: `New WhatsApp message from ${waWho}`,
     body: bodyText ? bodyText.slice(0, 140) : 'Sent a message',
     // Deep-link straight to the WhatsApp Chats tab (admin page reads ?tab=).
-    url: '/admin?tab=whatsappChats',
+    url: '/ezyadmin?tab=whatsappChats',
     tag: 'wa',
     // MessageSid is identical across Twilio's webhook retries, so the SW can
     // ignore a retry and avoid double-counting the icon badge.

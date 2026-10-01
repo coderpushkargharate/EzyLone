@@ -7,6 +7,7 @@ import axios from 'axios';
 import Script from 'next/script';
 import HeroSection from '@/components/HeroSection';
 import { isIndianMobile } from '@/lib/phone';
+import { useFormGuard } from '@/components/FormGuard';
 
 // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
 const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -22,6 +23,8 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  // Spam guard (honeypot + simple math check).
+  const { guardNode, getGuardPayload, validateGuard, resetGuard } = useFormGuard();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -54,12 +57,14 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) { setSubmitMessage('❌ Please correct the errors above before submitting.'); return; }
+    if (!validateGuard()) { setSubmitMessage('❌ Please answer the verification question correctly.'); return; }
     setIsSubmitting(true); setSubmitMessage('');
     try {
-      await axios.post('/api/contacts', formData, { headers: { 'Content-Type': 'application/json' } });
+      await axios.post('/api/contacts', { ...formData, ...getGuardPayload() }, { headers: { 'Content-Type': 'application/json' } });
       setSubmitMessage('✅ Thank you! Your message has been sent successfully. We will get back to you within 24-48 business hours.');
       setFormData({ fullName: '', email: '', phoneNumber: '', loanType: '', loanAmount: '', message: '' });
       setFormErrors({});
+      resetGuard();
     } catch (error) {
       console.error('Submission error:', error);
       setSubmitMessage('❌ Sorry, there was an error sending your message. Please try again or contact us directly at care@ezyloan.co.in.');
@@ -251,9 +256,12 @@ const Contact = () => {
                   />
                 </div>
                 
+                {/* Spam guard: hidden honeypot + a quick human check */}
+                <div>{guardNode}</div>
+
                 {/* ✅ GLASS PRISM SUBMIT BUTTON */}
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting} 
                   className={`group relative w-full overflow-hidden font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-2 py-4 px-8 ${
                     isSubmitting 

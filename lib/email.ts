@@ -38,6 +38,28 @@ const alertThrottle = global._alertThrottle || new Map<string, number>();
 global._alertThrottle = alertThrottle;
 const ALERT_WINDOW_MS = 10 * 60 * 1000; // 10 min
 
+// Flood protection for lead-notification emails: a spam burst must not fill the
+// inbox. Allow up to LEAD_NOTIFY_MAX notification emails per window; beyond that
+// they're suppressed (the lead is STILL saved and visible in the admin panel —
+// only the email ping is skipped). Lives on the global to survive hot-reload.
+declare global {
+  // eslint-disable-next-line no-var
+  var _leadNotify: { count: number; resetAt: number } | undefined;
+}
+const LEAD_NOTIFY_WINDOW_MS = 15 * 60 * 1000; // 15 min
+const LEAD_NOTIFY_MAX = 12;
+function leadNotifyAllowed(): boolean {
+  const now = Date.now();
+  const rec = global._leadNotify;
+  if (!rec || rec.resetAt <= now) {
+    global._leadNotify = { count: 1, resetAt: now + LEAD_NOTIFY_WINDOW_MS };
+    return true;
+  }
+  if (rec.count >= LEAD_NOTIFY_MAX) return false;
+  rec.count += 1;
+  return true;
+}
+
 /**
  * Send a security/monitoring alert to ALERT_EMAIL. `key` groups similar events
  * for throttling (e.g. 'login-fail'). `details` becomes a simple table.
@@ -229,6 +251,10 @@ export async function sendLoanRejectionEmail(loan: { fullName: string; email?: s
 export async function sendContactAdminNotification(contactData: any) {
   const t = getTransporter();
   if (!t) return;
+  if (!leadNotifyAllowed()) {
+    console.warn('⚠️ Contact notification email suppressed (flood protection). Lead still saved.');
+    return;
+  }
 
   const adminMail = {
     from: process.env.FROM_EMAIL,
@@ -247,7 +273,7 @@ export async function sendContactAdminNotification(contactData: any) {
         </table>
         <hr style="margin: 25px 0; border: none; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 13px;">📅 Submitted at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
-        <p style="color: #6b7280; font-size: 13px;">🔗 Manage in Admin: <a href="https://ezyloan.co.in/admin" style="color: #2563eb;">Admin Dashboard</a></p>
+        <p style="color: #6b7280; font-size: 13px;">🔗 Manage in Admin: <a href="https://ezyloan.co.in/ezyadmin" style="color: #2563eb;">Admin Dashboard</a></p>
       </div>`,
   };
 
@@ -262,6 +288,10 @@ export async function sendContactAdminNotification(contactData: any) {
 export async function sendLoanAdminNotification(loanData: any) {
   const t = getTransporter();
   if (!t) return;
+  if (!leadNotifyAllowed()) {
+    console.warn('⚠️ Loan notification email suppressed (flood protection). Lead still saved.');
+    return;
+  }
 
   const adminMail = {
     from: process.env.FROM_EMAIL,
@@ -282,7 +312,7 @@ export async function sendLoanAdminNotification(loanData: any) {
         </table>
         <hr style="margin: 25px 0; border: none; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 13px;">📅 Submitted at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
-        <p style="color: #6b7280; font-size: 13px;">🔗 Manage in Admin: <a href="https://ezyloan.co.in/admin" style="color: #2563eb;">Admin Dashboard</a></p>
+        <p style="color: #6b7280; font-size: 13px;">🔗 Manage in Admin: <a href="https://ezyloan.co.in/ezyadmin" style="color: #2563eb;">Admin Dashboard</a></p>
       </div>`,
   };
 
@@ -349,7 +379,7 @@ export async function sendCareerApplicationEmail(applicationData: any) {
         </div>
         <hr style="margin: 25px 0; border: none; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 13px;">📅 Submitted at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
-        <p style="color: #6b7280; font-size: 13px;">🔗 Manage in Admin: <a href="https://ezyloan.co.in/admin" style="color: #2563eb;">Admin Dashboard</a></p>
+        <p style="color: #6b7280; font-size: 13px;">🔗 Manage in Admin: <a href="https://ezyloan.co.in/ezyadmin" style="color: #2563eb;">Admin Dashboard</a></p>
       </div>`,
   };
 

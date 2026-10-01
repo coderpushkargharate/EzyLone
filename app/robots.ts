@@ -8,7 +8,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/login', '/ThankYouPage', '/api/'],
+        // NOTE: the admin panel + login live on obscured paths and are
+        // deliberately NOT listed here — listing them in robots.txt would
+        // publicly reveal the secret URLs. They carry `noindex` metadata instead.
+        disallow: ['/ThankYouPage', '/api/'],
       },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,

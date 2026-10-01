@@ -13,6 +13,7 @@ import {   Truck, ArrowRight, Percent, Clock, Shield, DollarSign, FileText, Aler
   User, TrendingUp, CheckCircle, Building, Zap, Award, Bus, Car , Info, Phone, Mail, MapPin } from "lucide-react";
 
 import { isIndianMobile } from "@/lib/phone";
+import { useFormGuard } from "@/components/FormGuard";
 
 const BASE_URL = 'https://www.ezyloan.co.in'; // ✅ Fixed: No trailing spaces
 
@@ -33,6 +34,8 @@ const ApplyNowPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  // Spam guard (honeypot + simple math check).
+  const { guardNode, getGuardPayload, validateGuard } = useFormGuard();
 
   // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
   const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -105,12 +108,16 @@ const ApplyNowPage: React.FC = () => {
       setSubmitMessage('❌ Please correct the errors above before submitting.');
       return;
     }
-    
+    if (!validateGuard()) {
+      setSubmitMessage('❌ Please answer the verification question correctly.');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitMessage("");
 
     try {
-      await axios.post('/api/loans', formData, {
+      await axios.post('/api/loans', { ...formData, ...getGuardPayload() }, {
         headers: { 'Content-Type': 'application/json' }
       });
 
@@ -558,6 +565,9 @@ const ApplyNowPage: React.FC = () => {
                       <p className="mt-1 text-xs text-red-200" role="alert">{formErrors.consent}</p>
                     )}
                   </div>
+
+                  {/* Spam guard: hidden honeypot + a quick human check */}
+                  <div className="pt-1">{guardNode}</div>
 
                   {/* ✅ GLASS PRISM SUBMIT BUTTON - Working with Redirect */}
                   <button

@@ -159,7 +159,7 @@ export async function sendAdminPush(input: AdminPushInput): Promise<PushSendResu
     const payload = JSON.stringify({
       title: input.title,
       body: input.body,
-      url: input.url || '/admin',
+      url: input.url || '/ezyadmin',
       tag: input.tag || 'ezy-admin',
       ...(input.dedupeId ? { dedupeId: input.dedupeId } : {}),
     });

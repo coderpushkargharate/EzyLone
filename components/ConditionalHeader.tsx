@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 
 // Admin/login screens are a standalone dashboard — no public site header there.
-const HIDDEN_PREFIXES = ['/admin', '/login'];
+const HIDDEN_PREFIXES = ['/ezyadmin', '/ezylogin'];
 
 export default function ConditionalHeader() {
   const pathname = usePathname();

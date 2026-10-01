@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useCallback, useMemo, memo, useRef } from "react";
 import axios from "axios";
+import { useFormGuard } from "@/components/FormGuard";
 import Image from "next/image";
 import { trackGoogleAdsConversion } from "@/lib/ads";
 import { trackMetaLead } from "@/components/MetaPixel";
@@ -490,6 +491,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     text: string;
   } | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  // Spam guard (honeypot + simple math check) shared across all public forms.
+  const { guardNode, getGuardPayload, validateGuard, resetGuard } = useFormGuard();
   const [isLoanDropdownOpen, setIsLoanDropdownOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
@@ -677,6 +680,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         setSubmitMessage({ type: "error", text: "Please correct errors above" });
         return;
       }
+      if (!validateGuard()) {
+        setSubmitMessage({ type: "error", text: "Please answer the verification question correctly." });
+        return;
+      }
       setIsSubmitting(true);
       setSubmitMessage(null);
       setFormErrors({});
@@ -685,6 +692,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           `/api/contacts`,
           {
             ...formData,
+            ...getGuardPayload(),
             page: page === "home" ? "home" : page,
             source: "hero_form",
             timestamp: new Date().toISOString(),
@@ -706,6 +714,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             loanType: "",
             loanAmount: "",
           });
+          resetGuard();
           // Google Ads conversion (env-driven; safe no-op until the label is configured)
           trackGoogleAdsConversion();
           // Meta Pixel lead
@@ -722,7 +731,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         setIsSubmitting(false);
       }
     },
-    [formData, validateForm, page]
+    [formData, validateForm, page, validateGuard, getGuardPayload, resetGuard]
   );
 
   const handleLoanTypeSelect = useCallback(
@@ -1190,6 +1199,9 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             isMobile={!isHydrated ? false : window.innerWidth < 1024}
           />
         </div>
+
+        {/* Spam guard: hidden honeypot + a quick human check */}
+        <div className="text-white">{guardNode}</div>
 
         <button
           type="submit"

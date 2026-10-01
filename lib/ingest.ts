@@ -123,7 +123,7 @@ export async function createLeadFromWebhook(
   void sendAdminPush({
     title: '🎯 New lead',
     body: `${lead.name || 'Someone'} via ${input.source}`,
-    url: '/admin',
+    url: '/ezyadmin',
     tag: 'lead',
     // Dedup on the source message id so a retried webhook doesn't double-count.
     dedupeId: input.sourceMessageId || undefined,

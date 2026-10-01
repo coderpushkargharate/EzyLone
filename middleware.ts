@@ -6,17 +6,19 @@ import { jwtVerify } from 'jose';
 // in mongoose, which isn't Edge-compatible.
 const TOKEN_COOKIE = 'token';
 
-// Guard the admin UI: without a valid auth cookie, redirect to /login.
+// Guard the admin UI: without a valid auth cookie, redirect to /ezylogin.
 // (API routes additionally verify the token themselves — defence in depth.)
+// The admin panel + login live on obscured paths (/ezyadmin, /ezylogin) so bots
+// scanning for /admin or /login find nothing.
 // Uses `jose` because middleware runs on the Edge runtime where `jsonwebtoken`
 // (Node crypto) isn't available. The token is HS256-signed, which jose verifies.
 export const config = {
-  matcher: ['/admin', '/admin/:path*'],
+  matcher: ['/ezyadmin', '/ezyadmin/:path*'],
 };
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get(TOKEN_COOKIE)?.value;
-  const loginUrl = new URL('/login', req.url);
+  const loginUrl = new URL('/ezylogin', req.url);
 
   if (!token) return NextResponse.redirect(loginUrl);
 

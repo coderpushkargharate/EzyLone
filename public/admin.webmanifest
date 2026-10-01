@@ -2,7 +2,7 @@
   "name": "EzyLoan Admin",
   "short_name": "EzyLoan Admin",
   "description": "EzyLoan admin & WhatsApp chats",
-  "start_url": "/admin",
+  "start_url": "/ezyadmin",
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",

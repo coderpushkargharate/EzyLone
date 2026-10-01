@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   // Default PWA for the whole public site: installs the customer app that opens
   // the website home (start_url "/") so visitors can browse and fill the loan
   // form — NO admin access. The admin area overrides this with /admin.webmanifest
-  // (start_url "/admin") in app/admin/layout.tsx.
+  // (start_url "/ezyadmin") in app/ezyadmin/layout.tsx.
   manifest: '/manifest.webmanifest',
   title: {
     default: 'EzyLoan - Quick & Easy Loans Online | Personal, Business, Car Loans',

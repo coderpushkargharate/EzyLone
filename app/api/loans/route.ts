@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
 import { verifyAuth, unauthorized } from '@/lib/auth';
-import { formRateLimit } from '@/lib/rateLimit';
+import { formRateLimit, getClientIp } from '@/lib/rateLimit';
+import { isBlocked, blockIp, noteBlockedHit, recordStrike } from '@/lib/blocklist';
+import { inspectFormGuard } from '@/lib/formGuard';
 import { sendWelcomeEmail, sendLoanAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
 import { createLeadFromWebhook } from '@/lib/ingest';
@@ -25,10 +27,23 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/loans — public (rate-limited)
+// POST /api/loans — public (rate-limited + spam-guarded)
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+
+  // Hard block: IPs on the blocklist (auto-flagged spammers or admin-banned)
+  // never reach the form logic — nothing is saved, no email is sent.
+  if (await isBlocked(ip)) {
+    await noteBlockedHit(ip);
+    return NextResponse.json({ message: 'Request blocked.' }, { status: 403 });
+  }
+
   const limited = formRateLimit(req);
-  if (limited) return limited;
+  if (limited) {
+    // Repeated hammering from one IP earns strikes → auto-block.
+    await recordStrike(ip, 'rate-limit-abuse');
+    return limited;
+  }
 
   // India-only gate: block submissions from non-India IP addresses and record
   // the origin. Fails open for private/unresolvable IPs (see lib/geo.ts).
@@ -42,6 +57,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+    // Spam guard: honeypot + simple math check (see lib/formGuard.ts).
+    const guard = inspectFormGuard(body);
+    if (guard.honeypot) {
+      // A filled honeypot is a near-certain bot. Block the IP and return a
+      // success-looking response so the bot thinks it worked and moves on —
+      // nothing is saved and no email is sent.
+      await blockIp(ip, 'honeypot', 'auto');
+      return NextResponse.json({ message: 'Loan submitted' }, { status: 201 });
+    }
+    if (!guard.captchaOk) {
+      return NextResponse.json(
+        { message: 'Please answer the verification question correctly.' },
+        { status: 400 },
+      );
+    }
+
     const { fullName, phoneNumber, loanType, employmentType, city, pincode, cibilScore, email } = body;
     if (!fullName || !phoneNumber || !loanType || !employmentType || !city || !pincode || !cibilScore) {
       return NextResponse.json({ message: 'All fields required' }, { status: 400 });

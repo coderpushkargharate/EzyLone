@@ -31,6 +31,7 @@ import {
   Zap,
   FolderOpen,
   ShieldCheck,
+  ShieldAlert,
   CreditCard,
   Smartphone,
   BookOpen,
@@ -58,6 +59,7 @@ import AnalyticsManager from '@/components/admin/AnalyticsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import AutomationsManager from '@/components/admin/AutomationsManager';
 import EmployeesManager from '@/components/admin/EmployeesManager';
+import BlockedIpsManager from '@/components/admin/BlockedIpsManager';
 import AccountManager from '@/components/admin/AccountManager';
 import { useWhatsAppUnread, requestNotifyPermission } from '@/components/admin/useWhatsAppUnread';
 import { usePushSubscribe } from '@/components/admin/usePushSubscribe';
@@ -421,6 +423,7 @@ function AdminDashboard({
     { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager, group: 'AI Assistants' },
     { id: 'whatsappChats', name: 'WhatsApp Chats', icon: MessageSquareText, component: WhatsAppChatsManager, group: 'AI Assistants' },
     { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration' },
+    { id: 'blockedIps', name: 'Blocked IPs', icon: ShieldAlert, component: BlockedIpsManager, adminOnly: true, group: 'Administration' },
     // `hidden` = reachable from the top-bar profile menu, not shown in the sidebar.
     // Everyone (admins + employees) can view/edit their own account.
     { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true }
@@ -454,7 +457,7 @@ function AdminDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentPage]);
 
-  // Deep-link from a push notification: opening "/admin?tab=whatsappChats" (what a
+  // Deep-link from a push notification: opening "/ezyadmin?tab=whatsappChats" (what a
   // new-WhatsApp-message push points to) lands straight on that tab instead of the
   // dashboard. Runs once after login, and only if the user may reach that tab
   // (RBAC preserved). Manual navigation afterwards is never overridden.

@@ -10,7 +10,7 @@ export interface LoginCredentials {
 
 /**
  * Single source of truth for the admin login UI.
- * Both `/login` and the inline guard on `/admin` render this exact component,
+ * Both `/ezylogin` and the inline guard on `/ezyadmin` render this exact component,
  * so the design and behaviour stay identical. The parent supplies `onLogin`,
  * which performs the request and returns `{ success, message? }`.
  */

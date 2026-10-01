@@ -11,11 +11,11 @@ export default function LoginPage() {
       // Keep a non-sensitive copy of the user for display in the dashboard.
       localStorage.setItem('user', JSON.stringify(response.data.user));
       // Full-page navigation (not router.push): guarantees the browser makes a
-      // fresh top-level request to /admin WITH the freshly-set auth cookie,
-      // through middleware. A soft router.push could re-run /admin's own
+      // fresh top-level request to /ezyadmin WITH the freshly-set auth cookie,
+      // through middleware. A soft router.push could re-run /ezyadmin's own
       // /api/auth/verify before the cookie is attached, bouncing the user back
       // to the login form and forcing a second login attempt.
-      window.location.assign('/admin');
+      window.location.assign('/ezyadmin');
       return { success: true };
     } catch (error: any) {
       return {

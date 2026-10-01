@@ -81,9 +81,12 @@ export const loginRateLimit = (req: NextRequest) =>
     message: 'Too many login attempts. Try again in 15 minutes.',
   });
 
+// Tightened from 20 → 8 per 10 min: a real person submits once or twice, so a
+// burst from one IP is spam. Repeated 429s here earn strikes toward an auto-block
+// (see recordStrike in the form routes).
 export const formRateLimit = (req: NextRequest) =>
   checkRateLimit(req, 'form', {
     windowMs: 10 * 60 * 1000,
-    max: 20,
+    max: 8,
     message: 'Too many submissions. Please try again later.',
   });
