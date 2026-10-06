@@ -349,3 +349,69 @@ export function buildAutoReplyMessage(): string {
     `For a faster response you can call 📞 +91 63729 77626 or +91 96924 29674 or visit 🌐 www.ezyloan.co.in`
   );
 }
+
+/**
+ * Admin diagnostics: reports how WhatsApp is configured on THIS server and asks
+ * Twilio whether the credentials work (account status/type, sender, recent
+ * failed messages with their error codes). Never returns secret values.
+ */
+export async function whatsappDiagnostics() {
+  const sid = process.env.TWILIO_ACCOUNT_SID || '';
+  const token = process.env.TWILIO_AUTH_TOKEN || '';
+  const from = process.env.TWILIO_WHATSAPP_FROM || '';
+  const report: Record<string, unknown> = {
+    accountSidSet: !!sid,
+    accountSidLooksValid: /^AC[0-9a-f]{32}$/i.test(sid),
+    authTokenSet: !!token,
+    whatsappFrom: from || `(unset → sandbox ${TWILIO_SANDBOX_FROM})`,
+    sandboxMode: !isProductionSender(),
+    templateSidSet: !!process.env.TWILIO_WHATSAPP_TEMPLATE_SID,
+    messagingServiceSidSet: !!process.env.TWILIO_MESSAGING_SERVICE_SID,
+    validateSignature: process.env.TWILIO_VALIDATE_SIGNATURE !== 'false',
+    problems: [] as string[],
+  };
+  const problems = report.problems as string[];
+  if (!sid || !token) problems.push('TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN missing in this server\'s .env.local — no WhatsApp can be sent.');
+  if (!report.sandboxMode && !report.templateSidSet) problems.push('Production sender without TWILIO_WHATSAPP_TEMPLATE_SID: form confirmations are skipped.');
+  if (report.sandboxMode) problems.push('Sandbox sender: only numbers that sent "join <code>" to +14155238886 can receive messages, and free text only inside 24h of their last message.');
+  if (!sid || !token) return report;
+
+  const auth = 'Basic ' + Buffer.from(`${sid}:${token}`).toString('base64');
+  try {
+    const acc = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}.json`, {
+      headers: { Authorization: auth }, signal: AbortSignal.timeout(8000),
+    });
+    const a: any = await acc.json().catch(() => ({}));
+    if (!acc.ok) {
+      report.twilioAuth = `FAILED (HTTP ${acc.status}, code ${a?.code}): ${a?.message || ''}`;
+      problems.push('Twilio rejected these credentials — the SID/token on the server is wrong or was rotated.');
+      return report;
+    }
+    report.twilioAuth = 'OK';
+    report.accountStatus = a.status; // active / suspended / closed
+    report.accountType = a.type; // Trial / Full
+    if (a.status !== 'active') problems.push(`Twilio account status is "${a.status}".`);
+    if (a.type === 'Trial') problems.push('Twilio TRIAL account: it can only message Verified Caller IDs (error 572002 for everyone else). Upgrade the account to message customers.');
+
+    const msgs = await fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json?PageSize=20`,
+      { headers: { Authorization: auth }, signal: AbortSignal.timeout(8000) },
+    );
+    const m: any = await msgs.json().catch(() => ({}));
+    report.recentMessages = (m.messages || [])
+      .filter((x: any) => String(x.from || '').startsWith('whatsapp:') || String(x.to || '').startsWith('whatsapp:'))
+      .slice(0, 10)
+      .map((x: any) => ({
+        date: x.date_created,
+        direction: x.direction,
+        to: String(x.to || '').replace(/\d(?=\d{4})/g, '•'), // mask all but last 4 digits
+        status: x.status,
+        errorCode: x.error_code,
+        errorMessage: x.error_message,
+      }));
+  } catch (e: any) {
+    report.twilioAuth = `Could not reach Twilio from this server: ${e?.message || e}`;
+    problems.push('The server cannot reach api.twilio.com (firewall/DNS/outbound HTTPS).');
+  }
+  return report;
+}
