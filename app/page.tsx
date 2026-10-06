@@ -2,6 +2,7 @@ import HeroSection from '@/components/HeroSection';
 import Services from '@/components/Services';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
+import { pageMeta } from '@/lib/seo';
 
 const BASE_URL = 'https://www.ezyloan.co.in';
 
@@ -37,11 +38,14 @@ const financialProductSchema = {
 };
 
 export const metadata = {
-  title: 'EzyLoan - Quick & Easy Loans Online | Personal, Business, Car Loans',
-  description:
-    'Get loan assistance with interest rates starting from 8%* p.a. | Tenure 12-84 months | Quick approval* | Serving customers across India. *Subject to lender approval.',
-  robots: 'index, follow',
-  alternates: { canonical: '/' },
+  ...pageMeta({
+    path: '/',
+    title: "EzyLoan – Car, Personal & Property Loans in Odisha",
+    description:
+      "Loan assistance for car, personal, property and commercial vehicle loans in Odisha. Compare offers from partner banks and NBFCs and apply online.",
+  }),
+  // Homepage title stands alone (no " | EzyLoan" suffix from the template).
+  title: { absolute: "EzyLoan – Car, Personal & Property Loans in Odisha" },
 };
 
 export default function Home() {

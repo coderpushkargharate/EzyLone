@@ -12,6 +12,7 @@
 import webpush from 'web-push';
 import { connectDB } from '@/lib/db';
 import { PushSubscription } from '@/lib/models/PushSubscription';
+import { User } from './models/User';
 
 // Configure VAPID once at module load. If the keys aren't set we simply disable
 // pushes (the rest of the app keeps working, and the in-app badge still runs).
@@ -71,7 +72,20 @@ export async function getPushDiagnostics(): Promise<{
   let subscriptions: { endpointHost: string; userAgent: string; updatedAt: Date }[] = [];
   try {
     await connectDB();
-    const subs = await PushSubscription.find().lean();
+    // Deliver only to devices owned by an active admin, or an employee who can
+    // see leads/WhatsApp. Devices of deleted/disabled staff (or legacy devices
+    // registered before ownership was recorded) are skipped; the admin app
+    // re-registers its device with an owner every time it opens.
+    const allSubs = await PushSubscription.find({ userId: { $exists: true } }).lean();
+    const owners = await User.find({ _id: { $in: allSubs.map((s) => s.userId) }, disabled: { $ne: true } })
+      .select('role permissions')
+      .lean();
+    const allowed = new Set(
+      owners
+        .filter((u) => u.role !== 'employee' || (u.permissions || []).some((p) => ['whatsappChats', 'leads', 'dashboard'].includes(p)))
+        .map((u) => String(u._id))
+    );
+    const subs = allSubs.filter((s) => allowed.has(String(s.userId)));
     subscriptionCount = subs.length;
     subscriptions = subs.map((s: any) => {
       let host = '';

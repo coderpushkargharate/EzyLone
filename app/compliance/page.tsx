@@ -1,14 +1,14 @@
 // app/compliance/page.tsx
 import React from 'react';
 import Link from 'next/link';
-import { Metadata } from 'next';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Compliance & Disclosure',
-  description: 'G2RS compliant disclosure page. EzyLoan is a loan facilitation service provider, not a direct lender. Full transparency on fees, partners, and data usage.',
-  robots: 'index, follow',
-  alternates: { canonical: '/compliance' },
-};
+export const metadata = pageMeta({
+  path: '/compliance',
+  title: "Compliance & Grievance Redressal",
+  description:
+    "EzyLoan is a loan facilitator (DSA), not a lender. Our compliance commitments, grievance redressal process, fee transparency and data practices.",
+});
 
 export default function CompliancePage() {
   return (

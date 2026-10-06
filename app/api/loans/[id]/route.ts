@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { sendLoanApprovalEmail, sendLoanRejectionEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -23,7 +24,9 @@ const EDITABLE_FIELDS = [
 // status change to approved/rejected fires the same applicant email as the
 // dedicated /status route. `payoutAmount` is recomputed from disbursed × payout%.
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'loans' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
 
   try {
     await connectDB();
@@ -51,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const statusChanged = update.status && update.status !== existing.status;
 
-    const loan = await LoanApplication.findByIdAndUpdate(params.id, update, { new: true });
+    const loan = await LoanApplication.findByIdAndUpdate(params.id, update, { new: true, runValidators: true });
 
     if (loan && statusChanged) {
       if (update.status === 'approved') await sendLoanApprovalEmail(loan);
@@ -60,18 +63,24 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json(loan);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error updating loan', error: error.message }, { status: 500 });
+    console.error('Error updating loan', error);
+
+    return NextResponse.json({ message: 'Error updating loan' }, { status: 500 });
   }
 }
 
 // DELETE /api/loans/:id — admin only
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'loans' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
   try {
     await connectDB();
     await LoanApplication.findByIdAndDelete(params.id);
     return NextResponse.json({ message: 'Loan deleted' });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting loan', error: error.message }, { status: 500 });
+    console.error('Error deleting loan', error);
+
+    return NextResponse.json({ message: 'Error deleting loan' }, { status: 500 });
   }
 }

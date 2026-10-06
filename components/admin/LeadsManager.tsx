@@ -962,7 +962,7 @@ function AddClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       onSaved();
     } else {
       const data = await res.json().catch(() => ({}));
-      setError(data.error || 'Failed to save');
+      setError(data.message || data.error || 'Failed to save');
     }
     setLoading(false);
   }

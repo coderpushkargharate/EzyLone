@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { PushSubscription } from '@/lib/models/PushSubscription';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 // POST /api/admin/push/unsubscribe — remove this device's subscription (e.g. the
 // staff member turned notifications off or logged out).
 export async function POST(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req);
+  if ('error' in gate) return gate.error;
 
   let body: any;
   try {
@@ -23,9 +24,14 @@ export async function POST(req: NextRequest) {
 
   try {
     await connectDB();
-    await PushSubscription.deleteOne({ endpoint });
+    // A user can only remove their own device (or a legacy one with no owner).
+    await PushSubscription.deleteOne({
+      endpoint: String(endpoint),
+      $or: [{ userId: gate.auth.userId }, { userId: { $exists: false } }],
+    });
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Failed to remove subscription', error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Push unsubscribe error:', error);
+    return NextResponse.json({ message: 'Failed to remove subscription' }, { status: 500 });
   }
 }

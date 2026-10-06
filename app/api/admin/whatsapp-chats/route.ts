@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 // NOT confidently answer (a training signal). Powers the conversation list in the
 // admin "WhatsApp Chats" panel; click a row to load that user's full transcript.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'whatsappChats' });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
     const search = (req.nextUrl.searchParams.get('search') || '').trim();
@@ -54,6 +55,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(rows);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching WhatsApp chats', error: error.message }, { status: 500 });
+    console.error('Error fetching WhatsApp chats', error);
+
+    return NextResponse.json({ message: 'Error fetching WhatsApp chats' }, { status: 500 });
   }
 }

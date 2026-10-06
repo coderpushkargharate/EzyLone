@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'About EzyLoan – Trusted Loan DSA in Odisha',
+export const metadata = pageMeta({
+  path: '/about',
+  title: "About EzyLoan – Loan DSA in Cuttack, Odisha",
   description:
-    'Learn about EzyLoan (Dibyansh Associates), an RBI-compliant loan facilitator (DSA) connecting borrowers across Odisha with partner banks and NBFCs.',
-  alternates: { canonical: '/about' },
-};
+    "Learn about EzyLoan (Dibyansh Associates), a loan facilitator (DSA) connecting borrowers across Odisha with RBI-regulated partner banks and NBFCs.",
+});
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
   return children;

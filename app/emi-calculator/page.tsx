@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Script from 'next/script';
 import React, { useState, useEffect } from 'react';
 import { Calculator, ArrowRight, Info, TrendingUp, PieChart, DollarSign, Clock, Zap, AlertCircle } from 'lucide-react';
 
@@ -119,29 +118,6 @@ const EMICalculatorPage: React.FC = () => {
     }
   };
 
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "FinancialService",
-    "name": "EzyLoan (Dibyansh Associates)",
-    "url": "https://ezyloan.co.in",
-    "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India. We are not a direct lender.",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur",
-      "addressLocality": "Cuttack",
-      "postalCode": "753011",
-      "addressRegion": "Odisha",
-      "addressCountry": "IN"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+91-6372977626",
-      "contactType": "Customer Service",
-      "email": "care@ezyloan.co.in",
-      "areaServed": "IN"
-    }
-  };
-
   const loanComparison = [
     { type: "New Car Loan", rate: "7.25% - 11.50%", tenure: "Up to 7 years", fee: "Up to 1%", prepayment: "Nil to 2%" },
     { type: "Used Car Loan", rate: "9.50% - 15.00%", tenure: "Up to 5 years", fee: "Up to 2%", prepayment: "Up to 3%" },
@@ -154,9 +130,8 @@ const EMICalculatorPage: React.FC = () => {
     <>
 
       {/* ✅ Structured Data - JSON-LD ONLY (NO microdata in HTML) */}
-      <Script id="calculator-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(calculatorSchema) }} />
-      <Script id="faq-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <Script id="organization-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(calculatorSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <div className="pt-32 pb-16 bg-gradient-to-br from-blue-50 via-white to-orange-50 relative overflow-hidden">
         {/* Background Elements */}

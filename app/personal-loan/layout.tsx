@@ -1,12 +1,21 @@
-import type { Metadata } from 'next';
+import RelatedArticles from '@/components/RelatedArticles';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Personal Loan – Instant Approval, Low Interest',
+export const metadata = pageMeta({
+  path: '/personal-loan',
+  title: "Personal Loan – Eligibility, Documents & Rates",
   description:
-    'Apply for a personal loan with EzyLoan – minimal documentation, low interest rates* and quick disbursal for salaried and self-employed customers. *Subject to lender approval.',
-  alternates: { canonical: '/personal-loan' },
-};
+    "Personal loans for salaried and self-employed applicants through EzyLoan’s partner lenders. Check eligibility, documents, tenure and fees before applying.",
+});
+
+// Static page; the related-articles list refreshes hourly (and on blog publish).
+export const revalidate = 3600;
 
 export default function PersonalLoanLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <RelatedArticles topic="personal" heading="Personal loan guides" />
+    </>
+  );
 }

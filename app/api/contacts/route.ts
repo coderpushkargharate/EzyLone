@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Contact } from '@/lib/models/Contact';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { formRateLimit, getClientIp } from '@/lib/rateLimit';
 import { isBlocked, blockIp, noteBlockedHit, recordStrike } from '@/lib/blocklist';
 import { inspectFormGuard } from '@/lib/formGuard';
+import { str, isEmail } from '@/lib/validate';
 import { sendWelcomeEmail, sendContactAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
 import { createLeadFromWebhook } from '@/lib/ingest';
@@ -17,13 +18,15 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/contacts — admin only
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['contacts', 'dashboard'] });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
-    const contacts = await Contact.find().sort({ createdAt: -1 });
-    return NextResponse.json(contacts);
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching contacts', error: error.message }, { status: 500 });
+    const contacts = await Contact.find().sort({ createdAt: -1 }).limit(5000).lean();
+    return NextResponse.json(contacts, { headers: { 'Cache-Control': 'private, no-store' } });
+  } catch (error) {
+    console.error('Fetch contacts error:', error);
+    return NextResponse.json({ message: 'Error fetching contacts' }, { status: 500 });
   }
 }
 
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Spam guard: honeypot + simple math check (see lib/formGuard.ts).
+    // Spam guard: honeypot + signed form token (see lib/formGuard.ts).
     const guard = inspectFormGuard(body);
     if (guard.honeypot) {
       // A filled honeypot is a near-certain bot. Block the IP and return a
@@ -67,19 +70,31 @@ export async function POST(req: NextRequest) {
       await blockIp(ip, 'honeypot', 'auto');
       return NextResponse.json({ message: 'Contact submitted' }, { status: 201 });
     }
-    if (!guard.captchaOk) {
+    if (guard.tokenProblem) {
+      // Missing/forged token = a script posting straight at the API. Count it
+      // toward the IP's auto-block strikes. (An expired token just means the
+      // tab was open for hours — ask for a refresh, no strike.)
+      if (guard.tokenProblem !== 'expired') await recordStrike(ip, `form-token-${guard.tokenProblem}`);
       return NextResponse.json(
-        { message: 'Please answer the verification question correctly.' },
+        { message: 'Your session expired. Please refresh the page and submit again.' },
         { status: 400 },
       );
     }
 
-    const { fullName, email, phoneNumber, loanType, loanAmount, message } = body;
+    const fullName = str(body.fullName, 100);
+    const email = str(body.email, 254).toLowerCase();
+    const phoneNumber = str(body.phoneNumber, 20);
+    const loanType = str(body.loanType, 60);
+    const loanAmount = str(body.loanAmount, 30);
+    const message = str(body.message, 2000);
     // loanAmount is intentionally NOT required here: the hero form marks it
     // "(Optional)". Requiring it silently rejected (400) every lead that left it
     // blank, which the user only saw as a generic "Something went wrong".
     if (!fullName || !email || !phoneNumber || !loanType) {
       return NextResponse.json({ message: 'Name, email, phone and loan type are required' }, { status: 400 });
+    }
+    if (!isEmail(email)) {
+      return NextResponse.json({ message: 'Please enter a valid email address.' }, { status: 400 });
     }
 
     // India-only: reject out-of-country numbers. Store the normalized 10-digit form
@@ -105,7 +120,7 @@ export async function POST(req: NextRequest) {
     try {
       await Promise.all([
         sendWelcomeEmail(fullName, email, 'enquiry'),
-        sendContactAdminNotification(body),
+        sendContactAdminNotification({ fullName, email, phoneNumber: indianPhone, loanType, loanAmount, message }),
       ]);
     } catch (mailErr) {
       console.error('Contact notification email failed (lead still saved):', mailErr);
@@ -153,9 +168,9 @@ export async function POST(req: NextRequest) {
       console.error('WhatsApp send error (lead still saved):', e),
     );
 
-    return NextResponse.json({ message: 'Contact submitted', contact }, { status: 201 });
-  } catch (error: any) {
+    return NextResponse.json({ message: 'Contact submitted', id: contact._id }, { status: 201 });
+  } catch (error) {
     console.error('Contact error:', error);
-    return NextResponse.json({ message: 'Error submitting contact', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Error submitting contact' }, { status: 500 });
   }
 }

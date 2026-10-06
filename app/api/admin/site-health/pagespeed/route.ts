@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,8 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ezyloan.co.in
 // performance, SEO, accessibility, best-practices + Core Web Vitals.
 // Works without a key at low volume; set PAGESPEED_API_KEY for reliability.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'siteHealth' });
+  if ('error' in gate) return gate.error;
 
   const strategy = req.nextUrl.searchParams.get('strategy') === 'desktop' ? 'desktop' : 'mobile';
   const key = process.env.PAGESPEED_API_KEY;

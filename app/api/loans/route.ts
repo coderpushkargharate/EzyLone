@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { formRateLimit, getClientIp } from '@/lib/rateLimit';
 import { isBlocked, blockIp, noteBlockedHit, recordStrike } from '@/lib/blocklist';
 import { inspectFormGuard } from '@/lib/formGuard';
+import { str, isEmail } from '@/lib/validate';
 import { sendWelcomeEmail, sendLoanAdminNotification } from '@/lib/email';
 import { syncLeadToCrm } from '@/lib/crm';
 import { createLeadFromWebhook } from '@/lib/ingest';
@@ -17,13 +18,15 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/loans — admin only
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['loans', 'dashboard'] });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
-    const loans = await LoanApplication.find().sort({ createdAt: -1 });
-    return NextResponse.json(loans);
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching loans', error: error.message }, { status: 500 });
+    const loans = await LoanApplication.find().sort({ createdAt: -1 }).limit(5000).lean();
+    return NextResponse.json(loans, { headers: { 'Cache-Control': 'private, no-store' } });
+  } catch (error) {
+    console.error('Fetch loans error:', error);
+    return NextResponse.json({ message: 'Error fetching loans' }, { status: 500 });
   }
 }
 
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Spam guard: honeypot + simple math check (see lib/formGuard.ts).
+    // Spam guard: honeypot + signed form token (see lib/formGuard.ts).
     const guard = inspectFormGuard(body);
     if (guard.honeypot) {
       // A filled honeypot is a near-certain bot. Block the IP and return a
@@ -67,16 +70,33 @@ export async function POST(req: NextRequest) {
       await blockIp(ip, 'honeypot', 'auto');
       return NextResponse.json({ message: 'Loan submitted' }, { status: 201 });
     }
-    if (!guard.captchaOk) {
+    if (guard.tokenProblem) {
+      // Missing/forged token = a script posting straight at the API. Count it
+      // toward the IP's auto-block strikes. (An expired token just means the
+      // tab was open for hours — ask for a refresh, no strike.)
+      if (guard.tokenProblem !== 'expired') await recordStrike(ip, `form-token-${guard.tokenProblem}`);
       return NextResponse.json(
-        { message: 'Please answer the verification question correctly.' },
+        { message: 'Your session expired. Please refresh the page and submit again.' },
         { status: 400 },
       );
     }
 
-    const { fullName, phoneNumber, loanType, employmentType, city, pincode, cibilScore, email } = body;
+    const fullName = str(body.fullName, 100);
+    const phoneNumber = str(body.phoneNumber, 20);
+    const loanType = str(body.loanType, 60);
+    const employmentType = str(body.employmentType, 60);
+    const city = str(body.city, 80);
+    const pincode = str(body.pincode, 10);
+    const cibilScore = str(body.cibilScore, 30);
+    const email = str(body.email, 254).toLowerCase() || undefined;
     if (!fullName || !phoneNumber || !loanType || !employmentType || !city || !pincode || !cibilScore) {
       return NextResponse.json({ message: 'All fields required' }, { status: 400 });
+    }
+    if (!/^[0-9]{6}$/.test(pincode)) {
+      return NextResponse.json({ message: 'Please enter a valid 6-digit pincode.' }, { status: 400 });
+    }
+    if (email && !isEmail(email)) {
+      return NextResponse.json({ message: 'Please enter a valid email address.' }, { status: 400 });
     }
 
     // India-only: reject out-of-country numbers. Store the normalized 10-digit form
@@ -102,7 +122,7 @@ export async function POST(req: NextRequest) {
     try {
       await Promise.all([
         sendWelcomeEmail(fullName, email, 'loan'),
-        sendLoanAdminNotification(body),
+        sendLoanAdminNotification({ fullName, email, phoneNumber: indianPhone, loanType, employmentType, city, pincode, cibilScore }),
       ]);
     } catch (mailErr) {
       console.error('Loan notification email failed (application still saved):', mailErr);
@@ -149,9 +169,9 @@ export async function POST(req: NextRequest) {
       console.error('WhatsApp send error (application still saved):', e),
     );
 
-    return NextResponse.json({ message: 'Loan submitted', loanApplication }, { status: 201 });
-  } catch (error: any) {
+    return NextResponse.json({ message: 'Loan submitted', id: loanApplication._id }, { status: 201 });
+  } catch (error) {
     console.error('Loan error:', error);
-    return NextResponse.json({ message: 'Error submitting loan', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Error submitting loan' }, { status: 500 });
   }
 }

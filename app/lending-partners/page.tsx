@@ -1,16 +1,15 @@
 // app/lending-partners/page.tsx
 import React from 'react';
 import Link from 'next/link';
-import { Metadata } from 'next';
 import { ExternalLink } from 'lucide-react';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Our Banking & NBFC Partners',
-  description: 'EzyLoan partners with leading banks and NBFCs including ICICI, Axis, Kotak, Tata Capital, Bajaj Finance & more for personal loans, business loans & home loans.',
-  keywords: 'loan partners, bank partners, EzyLoan lenders, ICICI Bank, Axis Bank, Kotak Mahindra, Tata Capital, Bajaj Finance',
-  robots: 'index, follow',
-  alternates: { canonical: '/lending-partners' },
-};
+export const metadata = pageMeta({
+  path: '/lending-partners',
+  title: "Our Bank & NBFC Lending Partners",
+  description:
+    "The RBI-regulated banks and NBFCs EzyLoan works with for car, personal, property and commercial vehicle loans, and how lender matching works.",
+});
 
 // Banking partners with logos and website links
 const BANKING_PARTNERS = [

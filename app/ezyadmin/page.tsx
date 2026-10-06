@@ -985,6 +985,8 @@ function AdminDashboard({
           <CurrentComponent
             // Account props
             accountInitialTab={accountTab}
+            // Role (UI only — the API enforces the same rules server-side)
+            isAdminUser={isAdminUser}
             // Dashboard props
             stats={dashboardStats}
             analytics={analyticsData}
@@ -1524,7 +1526,7 @@ function BlogStatusBadge({ status }: { status?: BlogStatus }) {
 const SITE_ORIGIN = 'https://www.ezyloan.co.in';
 
 function BlogsManager({
-  blogs, selectedBlog, setSelectedBlog, onCreateBlog, onUpdateBlog, onDeleteBlog, onBlogStatus, loadingBlogs
+  blogs, selectedBlog, setSelectedBlog, onCreateBlog, onUpdateBlog, onDeleteBlog, onBlogStatus, loadingBlogs, isAdminUser
 }: {
   blogs: Blog[]; selectedBlog: Blog | null; setSelectedBlog: (blog: Blog | null) => void;
   onCreateBlog: (data: BlogFormData) => Promise<{ success: boolean; message?: string }>;
@@ -1532,6 +1534,7 @@ function BlogsManager({
   onDeleteBlog: (id: string) => void;
   onBlogStatus: (id: string, status: BlogStatus, rejectionReason?: string) => Promise<{ success: boolean; message?: string }>;
   loadingBlogs: boolean;
+  isAdminUser?: boolean;
 }) {
   const emptyForm: BlogFormData = {
     title: '', slug: '', excerpt: '', content: '', category: 'Personal', image: '',
@@ -1941,24 +1944,28 @@ function BlogsManager({
                           {status === 'published' && (
                             <a href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:bg-blue-50 p-1 rounded-full" title="View live"><Eye className="h-4 w-4" /></a>
                           )}
-                          <button onClick={() => setSelectedBlog(blog)} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded-full" title="Edit"><Edit className="h-4 w-4" /></button>
+                          {(isAdminUser || status !== 'published') && (
+                            <button onClick={() => setSelectedBlog(blog)} className="text-indigo-600 hover:bg-indigo-50 p-1 rounded-full" title="Edit"><Edit className="h-4 w-4" /></button>
+                          )}
 
                           {status === 'draft' && (
                             <button onClick={() => doStatus(blog, 'pending')} className="text-amber-600 hover:bg-amber-50 p-1 rounded-full" title="Submit for review"><Send className="h-4 w-4" /></button>
                           )}
-                          {(status === 'draft' || status === 'pending' || status === 'archived') && (
+                          {isAdminUser && (status === 'draft' || status === 'pending' || status === 'archived') && (
                             <button onClick={() => doStatus(blog, 'published')} className="text-green-600 hover:bg-green-50 p-1 rounded-full" title={status === 'archived' ? 'Re-publish' : 'Approve & publish'}><CheckCircle className="h-4 w-4" /></button>
                           )}
-                          {status === 'pending' && (
+                          {isAdminUser && status === 'pending' && (
                             <button onClick={() => doStatus(blog, 'rejected')} className="text-red-600 hover:bg-red-50 p-1 rounded-full" title="Reject"><XCircle className="h-4 w-4" /></button>
                           )}
-                          {status === 'published' && (
+                          {isAdminUser && status === 'published' && (
                             <button onClick={() => doStatus(blog, 'archived')} className="text-slate-600 hover:bg-slate-100 p-1 rounded-full" title="Unpublish (archive)"><Archive className="h-4 w-4" /></button>
                           )}
                           {status === 'rejected' && (
                             <button onClick={() => doStatus(blog, 'draft')} className="text-gray-600 hover:bg-gray-100 p-1 rounded-full" title="Back to draft"><Clock className="h-4 w-4" /></button>
                           )}
-                          <button onClick={() => onDeleteBlog(blog._id)} className="text-red-600 hover:bg-red-50 p-1 rounded-full" title="Delete"><Trash2 className="h-4 w-4" /></button>
+                          {(isAdminUser || status !== 'published') && (
+                            <button onClick={() => onDeleteBlog(blog._id)} className="text-red-600 hover:bg-red-50 p-1 rounded-full" title="Delete"><Trash2 className="h-4 w-4" /></button>
+                          )}
                         </div>
                       </td>
                     </tr>

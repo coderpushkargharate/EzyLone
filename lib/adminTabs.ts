@@ -26,3 +26,21 @@ export const ASSIGNABLE_TABS: AdminTab[] = [
   { id: 'whatsappChats', name: 'WhatsApp Chats' },
   { id: 'siteHealth', name: 'Website Health' },
 ];
+
+const ASSIGNABLE_IDS = new Set(ASSIGNABLE_TABS.map((t) => t.id));
+
+/** Keep only real, assignable tab ids — never trust a client-sent permission list. */
+export function sanitizePermissions(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  return Array.from(new Set(input.map(String).filter((p) => ASSIGNABLE_IDS.has(p))));
+}
+
+/** Returns a human-readable problem with a new password, or null if acceptable. */
+export function passwordProblem(password: string): string | null {
+  if (password.length < 10) return 'Password must be at least 10 characters';
+  if (password.length > 128) return 'Password must be at most 128 characters';
+  if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+    return 'Password must contain both letters and numbers';
+  }
+  return null;
+}

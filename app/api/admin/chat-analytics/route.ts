@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { ChatLog } from '@/lib/models/ChatLog';
 import { KnowledgeEntry } from '@/lib/models/KnowledgeEntry';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 // "Ezy AI Insights" tab shows: chat volume, answered vs unanswered rate,
 // voice-vs-typed usage, channel split, a daily trend, and the top questions.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'ezyInsights' });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
 
@@ -127,6 +128,8 @@ export async function GET(req: NextRequest) {
       recentUnanswered,
     });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error building analytics', error: error.message }, { status: 500 });
+    console.error('Error building analytics', error);
+
+    return NextResponse.json({ message: 'Error building analytics' }, { status: 500 });
   }
 }

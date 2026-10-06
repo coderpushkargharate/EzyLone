@@ -87,6 +87,8 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
   { timestamps: true }
 );
 
+LoanApplicationSchema.index({ createdAt: -1 });
+
 export const LoanApplication: Model<ILoanApplication> =
   (mongoose.models.LoanApplication as Model<ILoanApplication>) ||
   mongoose.model<ILoanApplication>('LoanApplication', LoanApplicationSchema);

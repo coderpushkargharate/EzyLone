@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Banner } from '@/lib/models/Banner';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { invalidateBannerCache } from '@/lib/bannerCache';
 
 export const runtime = 'nodejs';
@@ -9,7 +10,9 @@ export const dynamic = 'force-dynamic';
 
 // PUT /api/banners/:id/order — admin only
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'banners' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
 
   try {
     const { order } = await req.json();
@@ -18,6 +21,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     invalidateBannerCache();
     return NextResponse.json(banner);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error updating order', error: error.message }, { status: 500 });
+    console.error('Error updating order', error);
+
+    return NextResponse.json({ message: 'Error updating order' }, { status: 500 });
   }
 }

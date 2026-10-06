@@ -5,7 +5,7 @@
 // in with that email and only see those tabs.
 
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Trash2, Edit2, X, Mail, ShieldCheck, Loader2, Check } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Mail, ShieldCheck, Loader2, Check, Ban, CircleCheck } from 'lucide-react';
 import { ASSIGNABLE_TABS } from '@/lib/adminTabs';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +14,7 @@ interface Employee {
   name?: string;
   email?: string;
   permissions: string[];
+  disabled?: boolean;
   createdAt: string;
 }
 
@@ -39,6 +40,17 @@ export default function EmployeesManager() {
     if (!confirm('Delete this employee account? They will no longer be able to log in.')) return;
     await fetch(`/api/employees/${id}`, { method: 'DELETE' });
     setEmployees((prev) => prev.filter((e) => e._id !== id));
+  }
+
+  async function toggleDisabled(emp: Employee) {
+    const next = !emp.disabled;
+    if (next && !confirm('Disable this employee? They are signed out everywhere and cannot log in until re-enabled.')) return;
+    const res = await fetch(`/api/employees/${emp._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ disabled: next }),
+    });
+    if (res.ok) setEmployees((prev) => prev.map((e) => (e._id === emp._id ? { ...e, disabled: next } : e)));
   }
 
   function openCreate() { setEditing(null); setShowModal(true); }
@@ -95,7 +107,10 @@ export default function EmployeesManager() {
                           {(emp.name || emp.email || '?').charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{emp.name || '—'}</p>
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {emp.name || '—'}
+                            {emp.disabled && <span className="ml-2 text-[10px] font-semibold uppercase text-red-600 bg-red-50 px-1.5 py-0.5 rounded">Disabled</span>}
+                          </p>
                           <p className="text-xs text-gray-500 sm:hidden truncate">{emp.email}</p>
                         </div>
                       </div>
@@ -110,6 +125,9 @@ export default function EmployeesManager() {
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openEdit(emp)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Edit">
                           <Edit2 size={15} />
+                        </button>
+                        <button onClick={() => toggleDisabled(emp)} className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition" title={emp.disabled ? 'Enable login' : 'Disable login'} aria-label={emp.disabled ? 'Enable login' : 'Disable login'}>
+                          {emp.disabled ? <CircleCheck size={15} /> : <Ban size={15} />}
                         </button>
                         <button onClick={() => remove(emp._id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete">
                           <Trash2 size={15} />
@@ -156,8 +174,8 @@ function EmployeeModal({ employee, onClose, onSaved }: { employee: Employee | nu
   async function save() {
     setError('');
     if (!isEdit && !email.trim()) { setError('Email is required'); return; }
-    if (!isEdit && password.length < 6) { setError('Password must be at least 6 characters'); return; }
-    if (isEdit && password && password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!isEdit && password.length < 10) { setError('Password must be at least 10 characters (letters and numbers)'); return; }
+    if (isEdit && password && password.length < 10) { setError('Password must be at least 10 characters (letters and numbers)'); return; }
 
     setSaving(true);
     const url = isEdit ? `/api/employees/${employee!._id}` : '/api/employees';
@@ -213,7 +231,7 @@ function EmployeeModal({ employee, onClose, onSaved }: { employee: Employee | nu
             <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
               {isEdit ? 'New Password (leave blank to keep)' : 'Password'}
             </label>
-            <input type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isEdit ? '••••••••' : 'At least 6 characters'}
+            <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isEdit ? '••••••••' : 'At least 10 characters, letters + numbers'}
               className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
             <p className="text-[11px] text-gray-400 mt-1">Share this password with the employee — they log in at the same admin URL with their email + password.</p>
           </div>

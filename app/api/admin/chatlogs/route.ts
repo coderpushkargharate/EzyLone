@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { ChatLog } from '@/lib/models/ChatLog';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 // `unanswered` returns only the questions the knowledge base couldn't confidently
 // answer and that haven't been taught/dismissed yet, newest first.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['ezyBrain', 'ezyInsights'] });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
     const status = req.nextUrl.searchParams.get('status') || 'all';
@@ -20,13 +21,16 @@ export async function GET(req: NextRequest) {
     const logs = await ChatLog.find(filter).sort({ createdAt: -1 }).limit(500).lean();
     return NextResponse.json(logs);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching chat logs', error: error.message }, { status: 500 });
+    console.error('Error fetching chat logs', error);
+
+    return NextResponse.json({ message: 'Error fetching chat logs' }, { status: 500 });
   }
 }
 
 // DELETE /api/admin/chatlogs?scope=resolved|all — clear logs (admin only).
 export async function DELETE(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['ezyBrain', 'ezyInsights'] });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
     const scope = req.nextUrl.searchParams.get('scope') || 'resolved';
@@ -34,6 +38,8 @@ export async function DELETE(req: NextRequest) {
     const res = await ChatLog.deleteMany(filter);
     return NextResponse.json({ message: 'Logs cleared', deleted: res.deletedCount });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error clearing logs', error: error.message }, { status: 500 });
+    console.error('Error clearing logs', error);
+
+    return NextResponse.json({ message: 'Error clearing logs' }, { status: 500 });
   }
 }

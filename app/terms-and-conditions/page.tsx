@@ -1,12 +1,13 @@
 import React from "react";
 import Link from "next/link";
+import { pageMeta } from '@/lib/seo';
 
-export const metadata = {
+export const metadata = pageMeta({
+  path: '/terms-and-conditions',
   title: "Terms & Conditions",
-  description: "Read the terms and conditions for using EzyLoan services. EzyLoan is a loan facilitation platform, not a direct lender.",
-  robots: "index, follow",
-  alternates: { canonical: "/terms-and-conditions" },
-};
+  description:
+    "Terms for using EzyLoan’s website and loan facilitation services. EzyLoan is a DSA, not a direct lender; loan decisions are made by partner lenders.",
+});
 
 export default function TermsPage() {
   // ✅ Structured Data for TermsOfService Schema - Fixed trailing spaces
@@ -39,23 +40,6 @@ export default function TermsPage() {
     }
   };
 
-  // ✅ Organization Schema
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "FinancialService",
-    "name": "EzyLoan (Dibyansh Associates)",
-    "url": "https://ezyloan.co.in",
-    "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India. We are not a direct lender.",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur",
-      "addressLocality": "Cuttack",
-      "postalCode": "753011",
-      "addressRegion": "Odisha",
-      "addressCountry": "IN"
-    }
-  };
-
   return (
     <div
       className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 mt-16"
@@ -66,10 +50,6 @@ export default function TermsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(termsSchema) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-blue-100">

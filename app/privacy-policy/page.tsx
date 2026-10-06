@@ -1,7 +1,6 @@
 'use client';
 import React from "react";
 import Link from "next/link";
-import Script from 'next/script';
 
 const PrivacyPolicyPage = () => {
   // ✅ Structured Data for PrivacyPolicy Schema - Fixed trailing spaces
@@ -34,48 +33,11 @@ const PrivacyPolicyPage = () => {
     }
   };
 
-  // ✅ Organization Schema
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "FinancialService",
-    "name": "EzyLoan (Dibyansh Associates)",
-    "url": "https://ezyloan.co.in",
-    "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India. We are not a direct lender.",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur",
-      "addressLocality": "Cuttack",
-      "postalCode": "753011",
-      "addressRegion": "Odisha",
-      "addressCountry": "IN"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+91-6372977626",
-      "contactType": "Grievance Officer",
-      "email": "care@ezyloan.co.in",
-      "areaServed": "IN"
-    }
-  };
-
   return (
     <>
 
       {/* ✅ Structured Data for SEO - Fixed trailing spaces */}
-      <Script
-        id="privacy-policy-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(privacyPolicySchema)
-        }}
-      />
-      <Script
-        id="organization-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationSchema)
-        }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(privacyPolicySchema) }} />
 
       <div
         className="min-h-screen bg-gray-50"

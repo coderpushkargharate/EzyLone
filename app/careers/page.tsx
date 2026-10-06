@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Script from "next/script";
 import { ArrowRight, CheckCircle, Mail, Phone, MapPin, FileText, User, Briefcase, Sparkles } from "lucide-react";
+import { useFormGuard } from "@/components/FormGuard";
 
 // ─────────────────────────────────────────────────────────────
 // TYPES
@@ -107,6 +107,8 @@ export default function CareersPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Invisible spam guard (honeypot + signed form token), same as the lead forms.
+  const { guardNode, getGuardPayload, resetGuard } = useFormGuard();
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -153,17 +155,21 @@ export default function CareersPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     setIsSubmitting(true);
     setFormError(null);
     setFormSuccess(null);
 
     try {
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(form);
       formData.append("jobTitle", selectedJob!.title);
       formData.append("jobId", selectedJob!.id);
 
       const validationError = validateForm(formData);
       if (validationError) throw new Error(validationError);
+
+      const guard = await getGuardPayload();
+      Object.entries(guard).forEach(([k, v]) => formData.set(k, String(v)));
 
       const response = await fetch('/api/careers', {
         method: "POST",
@@ -176,7 +182,8 @@ export default function CareersPage() {
       setFormSuccess("✅ Application submitted successfully!\n\n📧 Check your email for confirmation.\nWe'll contact you within 3-5 business days.");
       setTimeout(() => {
         closeModal();
-        (e.target as HTMLFormElement).reset();
+        form.reset();
+        resetGuard();
         setFormSuccess(null);
       }, 4000);
     } catch (error: any) {
@@ -190,30 +197,6 @@ export default function CareersPage() {
   // ─────────────────────────────────────────────────────────
   // ✅ ORGANIZATION SCHEMA ONLY (NO JobPosting on listing page)
   // ─────────────────────────────────────────────────────────
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "EzyLoan (Dibyansh Associates)",
-    "url": "https://www.ezyloan.co.in",
-    "logo": "https://www.ezyloan.co.in/logo.png",
-    "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India.",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur",
-      "addressLocality": "Cuttack",
-      "postalCode": "753011",
-      "addressRegion": "Odisha",
-      "addressCountry": "IN"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+91-6372977626",
-      "contactType": "Customer Service",
-      "email": "careers@ezyloan.co.in",
-      "areaServed": "IN"
-    }
-  };
-
   // ─────────────────────────────────────────────────────────
   // ✅ BREADCRUMB SCHEMA FOR CAREERS PAGE
   // ─────────────────────────────────────────────────────────
@@ -239,13 +222,8 @@ export default function CareersPage() {
   return (
     <>
 
-      {/* ✅ ONLY Organization + Breadcrumb Schema on Listing Page */}
-      {mounted && (
-        <>
-          <Script id="organization-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
-          <Script id="breadcrumb-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-        </>
-      )}
+      {/* Breadcrumb schema (server-rendered; the organisation schema is site-wide in app/layout.tsx) */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* ❌ REMOVED: JobPosting schema from listing page - causes validation errors */}
       {/* ✅ JobPosting schema should ONLY be on individual job detail pages: /careers/[jobId] */}
@@ -446,7 +424,8 @@ export default function CareersPage() {
                 )}
               </div>
               
-              <form onSubmit={handleSubmit} className="mt-5 md:mt-6 space-y-4">
+              <form onSubmit={handleSubmit} className="relative mt-5 md:mt-6 space-y-4">
+                {guardNode}
                 {formError && (
                   <div className="p-3 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-lg text-red-700 text-sm animate-shake" role="alert" aria-live="assertive">
                     {formError}

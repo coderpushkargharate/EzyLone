@@ -15,6 +15,8 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     if (!blog) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(blog);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('API error:', error);
+
+    return NextResponse.json({ message: 'Server error' }, { status: 500 });
   }
 }

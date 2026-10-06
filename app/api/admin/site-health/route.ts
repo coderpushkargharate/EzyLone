@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { Contact } from '@/lib/models/Contact';
 import { LoanApplication } from '@/lib/models/LoanApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,7 +39,8 @@ async function probe(url: string, ms = 8000): Promise<{
 // live security + SEO self-check of the production site. Page-speed/SEO scores are
 // a separate (slower) endpoint so this dashboard loads fast.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'siteHealth' });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
 
@@ -123,6 +124,8 @@ export async function GET(req: NextRequest) {
       activity: { contacts: contactsCount, loanApplications: loansCount },
     });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error building site health', error: error.message }, { status: 500 });
+    console.error('Error building site health', error);
+
+    return NextResponse.json({ message: 'Error building site health' }, { status: 500 });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { ingestLeadEmails } from '@/lib/ingest';
 
 // IMAP needs the Node runtime and a little headroom to read mail.
@@ -9,8 +9,9 @@ export const maxDuration = 60;
 
 // Triggered by the "Sync now" button on the Automations tab.
 export async function POST(req: NextRequest) {
-  const user = verifyAuth(req);
-  if (!user) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['leads', 'automations'] });
+  if ('error' in gate) return gate.error;
+  const user = gate.auth;
 
   try {
     const result = await ingestLeadEmails();

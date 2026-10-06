@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,9 @@ export const dynamic = 'force-dynamic';
 // Note: this only clears our stored copy — it does NOT unsend the message from
 // the user's WhatsApp (the WhatsApp API doesn't allow that reliably).
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'whatsappChats' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
   try {
     await connectDB();
     const res = await WhatsAppMessage.findByIdAndDelete(params.id);
@@ -20,6 +23,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
     return NextResponse.json({ ok: true, deletedId: params.id });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting message', error: error.message }, { status: 500 });
+    console.error('Error deleting message', error);
+
+    return NextResponse.json({ message: 'Error deleting message' }, { status: 500 });
   }
 }

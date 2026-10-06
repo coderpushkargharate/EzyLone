@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Testimonial } from '@/lib/models/Testimonial';
 import { uploadBuffer } from '@/lib/cloudinary';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,13 +16,16 @@ export async function GET() {
       headers: { 'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600' },
     });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching testimonials', error: error.message }, { status: 500 });
+    console.error('Error fetching testimonials', error);
+
+    return NextResponse.json({ message: 'Error fetching testimonials' }, { status: 500 });
   }
 }
 
 // POST /api/testimonials — create (admin only). multipart: fields + optional avatar file.
 export async function POST(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'testimonials' });
+  if ('error' in gate) return gate.error;
 
   try {
     const form = await req.formData();
@@ -55,6 +58,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Testimonial created', testimonial }, { status: 201 });
   } catch (error: any) {
     console.error('Create testimonial error:', error);
-    return NextResponse.json({ message: 'Failed to create testimonial', error: error.message }, { status: 500 });
+    console.error('Failed to create testimonial', error);
+
+    return NextResponse.json({ message: 'Failed to create testimonial' }, { status: 500 });
   }
 }

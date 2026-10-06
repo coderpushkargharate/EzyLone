@@ -15,6 +15,7 @@ export interface IPushSubscription extends Document {
   endpoint: string;                 // unique per device/browser
   keys: { p256dh: string; auth: string };
   userAgent?: string;               // handy for debugging which device is which
+  userId?: mongoose.Types.ObjectId;  // staff account that registered this device
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +28,7 @@ const PushSubscriptionSchema = new Schema<IPushSubscription>(
       auth: { type: String, required: true },
     },
     userAgent: { type: String, default: '' },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', index: true },
   },
   { timestamps: true }
 );

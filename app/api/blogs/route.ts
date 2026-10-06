@@ -1,52 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Blog } from '@/lib/models/Blog';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { getAuth, hasPermission, requireAuth } from '@/lib/auth';
 import { PUBLIC_BLOG_FILTER, sanitizeSlug, isValidSlug } from '@/lib/blog';
+import { sanitizeBlogHtml, plainText } from '@/lib/blogHtml';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // GET /api/blogs
-//  - Public (no valid admin/employee token): only PUBLISHED blogs, trimmed fields.
-//  - Authenticated admin/employee: ALL blogs (any status) for the admin manager.
+//  - Public (or a session without blog access): only PUBLISHED blogs, trimmed fields.
+//  - Admin / employee with the Blog Manager (or Overview) tab: ALL blogs.
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
-    const auth = verifyAuth(req);
+    const auth = await getAuth(req).catch(() => null);
 
-    if (auth) {
-      // Admin view — everything, newest first.
+    if (auth && hasPermission(auth, ['blogs', 'dashboard'])) {
       const blogs = await Blog.find().sort({ updatedAt: -1, createdAt: -1 }).lean();
-      return NextResponse.json(blogs);
+      return NextResponse.json(blogs, { headers: { 'Cache-Control': 'private, no-store' } });
     }
 
-    // Public view — published only. (No auto-generated placeholder content:
-    // mass-generated thin posts violate Google's spam policies.)
+    // Public view — published only.
     const blogs = await Blog.find(PUBLIC_BLOG_FILTER, {
       title: 1, slug: 1, excerpt: 1, image: 1, featuredImageAlt: 1,
       category: 1, author: 1, tags: 1, publishedAt: 1, createdAt: 1, updatedAt: 1,
     })
       .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(200)
       .lean();
     return NextResponse.json(blogs);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('List blogs error:', error);
+    return NextResponse.json({ message: 'Failed to load blogs' }, { status: 500 });
   }
 }
 
-// POST /api/blogs — create (admin/employee only). Always created unpublished
+// POST /api/blogs — create (Blog Manager access). Always created unpublished
 // (draft by default; 'pending' allowed). Publishing happens via the status
 // endpoint so the approval checklist always runs. Never trust a client status.
 export async function POST(req: NextRequest) {
-  const auth = verifyAuth(req);
-  if (!auth) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'blogs' });
+  if ('error' in gate) return gate.error;
+  const { auth } = gate;
 
   try {
     const body = await req.json();
-    const { title, excerpt, content, category, image } = body;
+    const title = plainText(body.title, 200);
+    const content = sanitizeBlogHtml(body.content);
 
-    if (!title || !content) {
+    if (!title || !content.trim()) {
       return NextResponse.json({ message: 'Title and content are required' }, { status: 400 });
     }
 
@@ -70,35 +73,47 @@ export async function POST(req: NextRequest) {
     const blog = await Blog.create({
       title,
       slug,
-      excerpt: excerpt || '',
+      excerpt: plainText(body.excerpt, 500),
       content,
-      category: category || 'Personal',
-      image: image || '',
-      featuredImageAlt: body.featuredImageAlt || '',
-      author: body.author || auth.name || auth.username || '',
-      authorBio: body.authorBio || '',
+      category: plainText(body.category, 60) || 'Personal',
+      image: safeUrl(body.image),
+      featuredImageAlt: plainText(body.featuredImageAlt, 200),
+      author: plainText(body.author, 100) || auth.name,
+      authorBio: plainText(body.authorBio, 500),
       tags: normalizeList(body.tags),
       status: requestedStatus,
-      seoTitle: body.seoTitle || '',
-      seoDescription: body.seoDescription || '',
-      focusKeyword: body.focusKeyword || '',
+      seoTitle: plainText(body.seoTitle, 120),
+      seoDescription: plainText(body.seoDescription, 320),
+      focusKeyword: plainText(body.focusKeyword, 100),
       secondaryKeywords: normalizeList(body.secondaryKeywords),
-      canonicalUrl: body.canonicalUrl || '',
-      ogTitle: body.ogTitle || '',
-      ogDescription: body.ogDescription || '',
-      ogImage: body.ogImage || '',
+      canonicalUrl: safeUrl(body.canonicalUrl),
+      ogTitle: plainText(body.ogTitle, 120),
+      ogDescription: plainText(body.ogDescription, 320),
+      ogImage: safeUrl(body.ogImage),
     });
 
     return NextResponse.json({ message: 'Blog created', blog }, { status: 201 });
-  } catch (error: any) {
-    console.error('❌ Create blog error:', error);
-    return NextResponse.json({ message: 'Failed to create blog', error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Create blog error:', error);
+    return NextResponse.json({ message: 'Failed to create blog' }, { status: 500 });
   }
 }
 
 // Accept comma-separated strings or arrays for tag/keyword lists.
 function normalizeList(v: unknown): string[] {
-  if (Array.isArray(v)) return v.map((x) => String(x).trim()).filter(Boolean);
-  if (typeof v === 'string') return v.split(',').map((x) => x.trim()).filter(Boolean);
-  return [];
+  const raw = Array.isArray(v) ? v : typeof v === 'string' ? v.split(',') : [];
+  return raw.map((x) => plainText(x, 60)).filter(Boolean).slice(0, 20);
+}
+
+/** Only http(s) URLs (or site-relative paths) are stored for images/canonicals. */
+function safeUrl(v: unknown): string {
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  if (s.startsWith('/') && !s.startsWith('//')) return s.slice(0, 2000);
+  try {
+    const u = new URL(s);
+    return u.protocol === 'https:' || u.protocol === 'http:' ? s.slice(0, 2000) : '';
+  } catch {
+    return '';
+  }
 }

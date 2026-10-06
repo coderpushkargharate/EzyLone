@@ -1,27 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/lib/models/User';
-import { verifyAuth, unauthorized, isAdmin } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
+import { sanitizePermissions, passwordProblem } from '@/lib/adminTabs';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Only admins may manage employees.
-function guardAdmin(req: NextRequest) {
-  const auth = verifyAuth(req);
-  if (!auth) return { error: unauthorized() };
-  if (!isAdmin(auth)) return { error: NextResponse.json({ message: 'Admins only' }, { status: 403 }) };
-  return { auth };
-}
 
 // GET /api/employees — list all employee accounts (never returns passwords).
 export async function GET(req: NextRequest) {
-  const { error } = guardAdmin(req);
-  if (error) return error;
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
 
   await connectDB();
   const employees = await User.find({ role: 'employee' })
-    .select('name email username permissions createdAt')
+    .select('name email username permissions disabled lastLoginAt createdAt')
     .sort({ createdAt: -1 })
     .lean();
 
@@ -30,20 +25,21 @@ export async function GET(req: NextRequest) {
 
 // POST /api/employees — create an employee with email + password + tab access.
 export async function POST(req: NextRequest) {
-  const { error } = guardAdmin(req);
-  if (error) return error;
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
 
   await connectDB();
-  const body = await req.json();
-  const name = String(body.name || '').trim();
+  const body = await req.json().catch(() => ({}));
+  const name = String(body.name || '').trim().slice(0, 100);
   const email = String(body.email || '').trim().toLowerCase();
   const password = String(body.password || '');
-  const permissions: string[] = Array.isArray(body.permissions) ? body.permissions : [];
+  const permissions = sanitizePermissions(body.permissions);
 
-  if (!email) return NextResponse.json({ message: 'Email is required' }, { status: 400 });
-  if (!password || password.length < 6) {
-    return NextResponse.json({ message: 'Password must be at least 6 characters' }, { status: 400 });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    return NextResponse.json({ message: 'A valid email is required' }, { status: 400 });
   }
+  const pwErr = passwordProblem(password);
+  if (pwErr) return NextResponse.json({ message: pwErr }, { status: 400 });
 
   const exists = await User.findOne({ $or: [{ email }, { username: email }] });
   if (exists) return NextResponse.json({ message: 'An account with this email already exists' }, { status: 409 });
@@ -64,6 +60,7 @@ export async function POST(req: NextRequest) {
       name: employee.name,
       email: employee.email,
       permissions: employee.permissions,
+      disabled: false,
     },
   }, { status: 201 });
 }

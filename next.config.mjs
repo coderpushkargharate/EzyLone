@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Don't advertise the framework/version in every response.
+  poweredByHeader: false,
   images: {
     // Cache optimized images for 1 year (fixes "Use efficient cache lifetimes")
     minimumCacheTTL: 31536000,
@@ -38,7 +40,24 @@ const nextConfig = {
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          // The legacy XSS auditor is removed from modern browsers and could be
+          // abused in old ones; '0' is the current recommendation.
+          { key: 'X-XSS-Protection', value: '0' },
+          // Content-Security-Policy: the directives below are safe for every
+          // page (no third-party script/style inventory needed) and close the
+          // highest-value gaps — clickjacking, <base> hijacking, plugin content,
+          // forms posting off-site, and mixed content. Script/style/connect
+          // sources are intentionally not restricted yet: the site loads Google
+          // Ads, Meta Pixel and inline JSON-LD/init scripts, and a strict list
+          // would need nonces (making every page dynamic) — see SECURITY.md.
+          {
+            key: 'Content-Security-Policy',
+            // upgrade-insecure-requests only in production (it would break http://localhost dev).
+            value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'" +
+              (process.env.NODE_ENV === 'production' ? '; upgrade-insecure-requests' : ''),
+          },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+          { key: 'X-Permitted-Cross-Domain-Policies', value: 'none' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           // HSTS: force HTTPS for 2 years incl. subdomains and opt into the
           // browser preload list. Fixes the "HSTS header missing" site-health

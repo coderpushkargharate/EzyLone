@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { LoanApplication } from '@/lib/models/LoanApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,7 +24,8 @@ function toCsv(headers: string[], rows: any[][]): string {
 // GET /api/reports/export?type=leads|loans&from=YYYY-MM-DD&to=YYYY-MM-DD
 // Admin only. Streams a CSV the admin can open in Excel / Google Sheets.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
   await connectDB();
 
   const { searchParams } = new URL(req.url);

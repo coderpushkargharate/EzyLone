@@ -2,13 +2,12 @@ import Link from 'next/link';
 import { connectDB } from '@/lib/db';
 import { Blog } from '@/lib/models/Blog';
 import { PUBLIC_BLOG_FILTER } from '@/lib/blog';
+import { SITE_URL, jsonLd } from '@/lib/seo';
 
 // Server-rendered so the full list is crawlable HTML (no JS-only navigation).
 // Revalidated every 10 min; also refreshed immediately on publish/unpublish via
 // revalidatePath('/blogs').
 export const revalidate = 600;
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ezyloan.co.in';
 
 interface BlogCard {
   _id: string;
@@ -67,9 +66,9 @@ export default async function BlogsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       {blogs.length > 0 && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema) }} />
       )}
 
       {/* Breadcrumb */}
@@ -92,7 +91,7 @@ export default async function BlogsPage() {
         <p className="text-center text-gray-500 py-16">No articles published yet. Please check back soon.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {blogs.map((b) => (
+          {blogs.map((b, i) => (
             <article key={b._id} className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
               <Link href={`/blog/${b.slug}`} className="block" aria-label={b.title}>
                 {b.image ? (
@@ -102,7 +101,8 @@ export default async function BlogsPage() {
                     alt={b.featuredImageAlt || b.title}
                     width={400}
                     height={225}
-                    loading="lazy"
+                    loading={i < 3 ? "eager" : "lazy"}
+                    fetchPriority={i === 0 ? "high" : undefined}
                     className="w-full h-48 object-cover"
                   />
                 ) : (

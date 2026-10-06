@@ -140,7 +140,7 @@ const NewCarLoanPage: React.FC = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                Turn Your Dream <span className="text-blue-600">Into Reality</span>
+                New Car Loans: Turn Your Dream <span className="text-blue-600">Into Reality</span>
               </h1>
               <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-3xl">
                 Drive home your dream car with EzyLoan! We offer flexible and convenient loan options tailored to your needs, making it easier than ever to own the car you've always wanted. With our quick approval process and competitive interest rates, you can enjoy a hassle-free experience from start to finish.

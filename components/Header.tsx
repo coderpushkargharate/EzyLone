@@ -276,7 +276,8 @@ const Header = memo(() => {
                   width={207}
                   height={140}
                   sizes="(max-width: 640px) 95px, 120px"
-                  priority
+                  // Eager but NOT priority: a high-priority preload of the small
+                  // logo competes with the real LCP element (the hero image).
                   quality={85}
                   loading="eager"
                 />

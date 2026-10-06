@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Apply for a Loan Online – Quick Approval',
+export const metadata = pageMeta({
+  path: '/apply-now',
+  title: "Apply for a Loan Online",
   description:
-    'Apply online for personal, car, property or business loans with EzyLoan. Minimal documentation, low interest rates* and approval in 24 hours*. *Subject to lender approval.',
-  alternates: { canonical: '/apply-now' },
-};
+    "Apply online for a car, personal, property or commercial vehicle loan. Share your details once and we match you with suitable partner lenders.",
+});
 
 export default function ApplyNowLayout({ children }: { children: React.ReactNode }) {
   return children;

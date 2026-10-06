@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { LoanApplication } from '@/lib/models/LoanApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,8 @@ export const dynamic = 'force-dynamic';
 // things that need attention today: overdue & due-today follow-ups, brand-new
 // leads from the last 24h, and fresh loan applications awaiting action.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['leads', 'loans', 'dashboard'] });
+  if ('error' in gate) return gate.error;
   await connectDB();
 
   const now = new Date();

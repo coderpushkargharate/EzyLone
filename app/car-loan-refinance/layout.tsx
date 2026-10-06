@@ -1,12 +1,21 @@
-import type { Metadata } from 'next';
+import RelatedArticles from '@/components/RelatedArticles';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Car Loan Refinance – Better Rates on Your Car Loan',
+export const metadata = pageMeta({
+  path: '/car-loan-refinance',
+  title: "Car Loan Refinance – Loan Against Your Car",
   description:
-    'Refinance your car loan with EzyLoan to secure a better interest rate*, flexible tenure and lower EMIs. Quick, paperless process across Odisha. *Subject to lender approval.',
-  alternates: { canonical: '/car-loan-refinance' },
-};
+    "Raise funds against a car you already own. Eligibility, documents and process for car refinance and loans against used cars in Odisha.",
+});
+
+// Static page; the related-articles list refreshes hourly (and on blog publish).
+export const revalidate = 3600;
 
 export default function CarLoanRefinanceLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <RelatedArticles topic="car" heading="Car refinance & car loan guides" />
+    </>
+  );
 }

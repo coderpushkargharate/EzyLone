@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Banner } from '@/lib/models/Banner';
 import { destroyImageByUrl } from '@/lib/cloudinary';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { invalidateBannerCache } from '@/lib/bannerCache';
 
 export const runtime = 'nodejs';
@@ -10,7 +11,9 @@ export const dynamic = 'force-dynamic';
 
 // DELETE /api/banners/:id — admin only
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'banners' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
 
   try {
     await connectDB();
@@ -36,6 +39,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ message: 'Banner deleted' });
   } catch (error: any) {
     console.error('Delete banner error:', error);
-    return NextResponse.json({ message: 'Error deleting banner', error: error.message }, { status: 500 });
+    console.error('Error deleting banner', error);
+
+    return NextResponse.json({ message: 'Error deleting banner' }, { status: 500 });
   }
 }

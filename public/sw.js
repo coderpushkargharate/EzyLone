@@ -3,10 +3,14 @@
 // cached shell when offline. It deliberately does NOT cache API/admin data, so
 // WhatsApp chats are always fetched fresh from the network.
 
-const CACHE = 'ezyloan-shell-v6';
-// Precache both app shells: "/" for the customer website app and "/ezyadmin" for
-// the admin/WhatsApp app (the admin panel lives on an obscured path).
-const SHELL = ['/', '/ezyadmin', '/favicon.ico', '/icon-192.png'];
+const CACHE = 'ezyloan-shell-v7';
+// Precache ONLY the public shell. (This worker is installed for every website
+// visitor; precaching the admin page made each visitor's browser request it and
+// get redirected to the staff login. The admin shell is cached on its own the
+// first time a staff member opens it — see the fetch handler.)
+const SHELL = ['/', '/favicon.ico', '/icon-192.png'];
+// Private pages are never stored in the shared offline cache.
+const NO_CACHE_PREFIXES = ['/api', '/ezylogin'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -24,22 +28,25 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   // Only handle GET navigations/assets. Never touch API calls — those must be
   // live (auth cookies, chat data) so we let them go straight to the network.
-  if (req.method !== 'GET' || new URL(req.url).pathname.startsWith('/api')) return;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  if (NO_CACHE_PREFIXES.some((p) => url.pathname.startsWith(p))) return;
 
   event.respondWith(
     fetch(req)
       .then((res) => {
-        // Cache a copy of successful navigations/assets for offline fallback.
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        // Cache a copy of successful, non-redirected responses for offline fallback.
+        if (res.ok && !res.redirected) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
         return res;
       })
       .catch(() =>
-        caches.match(req).then(
-          // Offline fallback: admin routes fall back to the admin shell, every
-          // other page to the customer website home.
-          (hit) => hit || caches.match(new URL(req.url).pathname.startsWith('/ezyadmin') ? '/ezyadmin' : '/'),
-        ),
+        // Offline fallback: the same page (ignoring ?query, e.g. a deep-linked
+        // admin tab), else the website home.
+        caches.match(req, { ignoreSearch: true }).then((hit) => hit || caches.match('/')),
       ),
   );
 });
@@ -147,7 +154,7 @@ self.addEventListener('push', (event) => {
     renotify: true, // buzz again even if a notification with this tag exists
     requireInteraction: true, // stay in the tray until the admin acts (WhatsApp-like)
     vibrate: [200, 100, 200],
-    data: { url: data.url || '/ezyadmin' },
+    data: { url: data.url || '/' },
   };
 
   event.waitUntil(
@@ -187,7 +194,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/ezyadmin';
+  const url = (event.notification.data && event.notification.data.url) || '/';
 
   event.waitUntil(
     (async () => {
@@ -196,8 +203,9 @@ self.addEventListener('notificationclick', (event) => {
       applyAppBadge(0);
 
       const all = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-      // Focus an already-open admin window if there is one, else open a new one.
-      const existing = all.find((c) => c.url.includes('/ezyadmin'));
+      // Focus an already-open window on the target page if there is one, else open a new one.
+      const target = new URL(url, self.location.origin).pathname;
+      const existing = all.find((c) => new URL(c.url).pathname === target);
       if (existing) return existing.focus();
       if (clients.openWindow) return clients.openWindow(url);
     })(),

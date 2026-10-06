@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Integration } from '@/lib/models/Integration';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,8 +25,9 @@ function redact(config: Record<string, any> = {}) {
 }
 
 export async function GET(req: NextRequest) {
-  const user = verifyAuth(req);
-  if (!user) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'automations' });
+  if ('error' in gate) return gate.error;
+  const user = gate.auth;
 
   await connectDB();
   const list = await Integration.find({}).lean();
@@ -40,8 +41,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = verifyAuth(req);
-  if (!user) return unauthorized();
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
+  const user = gate.auth;
 
   await connectDB();
   const body = await req.json();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { PushSubscription } from '@/lib/models/PushSubscription';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,7 +11,9 @@ export const dynamic = 'force-dynamic';
 // (upserts by endpoint) the browser's PushSubscription so the server can later
 // push message/lead alerts to this device even when the app is closed.
 export async function POST(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  // Only staff who can see WhatsApp chats or leads receive these alerts.
+  const gate = await requireAuth(req, { permission: ['whatsappChats', 'leads', 'dashboard'] });
+  if ('error' in gate) return gate.error;
 
   let body: any;
   try {
@@ -23,7 +25,10 @@ export async function POST(req: NextRequest) {
   const endpoint: string | undefined = body?.endpoint;
   const p256dh: string | undefined = body?.keys?.p256dh;
   const auth: string | undefined = body?.keys?.auth;
-  if (!endpoint || !p256dh || !auth) {
+  if (
+    typeof endpoint !== 'string' || !endpoint.startsWith('https://') || endpoint.length > 1000 ||
+    typeof p256dh !== 'string' || p256dh.length > 200 || typeof auth !== 'string' || auth.length > 100
+  ) {
     return NextResponse.json({ message: 'Invalid subscription' }, { status: 400 });
   }
 
@@ -35,13 +40,15 @@ export async function POST(req: NextRequest) {
         $set: {
           endpoint,
           keys: { p256dh, auth },
-          userAgent: req.headers.get('user-agent') || '',
+          userAgent: (req.headers.get('user-agent') || '').slice(0, 300),
+          userId: gate.auth.userId,
         },
       },
       { upsert: true, new: true },
     );
     return NextResponse.json({ ok: true });
-  } catch (error: any) {
-    return NextResponse.json({ message: 'Failed to save subscription', error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Push subscribe error:', error);
+    return NextResponse.json({ message: 'Failed to save subscription' }, { status: 500 });
   }
 }

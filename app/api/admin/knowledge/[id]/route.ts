@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { KnowledgeEntry } from '@/lib/models/KnowledgeEntry';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { invalidateBrain } from '@/lib/chatbot/knowledgeBase';
 
 export const runtime = 'nodejs';
@@ -15,7 +16,9 @@ function toList(v: unknown): string[] {
 
 // PUT /api/admin/knowledge/[id] — update an entry (admin only).
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['ezyBrain', 'whatsappBrain'] });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
   try {
     const { id } = params;
     const body = await req.json();
@@ -36,13 +39,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     invalidateBrain();
     return NextResponse.json({ message: 'Knowledge updated', entry });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error updating knowledge', error: error.message }, { status: 500 });
+    console.error('Error updating knowledge', error);
+
+    return NextResponse.json({ message: 'Error updating knowledge' }, { status: 500 });
   }
 }
 
 // DELETE /api/admin/knowledge/[id] — remove an entry (admin only).
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['ezyBrain', 'whatsappBrain'] });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
   try {
     const { id } = params;
     await connectDB();
@@ -52,6 +59,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     invalidateBrain();
     return NextResponse.json({ message: 'Knowledge deleted' });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting knowledge', error: error.message }, { status: 500 });
+    console.error('Error deleting knowledge', error);
+
+    return NextResponse.json({ message: 'Error deleting knowledge' }, { status: 500 });
   }
 }

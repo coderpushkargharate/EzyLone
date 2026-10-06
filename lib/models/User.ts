@@ -25,6 +25,13 @@ export interface IUser extends Document {
   company?: string;
   avatar?: string;
   settings?: IUserSettings;
+  /** A disabled account cannot log in and all its sessions are rejected. */
+  disabled?: boolean;
+  /** Consecutive failed logins + lockout end (brute-force protection). */
+  failedLogins?: number;
+  lockedUntil?: Date | null;
+  lastLoginAt?: Date;
+  passwordChangedAt?: Date;
   comparePassword(password: string): Promise<boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +55,11 @@ const UserSchema = new Schema<IUser>(
     company: { type: String, trim: true },
     avatar: { type: String },
     settings: { type: Schema.Types.Mixed, default: {} },
+    disabled: { type: Boolean, default: false },
+    failedLogins: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
+    lastLoginAt: { type: Date },
+    passwordChangedAt: { type: Date },
   },
   { timestamps: true }
 );
@@ -55,7 +67,8 @@ const UserSchema = new Schema<IUser>(
 // Hash password whenever it is set/changed.
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 12);
+  if (!this.isNew) this.passwordChangedAt = new Date();
   next();
 });
 

@@ -27,5 +27,9 @@ const ActivitySchema = new Schema<IActivity>(
   { timestamps: true }
 );
 
+// Per-lead timeline + the global newest-first feed.
+ActivitySchema.index({ leadId: 1, createdAt: -1 });
+ActivitySchema.index({ createdAt: -1 });
+
 export const Activity: Model<IActivity> =
   (mongoose.models.Activity as Model<IActivity>) || mongoose.model<IActivity>('Activity', ActivitySchema);

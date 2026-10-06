@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { uploadBuffer, destroyImageByUrl } from '@/lib/cloudinary';
 
 export const runtime = 'nodejs';
@@ -13,7 +14,9 @@ const ALLOWED = ['image/', 'application/pdf'];
 // POST /api/loans/:id/documents — admin only. Upload a KYC document (PDF/image)
 // to Cloudinary and attach it to the loan file.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'loans' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
@@ -49,13 +52,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!loan) return NextResponse.json({ message: 'Loan not found' }, { status: 404 });
     return NextResponse.json(loan);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error uploading document', error: error.message }, { status: 500 });
+    console.error('Error uploading document', error);
+
+    return NextResponse.json({ message: 'Error uploading document' }, { status: 500 });
   }
 }
 
 // DELETE /api/loans/:id/documents?url=... — admin only. Detach + remove asset.
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'loans' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
   try {
     const url = req.nextUrl.searchParams.get('url');
     if (!url) return NextResponse.json({ message: 'url required' }, { status: 400 });
@@ -73,6 +80,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!loan) return NextResponse.json({ message: 'Loan not found' }, { status: 404 });
     return NextResponse.json(loan);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting document', error: error.message }, { status: 500 });
+    console.error('Error deleting document', error);
+
+    return NextResponse.json({ message: 'Error deleting document' }, { status: 500 });
   }
 }

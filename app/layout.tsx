@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import ConditionalHeader from '@/components/ConditionalHeader';
 import ConditionalFooter from '@/components/ConditionalFooter';
@@ -8,17 +8,22 @@ import Script from 'next/script';
 import MetaPixel from '@/components/MetaPixel';
 import { GOOGLE_ADS_ID } from '@/lib/ads';
 
-const inter = Inter({
-  subsets: ['latin'],
+// Inter, self-hosted: ONE 48 KB variable WOFF2 (Latin subset) covers every
+// weight 400–700, so there is no build-time Google Fonts fetch (next/font/google
+// in Next 14.2.5 crashes on Google's current response) and no third-party
+// request at runtime. Inter is licensed under the SIL Open Font License.
+const inter = localFont({
+  src: './fonts/inter-latin-var.woff2',
+  weight: '400 700',
+  style: 'normal',
   display: 'swap',
   // Don't preload the font: on slow 4G it competes with the LCP hero image for
-  // bandwidth. With display:swap, text paints instantly in the fallback and
-  // swaps to Inter once loaded, while the high-priority image wins the pipe.
+  // bandwidth. With display:swap, text paints instantly in the size-adjusted
+  // fallback and swaps to Inter once loaded, while the image wins the pipe.
   preload: false,
-  weight: ['400', '500', '600', '700'],
   variable: '--font-inter',
   fallback: ['system-ui', 'arial'],
-  adjustFontFallback: true,
+  adjustFontFallback: 'Arial',
 });
 
 const BASE_URL = 'https://www.ezyloan.co.in';

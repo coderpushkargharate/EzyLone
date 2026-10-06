@@ -63,7 +63,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
             {/* Introduction Section */}
             <div className="text-center mb-12 sm:mb-16">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gray-800">
-                Looking to lower your monthly car loan payments?
+                Car Loan Balance Transfer: Lower Your Monthly EMI
               </h1>
               <p className="text-base md:text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed px-2">
                 Our Car Loan Balance Transfer service offers you the perfect opportunity to switch your existing loan to a lower interest rate, helping you save money. With a hassle-free process and quick approval, you can enjoy reduced EMIs and better financial flexibility.

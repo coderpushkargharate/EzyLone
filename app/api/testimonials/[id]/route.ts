@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Testimonial } from '@/lib/models/Testimonial';
 import { uploadBuffer } from '@/lib/cloudinary';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // PUT /api/testimonials/:id — update (admin only). multipart: fields + optional avatar file.
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'testimonials' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
 
   try {
     const form = await req.formData();
@@ -48,13 +51,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ message: 'Testimonial updated', testimonial });
   } catch (error: any) {
     console.error('Update testimonial error:', error);
-    return NextResponse.json({ message: 'Failed to update testimonial', error: error.message }, { status: 500 });
+    console.error('Failed to update testimonial', error);
+
+    return NextResponse.json({ message: 'Failed to update testimonial' }, { status: 500 });
   }
 }
 
 // DELETE /api/testimonials/:id — admin only
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'testimonials' });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
 
   try {
     await connectDB();
@@ -62,6 +69,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!testimonial) return NextResponse.json({ message: 'Testimonial not found' }, { status: 404 });
     return NextResponse.json({ message: 'Testimonial deleted' });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting testimonial', error: error.message }, { status: 500 });
+    console.error('Error deleting testimonial', error);
+
+    return NextResponse.json({ message: 'Error deleting testimonial' }, { status: 500 });
   }
 }

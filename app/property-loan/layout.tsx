@@ -1,12 +1,21 @@
-import type { Metadata } from 'next';
+import RelatedArticles from '@/components/RelatedArticles';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Property Loan & Loan Against Property (LAP)',
+export const metadata = pageMeta({
+  path: '/property-loan',
+  title: "Loan Against Property – Eligibility & Rates",
   description:
-    'Unlock the value of your property with EzyLoan’s loan against property (LAP) and home loans. High funding, long tenure and attractive rates*. *Subject to lender approval.',
-  alternates: { canonical: '/property-loan' },
-};
+    "Loan against residential or commercial property through partner banks and NBFCs. Check eligibility, documents, tenure and indicative rates.",
+});
+
+// Static page; the related-articles list refreshes hourly (and on blog publish).
+export const revalidate = 3600;
 
 export default function PropertyLoanLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <RelatedArticles topic="property" heading="Loan against property guides" />
+    </>
+  );
 }

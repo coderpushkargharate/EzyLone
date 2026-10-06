@@ -4,7 +4,7 @@ import { WhatsAppMessage } from '@/lib/models/WhatsAppMessage';
 import { WhatsAppContact } from '@/lib/models/WhatsAppContact';
 import { WhatsAppSession } from '@/lib/models/WhatsAppSession';
 import { sendWhatsAppManual } from '@/lib/whatsapp';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,7 +23,8 @@ function decodePhone(raw: string): string {
 // user, oldest→newest, so an admin can read exactly what they asked the Ezy AI
 // WhatsApp bot and how it replied.
 export async function GET(req: NextRequest, { params }: { params: { phone: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'whatsappChats' });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
     const phone = decodePhone(params.phone);
@@ -34,7 +35,9 @@ export async function GET(req: NextRequest, { params }: { params: { phone: strin
     const mode = contact?.mode === 'manual' ? 'manual' : 'auto';
     return NextResponse.json({ phone, mode, messages });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching conversation', error: error.message }, { status: 500 });
+    console.error('Error fetching conversation', error);
+
+    return NextResponse.json({ message: 'Error fetching conversation' }, { status: 500 });
   }
 }
 
@@ -43,7 +46,8 @@ export async function GET(req: NextRequest, { params }: { params: { phone: strin
 // 'manual' mode the inbound webhook stops auto-replying to this user (see
 // getContactMode in whatsappBrain) and the admin answers by hand via POST below.
 export async function PATCH(req: NextRequest, { params }: { params: { phone: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'whatsappChats' });
+  if ('error' in gate) return gate.error;
   try {
     const body = await req.json().catch(() => ({}));
     const mode = body?.mode === 'manual' ? 'manual' : 'auto';
@@ -58,7 +62,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { phone: str
     );
     return NextResponse.json({ phone, mode });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error updating mode', error: error.message }, { status: 500 });
+    console.error('Error updating mode', error);
+
+    return NextResponse.json({ message: 'Error updating mode' }, { status: 500 });
   }
 }
 
@@ -69,7 +75,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { phone: str
 // turn so it shows in the conversation. Also flips the contact to 'manual' so
 // the bot doesn't fight the human on the next inbound message.
 export async function POST(req: NextRequest, { params }: { params: { phone: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'whatsappChats' });
+  if ('error' in gate) return gate.error;
   try {
     const body = await req.json().catch(() => ({}));
     const message = (body?.message || '').toString().trim();
@@ -116,19 +123,24 @@ export async function POST(req: NextRequest, { params }: { params: { phone: stri
 
     return NextResponse.json({ ok: true, message: saved });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error sending message', error: error.message }, { status: 500 });
+    console.error('Error sending message', error);
+
+    return NextResponse.json({ message: 'Error sending message' }, { status: 500 });
   }
 }
 
 // DELETE /api/admin/whatsapp-chats/<phone> — remove one user's whole transcript.
 export async function DELETE(req: NextRequest, { params }: { params: { phone: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'whatsappChats' });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
     const phone = decodePhone(params.phone);
     const res = await WhatsAppMessage.deleteMany({ phone });
     return NextResponse.json({ message: 'Conversation deleted', deleted: res.deletedCount });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error deleting conversation', error: error.message }, { status: 500 });
+    console.error('Error deleting conversation', error);
+
+    return NextResponse.json({ message: 'Error deleting conversation' }, { status: 500 });
   }
 }

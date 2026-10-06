@@ -34,8 +34,8 @@ const ApplyNowPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  // Spam guard (honeypot + simple math check).
-  const { guardNode, getGuardPayload, validateGuard } = useFormGuard();
+  // Invisible spam guard (honeypot + signed form token).
+  const { guardNode, getGuardPayload } = useFormGuard();
 
   // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
   const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -108,16 +108,13 @@ const ApplyNowPage: React.FC = () => {
       setSubmitMessage('❌ Please correct the errors above before submitting.');
       return;
     }
-    if (!validateGuard()) {
-      setSubmitMessage('❌ Please answer the verification question correctly.');
-      return;
-    }
 
     setIsSubmitting(true);
     setSubmitMessage("");
 
     try {
-      await axios.post('/api/loans', { ...formData, ...getGuardPayload() }, {
+      const guard = await getGuardPayload();
+      await axios.post('/api/loans', { ...formData, ...guard }, {
         headers: { 'Content-Type': 'application/json' }
       });
 
@@ -137,9 +134,13 @@ const ApplyNowPage: React.FC = () => {
       router.push("/ThankYouPage");
 
     } catch (error) {
-      console.error("Error submitting loan application:", error);
+      const serverMsg = axios.isAxiosError(error) && error.response && error.response.status < 500
+        ? error.response.data?.message
+        : undefined;
       setSubmitMessage(
-        "❌ Sorry, there was an error submitting your application. Please try again or contact us at care@ezyloan.co.in."
+        typeof serverMsg === "string" && serverMsg
+          ? `❌ ${serverMsg}`
+          : "❌ Sorry, there was an error submitting your application. Please try again or contact us at care@ezyloan.co.in."
       );
     } finally {
       setIsSubmitting(false);
@@ -323,7 +324,7 @@ const ApplyNowPage: React.FC = () => {
               
               {/* Loan Application Form - Responsive Styling */}
               <div className="bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 text-white mb-6 sm:mb-8 lg:mb-10">
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 leading-tight">Apply for Your Loan*</h2>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 leading-tight">Apply for Your Loan Online*</h1>
                 <p className="text-blue-100 text-sm mb-6">*Submission does not guarantee approval. Final terms determined by partner lender.</p>
 
                 <form onSubmit={handleSubmit} className="space-y-6" noValidate aria-label="Loan application form">
@@ -566,8 +567,8 @@ const ApplyNowPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Spam guard: hidden honeypot + a quick human check */}
-                  <div className="pt-1">{guardNode}</div>
+                  {/* Invisible spam guard (off-screen honeypot) */}
+                  {guardNode}
 
                   {/* ✅ GLASS PRISM SUBMIT BUTTON - Working with Redirect */}
                   <button

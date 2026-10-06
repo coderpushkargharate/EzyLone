@@ -1,12 +1,13 @@
 import { Link } from "lucide-react";
 import React from "react";
+import { pageMeta } from '@/lib/seo';
 
-export const metadata = {
-  title: "Loan Disclosure & Terms",
-  description: "Transparent loan interest rates, charges, EMI examples, eligibility criteria and terms for full regulatory compliance.",
-  robots: "index, follow",
-  alternates: { canonical: "/loan-disclosure" },
-};
+export const metadata = pageMeta({
+  path: '/loan-disclosure',
+  title: "Loan Disclosure – Rates, Fees & EMI Examples",
+  description:
+    "Indicative interest rates, processing fees, representative EMI examples and eligibility criteria for loans arranged through EzyLoan’s partner lenders.",
+});
 
 export default function LoanDisclosurePage() {
   return (

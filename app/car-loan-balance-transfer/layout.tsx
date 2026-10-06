@@ -1,12 +1,21 @@
-import type { Metadata } from 'next';
+import RelatedArticles from '@/components/RelatedArticles';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Car Loan Balance Transfer – Lower Your EMI',
+export const metadata = pageMeta({
+  path: '/car-loan-balance-transfer',
+  title: "Car Loan Balance Transfer – Lower Your EMI",
   description:
-    'Transfer your existing car loan to EzyLoan’s partner lenders for a lower interest rate* and reduced EMI. Save more with a quick balance transfer. *Subject to lender approval.',
-  alternates: { canonical: '/car-loan-balance-transfer' },
-};
+    "Move your running car loan to a partner lender offering a lower rate or better tenure. Check eligibility, documents and how much you could save.",
+});
+
+// Static page; the related-articles list refreshes hourly (and on blog publish).
+export const revalidate = 3600;
 
 export default function CarLoanBtLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <RelatedArticles topic="car" heading="Balance transfer & car loan guides" />
+    </>
+  );
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { getPushDiagnostics, sendAdminPush } from '@/lib/push';
 
 export const runtime = 'nodejs';
@@ -19,13 +19,15 @@ export const dynamic = 'force-dynamic';
 // phone within seconds. That proves the whole background path end to end.
 
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
   const diag = await getPushDiagnostics();
   return NextResponse.json(diag);
 }
 
 export async function POST(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
   const result = await sendAdminPush({
     title: '✅ EzyLoan test push',
     body: 'If you see this with the app CLOSED, background push works.',

@@ -1,108 +1,100 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import {
-  HONEYPOT_FIELD,
-  CAPTCHA_A,
-  CAPTCHA_B,
-  CAPTCHA_ANS,
-} from '@/lib/formGuard';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { HONEYPOT_FIELD, FORM_TOKEN_FIELD, MIN_FILL_MS } from '@/lib/formGuardFields';
 
 // Client half of the public-form spam guard (server half: lib/formGuard.ts).
-// Drop `guardNode` inside a <form>, merge `getGuardPayload()` into the POST body,
-// and gate submit on `validateGuard()`. See HeroSection / apply-now / contact.
+// Nothing for the visitor to solve. Drop `guardNode` inside a <form>, then on
+// submit `await getGuardPayload()` and merge it into the POST body.
+//
+// The signed form token is fetched the first time the visitor interacts with
+// the form (not on page load, so it costs nothing for visitors who never use
+// the form). If someone submits within MIN_FILL_MS of that, we wait out the
+// remainder instead of failing — a human never sees an error.
 
-function randInt() {
-  return Math.floor(Math.random() * 9) + 1; // 1..9, single digit, friendly
+interface Token {
+  value: string;
+  receivedAt: number;
+}
+
+async function fetchToken(): Promise<Token | null> {
+  try {
+    const res = await fetch('/api/form-token', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return typeof data.token === 'string' ? { value: data.token, receivedAt: Date.now() } : null;
+  } catch {
+    return null;
+  }
 }
 
 export function useFormGuard() {
   // Honeypot value — stays empty for real users; a bot that fills every field trips it.
   const [honeypot, setHoneypot] = useState('');
-  // Math challenge operands + the user's typed answer.
-  const [nums, setNums] = useState(() => ({ a: randInt(), b: randInt() }));
-  const [answer, setAnswer] = useState('');
-  const [error, setError] = useState('');
+  const tokenRef = useRef<Promise<Token | null> | null>(null);
 
-  const resetGuard = useCallback(() => {
-    setNums({ a: randInt(), b: randInt() });
-    setAnswer('');
-    setError('');
-    setHoneypot('');
+  const ensureToken = useCallback(() => {
+    if (!tokenRef.current) {
+      tokenRef.current = fetchToken().then((t) => {
+        if (!t) tokenRef.current = null; // allow a retry on the next attempt
+        return t;
+      });
+    }
+    return tokenRef.current;
   }, []);
 
-  const validateGuard = useCallback((): boolean => {
-    if (Number(answer) !== nums.a + nums.b) {
-      setError('Please answer the verification question correctly.');
-      return false;
-    }
-    setError('');
-    return true;
-  }, [answer, nums]);
-
-  const getGuardPayload = useCallback(
-    () => ({
-      [HONEYPOT_FIELD]: honeypot,
-      [CAPTCHA_A]: nums.a,
-      [CAPTCHA_B]: nums.b,
-      [CAPTCHA_ANS]: answer,
-    }),
-    [honeypot, nums, answer]
+  // Start the token clock on the first focus/tap anywhere in an enclosing form.
+  // A callback ref so every rendered copy of the form (e.g. separate mobile and
+  // desktop layouts) is wired up.
+  const anchorRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      const form = el?.closest('form');
+      if (!form) return;
+      const start = () => void ensureToken();
+      form.addEventListener('focusin', start, { once: true });
+      form.addEventListener('pointerdown', start, { once: true });
+    },
+    [ensureToken]
   );
+
+  const resetGuard = useCallback(() => {
+    setHoneypot('');
+    tokenRef.current = null; // one token per submission
+  }, []);
+
+  /** Await before submitting; resolves with the fields the API expects. */
+  const getGuardPayload = useCallback(async () => {
+    const token = await ensureToken();
+    if (token) {
+      const wait = token.receivedAt + MIN_FILL_MS + 200 - Date.now();
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    }
+    return { [HONEYPOT_FIELD]: honeypot, [FORM_TOKEN_FIELD]: token?.value || '' };
+  }, [ensureToken, honeypot]);
 
   const guardNode = useMemo(
     () => (
-      <div>
-        {/* Honeypot: invisible to humans, irresistible to dumb bots. Not type=hidden
-            (some bots skip those) — moved off-screen instead. */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: '-9999px',
-            width: '1px',
-            height: '1px',
-            overflow: 'hidden',
-          }}
-        >
-          <label htmlFor={HONEYPOT_FIELD}>Company website (leave this empty)</label>
-          <input
-            id={HONEYPOT_FIELD}
-            name={HONEYPOT_FIELD}
-            type="text"
-            tabIndex={-1}
-            autoComplete="off"
-            value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
-          />
-        </div>
-
-        {/* Simple human check */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="vq_ans" className="text-sm font-medium whitespace-nowrap">
-            {nums.a} + {nums.b} = ?
-          </label>
-          <input
-            id="vq_ans"
-            name="vq_ans"
-            type="number"
-            inputMode="numeric"
-            required
-            value={answer}
-            onChange={(e) => {
-              setAnswer(e.target.value);
-              if (error) setError('');
-            }}
-            placeholder="Answer *"
-            aria-label={`What is ${nums.a} plus ${nums.b}?`}
-            className="w-24 px-3 py-2 rounded-lg border border-gray-300 text-gray-900 outline-none focus:ring-2 focus:ring-blue-300"
-          />
-        </div>
-        {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      // Honeypot: invisible to humans and assistive tech. Not type=hidden (some
+      // bots skip those) — moved off-screen instead.
+      <div
+        ref={anchorRef}
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}
+      >
+        <label htmlFor={HONEYPOT_FIELD}>Company website (leave this empty)</label>
+        <input
+          id={HONEYPOT_FIELD}
+          name={HONEYPOT_FIELD}
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
       </div>
     ),
-    [honeypot, nums, answer, error]
+    [honeypot, anchorRef]
   );
 
-  return { guardNode, getGuardPayload, validateGuard, resetGuard };
+  return { guardNode, getGuardPayload, resetGuard };
 }

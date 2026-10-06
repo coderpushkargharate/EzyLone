@@ -5,13 +5,14 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { connectDB } from '@/lib/db';
 import { Blog } from '@/lib/models/Blog';
 import { PUBLIC_BLOG_FILTER } from '@/lib/blog';
+import { sanitizeBlogHtml } from '@/lib/blogHtml';
+import { SITE_URL, jsonLd, siteCanonical, topicLinksFor } from '@/lib/seo';
 
 // Server-rendered so search engines & social crawlers get full content + meta.
 // Revalidated every 10 min; refreshed immediately on publish/edit/unpublish via
 // revalidatePath(`/blog/<slug>`).
 export const revalidate = 600;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.ezyloan.co.in';
 const ORG_NAME = 'EzyLoan (Dibyansh Associates)';
 
 interface BlogDoc {
@@ -87,7 +88,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const blog = await getBlog(params.slug);
   if (!blog) return { title: 'Blog Not Found', robots: { index: false, follow: true } };
 
-  const canonical = blog.canonicalUrl?.trim() || `${SITE_URL}/blog/${blog.slug}`;
+  const canonical = siteCanonical(blog.canonicalUrl, `${SITE_URL}/blog/${blog.slug}`);
   const title = (blog.seoTitle || blog.title).trim();
   const description = (blog.seoDescription || blog.excerpt || blog.title).slice(0, 160);
   const ogTitle = blog.ogTitle || title;
@@ -134,7 +135,8 @@ export default async function BlogDetails({ params }: { params: { slug: string }
     notFound();
   }
 
-  const url = blog.canonicalUrl?.trim() || `${SITE_URL}/blog/${blog.slug}`;
+  const url = siteCanonical(blog.canonicalUrl, `${SITE_URL}/blog/${blog.slug}`);
+  const productLinks = topicLinksFor(blog);
   const published = blog.publishedAt || blog.createdAt;
   const modified = blog.modifiedAt || blog.updatedAt || published;
   const related = await getRelated(blog);
@@ -180,8 +182,8 @@ export default async function BlogDetails({ params }: { params: { slug: string }
 
   return (
     <article className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
 
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="text-sm text-gray-500 mb-6">
@@ -231,7 +233,7 @@ export default async function BlogDetails({ params }: { params: { slug: string }
 
       {/* Content (server-rendered HTML — fully crawlable) */}
       <div
-        dangerouslySetInnerHTML={{ __html: blog.content }}
+        dangerouslySetInnerHTML={{ __html: sanitizeBlogHtml(blog.content) }}
         className="blog-content"
         style={{ lineHeight: 1.8, color: '#333', fontSize: '1.08rem' }}
       />
@@ -243,6 +245,25 @@ export default async function BlogDetails({ params }: { params: { slug: string }
           <p className="text-sm text-gray-600 mt-1"><strong>{blog.author}</strong> — {blog.authorBio}</p>
         </aside>
       )}
+
+      {/* Contextual links into the matching product cluster (topical internal linking) */}
+      <section className="mt-10" aria-labelledby="explore-heading">
+        <h2 id="explore-heading" className="text-xl font-bold text-gray-900 mb-4">Explore related loan options</h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {productLinks.map((l) => (
+            <li key={l.href}>
+              <Link href={l.href} className="block h-full p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50/40 transition-colors">
+                <span className="block font-semibold text-blue-700">{l.label}</span>
+                <span className="block text-sm text-gray-600 mt-0.5">{l.description}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-4 text-xs text-gray-500">
+          EzyLoan is a loan facilitator (DSA), not a lender. Interest rates, fees, eligibility and approval are decided by
+          our partner banks and NBFCs. See our <Link href="/loan-disclosure" className="underline">loan disclosure</Link>.
+        </p>
+      </section>
 
       {/* CTA + internal links */}
       <div className="mt-10 p-6 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-center">

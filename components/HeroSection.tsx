@@ -491,8 +491,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     text: string;
   } | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  // Spam guard (honeypot + simple math check) shared across all public forms.
-  const { guardNode, getGuardPayload, validateGuard, resetGuard } = useFormGuard();
+  // Invisible spam guard (honeypot + signed form token) shared across all public forms.
+  const { guardNode, getGuardPayload, resetGuard } = useFormGuard();
   const [isLoanDropdownOpen, setIsLoanDropdownOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
@@ -680,19 +680,16 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         setSubmitMessage({ type: "error", text: "Please correct errors above" });
         return;
       }
-      if (!validateGuard()) {
-        setSubmitMessage({ type: "error", text: "Please answer the verification question correctly." });
-        return;
-      }
       setIsSubmitting(true);
       setSubmitMessage(null);
       setFormErrors({});
       try {
+        const guard = await getGuardPayload();
         const response = await axios.post(
           `/api/contacts`,
           {
             ...formData,
-            ...getGuardPayload(),
+            ...guard,
             page: page === "home" ? "home" : page,
             source: "hero_form",
             timestamp: new Date().toISOString(),
@@ -722,16 +719,17 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         } else {
           throw new Error("Unexpected response");
         }
-      } catch {
+      } catch (err) {
+        const serverMsg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
         setSubmitMessage({
           type: "error",
-          text: "Something went wrong. Please try again.",
+          text: typeof serverMsg === "string" && serverMsg ? serverMsg : "Something went wrong. Please try again.",
         });
       } finally {
         setIsSubmitting(false);
       }
     },
-    [formData, validateForm, page, validateGuard, getGuardPayload, resetGuard]
+    [formData, validateForm, page, getGuardPayload, resetGuard]
   );
 
   const handleLoanTypeSelect = useCallback(
@@ -1200,8 +1198,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           />
         </div>
 
-        {/* Spam guard: hidden honeypot + a quick human check */}
-        <div className="text-white">{guardNode}</div>
+        {/* Invisible spam guard (off-screen honeypot) */}
+        {guardNode}
 
         <button
           type="submit"
@@ -1290,7 +1288,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               <div className="relative z-10 p-4 sm:p-5 ">
                 <h1 className="text-2xl sm:text-4xl font-bold w-75 text-gray-900 leading-tight mb-2">
                   <span>Get Loan Approved in </span>
-                  <span className="text-blue-600">24 Hours in Odisha</span>
+                  <span className="text-blue-600">24 Hours* in Odisha</span>
                 </h1>
                 <p className="text-[10px] sm:text-xs text-gray-600 mb-3">
                   *Subject to eligibility &amp; document verification
@@ -1361,12 +1359,15 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           {/* Desktop view */}
           <div className="hidden lg:grid lg:grid-cols-2 lg:gap-12 mt-5 lg:items-start">
             <div className="space-y-6 text-left">
-              <h1 className="text-5xl font-bold text-gray-900 leading-tight">
+              {/* The mobile hero above holds the page's single <h1> (Google indexes
+                  mobile-first). This desktop copy is the same heading for desktop
+                  screen readers; the mobile one is display:none here. */}
+              <p role="heading" aria-level={1} className="text-5xl font-bold text-gray-900 leading-tight">
                 <span>Get Loan Approved in </span>
                 <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                  24 Hours in Odisha
+                  24 Hours* in Odisha
                 </span>
-              </h1>
+              </p>
               <p className="text-sm text-gray-500 -mt-2">
                 *Subject to eligibility &amp; document verification
               </p>
@@ -1652,7 +1653,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               >
                 <Image
                   src={banner.image}
-                  alt={`Banner ${index + 1}`}
+                  alt={`EzyLoan loan offer banner ${index + 1}`}
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 90vw, (max-width: 1024px) 80vw, 1200px"

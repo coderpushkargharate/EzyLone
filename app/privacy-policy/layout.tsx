@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Privacy Policy',
+export const metadata = pageMeta({
+  path: '/privacy-policy',
+  title: "Privacy Policy",
   description:
-    'Read EzyLoan’s privacy policy to understand how we collect, use and protect your personal information in compliance with the IT Act and RBI/DSA guidelines.',
-  alternates: { canonical: '/privacy-policy' },
-};
+    "How EzyLoan collects, uses, shares and protects your personal information, and the choices you have, in line with the IT Act and RBI DSA guidelines.",
+});
 
 export default function PrivacyPolicyLayout({ children }: { children: React.ReactNode }) {
   return children;

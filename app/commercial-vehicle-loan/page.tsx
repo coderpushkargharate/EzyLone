@@ -59,11 +59,11 @@ const CommercialVehicleLoanPage: React.FC = () => {
           {/* Introduction Section - GLASS EFFECTS */}
           <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 shadow-lg sm:shadow-xl border border-blue-100/50 mb-8 sm:mb-12">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8">
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-                  Accelerate Your Business Growth
+                  Commercial Vehicle Loans to Accelerate Your Business Growth
                 </span>
-              </h2>
+              </h1>
               
               {/* ✅ FIX: Replaced all "href" typos with "to" */}
               <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6 sm:mb-8 text-center max-w-4xl mx-auto px-4">

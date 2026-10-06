@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { KnowledgeEntry } from '@/lib/models/KnowledgeEntry';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { invalidateBrain, seedKnowledgeBase, channelFilter } from '@/lib/chatbot/knowledgeBase';
 
 export const runtime = 'nodejs';
@@ -17,7 +17,8 @@ function toList(v: unknown): string[] {
 // GET /api/admin/knowledge — list all entries (admin only). Seeds the base with
 // the built-in FAQ/product knowledge the first time it's empty.
 export async function GET(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['ezyBrain', 'whatsappBrain'] });
+  if ('error' in gate) return gate.error;
   try {
     await connectDB();
     await seedKnowledgeBase(); // no-op once any entry exists
@@ -27,13 +28,16 @@ export async function GET(req: NextRequest) {
     const entries = await KnowledgeEntry.find(filter).sort({ updatedAt: -1 }).lean();
     return NextResponse.json(entries);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching knowledge', error: error.message }, { status: 500 });
+    console.error('Error fetching knowledge', error);
+
+    return NextResponse.json({ message: 'Error fetching knowledge' }, { status: 500 });
   }
 }
 
 // POST /api/admin/knowledge — create/teach a new entry (admin only).
 export async function POST(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['ezyBrain', 'whatsappBrain'] });
+  if ('error' in gate) return gate.error;
   try {
     const body = await req.json();
     const question = String(body.question || '').trim();
@@ -56,6 +60,8 @@ export async function POST(req: NextRequest) {
     invalidateBrain(); // new answer takes effect on the next question
     return NextResponse.json({ message: 'Knowledge added', entry }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error adding knowledge', error: error.message }, { status: 500 });
+    console.error('Error adding knowledge', error);
+
+    return NextResponse.json({ message: 'Error adding knowledge' }, { status: 500 });
   }
 }

@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'Careers at EzyLoan – Join Our Team in Odisha',
+export const metadata = pageMeta({
+  path: '/careers',
+  title: "Careers at EzyLoan – Jobs in Cuttack, Odisha",
   description:
-    'Explore career opportunities at EzyLoan (Dibyansh Associates). Join a growing loan facilitation team in Odisha and help customers access the right finance.',
-  alternates: { canonical: '/careers' },
-};
+    "Explore career opportunities at EzyLoan (Dibyansh Associates). Join our loan facilitation team in Cuttack and help customers access the right finance.",
+});
 
 export default function CareersLayout({ children }: { children: React.ReactNode }) {
   return children;

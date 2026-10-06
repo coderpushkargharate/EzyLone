@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { Activity } from '@/lib/models/Activity';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,8 +10,9 @@ export const dynamic = 'force-dynamic';
 // GET /api/analytics — aggregate stats over the shared leads/activities, used by
 // the Analytics and Team tabs. Ported from EzyLoanCrm.
 export async function GET(req: NextRequest) {
-  const user = verifyAuth(req);
-  if (!user) return unauthorized();
+  const gate = await requireAuth(req, { permission: ['analytics', 'dashboard', 'team'] });
+  if ('error' in gate) return gate.error;
+  const user = gate.auth;
 
   await connectDB();
 
@@ -35,8 +36,13 @@ export async function GET(req: NextRequest) {
 
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  const twoWeeksAgo = new Date();
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 13);
+  twoWeeksAgo.setHours(0, 0, 0, 0);
 
-  const monthlyLeads = await Lead.aggregate([
+  // Independent aggregations run concurrently (previously one after another).
+  const [monthlyLeads, statusBreakdown, sourceFunnel, activityByType, dailyLeads, totalActivities] = await Promise.all([
+  Lead.aggregate([
     { $match: { createdAt: { $gte: sixMonthsAgo } } },
     {
       $group: {
@@ -45,14 +51,14 @@ export async function GET(req: NextRequest) {
       },
     },
     { $sort: { '_id.year': 1, '_id.month': 1 } },
-  ]);
+  ]),
 
-  const statusBreakdown = await Lead.aggregate([
+  Lead.aggregate([
     { $group: { _id: '$status', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
-  ]);
+  ]),
 
-  const sourceFunnel = await Lead.aggregate([
+  Lead.aggregate([
     {
       $group: {
         _id: { $ifNull: ['$source', 'Manual'] },
@@ -64,17 +70,14 @@ export async function GET(req: NextRequest) {
     },
     { $sort: { total: -1 } },
     { $limit: 8 },
-  ]);
+  ]),
 
-  const activityByType = await Activity.aggregate([
+  Activity.aggregate([
     { $group: { _id: '$type', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
-  ]);
+  ]),
 
-  const twoWeeksAgo = new Date();
-  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 13);
-  twoWeeksAgo.setHours(0, 0, 0, 0);
-  const dailyLeads = await Lead.aggregate([
+  Lead.aggregate([
     { $match: { createdAt: { $gte: twoWeeksAgo } } },
     {
       $group: {
@@ -83,9 +86,10 @@ export async function GET(req: NextRequest) {
       },
     },
     { $sort: { _id: 1 } },
-  ]);
+  ]),
 
-  const totalActivities = await Activity.countDocuments();
+  Activity.estimatedDocumentCount(),
+  ]);
 
   return NextResponse.json({
     stats: {

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Script from 'next/script';
 
 interface FAQItem {
   question: string;
@@ -75,29 +74,13 @@ export default function FAQSection({
     }))
   };
 
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "FinancialService",
-    "name": "EzyLoan (Dibyansh Associates)",
-    "url": "https://ezyloan.co.in",
-    "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India. We are not a direct lender.",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+91-6372977626",
-      "contactType": "Customer Service",
-      "email": "care@ezyloan.co.in",
-      "areaServed": "IN"
-    }
-  };
-
   return (
     <>
 
       {/* ✅ CONDITIONAL Structured Data - Only inject when explicitly enabled AND not duplicated */}
       {injectStructuredData && (
         <>
-          <Script id="faq-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-          <Script id="organization-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
         </>
       )}
 
@@ -176,7 +159,7 @@ export default function FAQSection({
         </div>
 
         {/* Footer */}
-        <footer className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm" role="contentinfo">
+        <div className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto px-4 text-center space-y-3">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan (Dibyansh Associates) is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, interest rates, fees, tenure, and terms are solely determined by partner lenders.
@@ -185,7 +168,7 @@ export default function FAQSection({
               © {new Date().getFullYear()} EzyLoan. All rights reserved. | <Link href="/terms-and-conditions" className="hover:underline">Terms</Link> | <Link href="/privacy-policy" className="hover:underline">Privacy</Link>
             </p>
           </div>
-        </footer>
+        </div>
       </section>
     </>
   );

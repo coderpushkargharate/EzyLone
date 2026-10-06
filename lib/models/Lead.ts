@@ -68,5 +68,13 @@ const LeadSchema = new Schema<ILead>(
   { timestamps: true }
 );
 
+// Indexes matching the real query patterns: newest-first lists, status tabs,
+// follow-up reminders and phone/email de-duplication on ingest.
+LeadSchema.index({ createdAt: -1 });
+LeadSchema.index({ status: 1, createdAt: -1 });
+LeadSchema.index({ followUpDate: 1 });
+LeadSchema.index({ phone: 1 });
+LeadSchema.index({ email: 1 });
+
 export const Lead: Model<ILead> =
   (mongoose.models.Lead as Model<ILead>) || mongoose.model<ILead>('Lead', LeadSchema);

@@ -1,62 +1,42 @@
-# EzyLoan — Security & Secret Rotation Guide
+# EzyLoan — Security Notes
 
-The backend is now **inside the Next.js app** (`app/api/*`). There is no separate
-Express/Node server anymore. All admin APIs require a JWT held in an **httpOnly
-cookie**; public form endpoints are rate-limited.
+The whole app (website + admin + API) is one Next.js app. Hiding the admin URL is
+**not** the protection — every privileged API enforces access on the server.
 
-## ⚠️ Rotate these secrets before going live
+## How access control works
 
-The previous developer knows the old secrets. Changing code does **not** lock
-them out — you must rotate every secret. After changing each one, update
-`.env.local` on the VPS and restart the app (`npm run build && npm run start`,
-or `pm2 restart`).
+- **Sessions** — login creates a server-side session (`sessions` collection). The
+  `HttpOnly`, `Secure`, `SameSite=Lax`, `__Host-` cookie holds a signed token that
+  only identifies that session. Logout, password change, disabling/deleting an
+  employee or changing their permissions revokes sessions immediately.
+- **Authorization** — `lib/auth.ts → requireAuth()` runs in every privileged route.
+  Identity, role and permissions are always loaded from the database; nothing the
+  browser sends (role, user id, permissions) is trusted. Admins can do everything;
+  employees only reach the APIs behind the admin tabs they were granted.
+  Admin-only: employees, blocked IPs, careers, report export, integrations config,
+  blog publish/reject/unpublish. Unauthenticated → `401`, not allowed → `403`.
+- **Login** — generic `Invalid credentials.` for every failure, per-IP and
+  per-account rate limits, 15-minute lockout after 5 wrong passwords, timing
+  equalisation for unknown usernames, session rotation on login.
+- **Public forms** — invisible honeypot, signed form token (no puzzles), per-IP rate
+  limit with automatic IP blocking, India geo/phone checks, input validation.
+- **Content** — blog HTML is sanitised on save and on render; JSON-LD is escaped;
+  visitor input is HTML-escaped in notification emails.
 
-| Secret | Where to rotate | `.env.local` key |
-|---|---|---|
-| **MongoDB password** | MongoDB Atlas → Database Access → edit user → new password → update connection string | `DATABASE_URL` |
-| **JWT secret** | Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` | `JWT_SECRET` *(already replaced with a strong value)* |
-| **Cloudinary keys** | Cloudinary dashboard → Settings → Security → rotate API key/secret | `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` |
-| **Email (SMTP) password** | Hostinger email account → change password | `SMTP_PASS` |
-| **Admin login** | Set `ADMIN_USERNAME` / `ADMIN_PASSWORD`, then run the reset script (below) | `ADMIN_USERNAME`, `ADMIN_PASSWORD` |
+## After any credential leak
 
-Also:
-- **GitHub** — remove the old developer's collaborator access; rotate any deploy
-  keys / personal access tokens / CI secrets.
-- **Old exposed keys** — the DeepSeek key and a Google Gemini key were committed
-  in the past. Revoke them in their dashboards (they live in git history).
+1. Pick a new strong admin password (10+ chars, letters + numbers).
+2. Put it in `.env.local` on the server as `ADMIN_PASSWORD`, then run:
 
-## Admin accounts — IMPORTANT
+   ```bash
+   node --env-file=.env.local scripts/reset-admin.mjs --purge-others
+   ```
 
-The database currently has **4 admin accounts**: `ezyloan`, `EzyLoan`,
-`undefined`, and `admin`. Any of these can log in if its password is known.
-Keep only the one you control and delete the rest.
+   This resets that admin, deletes other **admin** accounts (employees are kept)
+   and signs out every session. Or change it in the admin panel:
+   Account → Password & Security.
+3. Rotate any other secret that may have been exposed: `JWT_SECRET`, MongoDB
+   password (`DATABASE_URL`), Cloudinary, SMTP, Twilio, VAPID, AI API keys.
 
-```bash
-# Reset (or create) the admin in .env.local:
-node --env-file=.env.local scripts/reset-admin.mjs
-
-# Reset AND delete every other admin account (recommended for full lockout):
-node --env-file=.env.local scripts/reset-admin.mjs --purge-others
-```
-
-## What protects the app now
-
-- **httpOnly + Secure + SameSite=lax cookie** for the JWT — not readable by
-  JavaScript, so XSS can't steal the token. (`lib/auth.ts`)
-- **Every admin API** (`GET /api/contacts`, `/api/loans`, all writes, banner/blog
-  uploads) returns **401** without a valid cookie.
-- **`/admin` page** redirects to `/login` without a valid token (`middleware.ts`).
-- **Rate limiting**: 5 login attempts / 15 min, 20 form submissions / 10 min per
-  IP (`lib/rateLimit.ts`).
-- Passwords are **bcrypt**-hashed; tokens expire in 24h.
-
-## Local run / deploy
-
-```bash
-npm install
-npm run build
-npm run start        # serves the whole app (frontend + API) on one port
-```
-
-`.env.local` holds all server secrets and is gitignored — never commit it.
-See `.env.example` for the required keys.
+`.env.local` holds all secrets and is gitignored — never commit real values.
+See `.env.example` for every supported key.

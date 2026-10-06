@@ -2,20 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { connectDB } from '@/lib/db';
 import { Blog, BlogStatus, BLOG_STATUSES } from '@/lib/models/Blog';
-import { verifyAuth, unauthorized } from '@/lib/auth';
-import { canTransition, runSeoChecklist } from '@/lib/blog';
+import { isValidObjectId } from 'mongoose';
+import { requireAuth, forbidden } from '@/lib/auth';
+import { canTransition, runSeoChecklist, isPublicStatus } from '@/lib/blog';
+import { plainText } from '@/lib/blogHtml';
+
+// Employees can only submit a post for review or pull it back to draft.
+// Publishing, rejecting, archiving and un-publishing are admin decisions.
+const EMPLOYEE_TARGETS: BlogStatus[] = ['pending', 'draft'];
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// POST /api/blogs/:id/status — change publishing status (admin/employee only).
+// POST /api/blogs/:id/status — change publishing status (Blog Manager access;
+// approval actions are admin-only).
 // Body: { status: BlogStatus, rejectionReason?: string }
 // The workflow (draft → pending → published / rejected / archived) is enforced
 // server-side; the client status is never trusted. Publishing runs the SEO
 // checklist and refuses if there are critical errors.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = verifyAuth(req);
-  if (!auth) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'blogs' });
+  if ('error' in gate) return gate.error;
+  const isAdminUser = gate.auth.role === 'admin';
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Blog not found' }, { status: 404 });
 
   try {
     const { status, rejectionReason } = (await req.json()) as {
@@ -33,6 +42,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Legacy docs (no status) behave like 'published' for transition purposes.
     const from: BlogStatus = (blog.status as BlogStatus) || 'published';
+    if (!isAdminUser && (!EMPLOYEE_TARGETS.includes(status) || isPublicStatus(blog.status))) {
+      return forbidden();
+    }
     if (!canTransition(from, status)) {
       return NextResponse.json(
         { message: `Cannot change status from "${from}" to "${status}".` },
@@ -65,7 +77,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     if (status === 'rejected') {
-      blog.rejectionReason = (rejectionReason || '').trim() || 'No reason provided';
+      blog.rejectionReason = plainText(rejectionReason, 500) || 'No reason provided';
     } else {
       blog.rejectionReason = undefined;
     }
@@ -83,13 +95,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       revalidatePath('/blogs');
       revalidatePath('/sitemap.xml');
       revalidatePath(`/blog/${blog.slug}`);
+      // Product pages list related articles (components/RelatedArticles) — refresh them too.
+      if (status === 'published' || from === 'published') revalidatePath('/', 'layout');
     } catch {
       /* best-effort */
     }
 
     return NextResponse.json({ message: `Blog ${status}`, blog });
-  } catch (error: any) {
-    console.error('❌ Blog status error:', error);
-    return NextResponse.json({ message: 'Failed to update status', error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('Blog status error:', error);
+    return NextResponse.json({ message: 'Failed to update status' }, { status: 500 });
   }
 }

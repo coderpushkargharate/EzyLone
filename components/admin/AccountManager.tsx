@@ -7,7 +7,7 @@
 import { useEffect, useState } from 'react';
 import {
   User as UserIcon, Bell, Tags, CreditCard, MessageCircle, BookOpen, CheckCircle2,
-  Pencil, Save, ChevronDown, ExternalLink, SlidersHorizontal, Settings as SettingsIcon,
+  Pencil, Save, ChevronDown, ExternalLink, SlidersHorizontal, Settings as SettingsIcon, KeyRound,
 } from 'lucide-react';
 import { GROUPS, groupStyle } from '@/lib/groups';
 import { cn } from '@/lib/utils';
@@ -30,9 +30,10 @@ const SETTINGS_SUB = [
   { key: 'notifications', label: 'Notifications', icon: Bell },
   { key: 'personalisation', label: 'Personalisation', icon: SlidersHorizontal },
   { key: 'groups', label: 'Client Groups', icon: Tags },
+  { key: 'security', label: 'Password & Security', icon: KeyRound },
 ];
 
-const VALID_TABS = ['profile', 'notifications', 'personalisation', 'groups', 'subscription'];
+const VALID_TABS = ['profile', 'notifications', 'personalisation', 'groups', 'security', 'subscription'];
 
 const HOURS = [
   '6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -295,6 +296,8 @@ export default function AccountManager({ accountInitialTab }: { accountInitialTa
                 </div>
                 <p className="text-xs text-gray-400 mt-4">Edit these values in the <button onClick={() => setTab('profile')} className="text-blue-600 font-medium">Edit Profile</button> tab.</p>
               </div>
+            ) : tab === 'security' ? (
+              <ChangePassword />
             ) : tab === 'groups' ? (
               <div className="max-w-xl">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Client Groups</p>
@@ -364,5 +367,56 @@ function Field({
         />
       </div>
     </div>
+  );
+}
+
+// Change your own password. The server re-checks the current password and signs
+// out every other device on success.
+function ChangePassword() {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (next !== confirm) { setMsg({ ok: false, text: 'New passwords do not match.' }); return; }
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/me/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword: current, newPassword: next }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setMsg({ ok: res.ok, text: data.message || (res.ok ? 'Password changed.' : 'Could not change password.') });
+      if (res.ok) { setCurrent(''); setNext(''); setConfirm(''); }
+    } catch {
+      setMsg({ ok: false, text: 'Network error. Please try again.' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const input = 'w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  return (
+    <form onSubmit={submit} className="max-w-md">
+      <p className="text-sm font-semibold text-gray-700 mb-1">Change password</p>
+      <p className="text-sm text-gray-500 mb-5">At least 10 characters with letters and numbers. Other devices are signed out after the change.</p>
+      <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="pw-current">Current password</label>
+      <input id="pw-current" type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} className={cn(input, 'mb-4')} />
+      <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="pw-new">New password</label>
+      <input id="pw-new" type="password" autoComplete="new-password" required minLength={10} value={next} onChange={(e) => setNext(e.target.value)} className={cn(input, 'mb-4')} />
+      <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="pw-confirm">Confirm new password</label>
+      <input id="pw-confirm" type="password" autoComplete="new-password" required minLength={10} value={confirm} onChange={(e) => setConfirm(e.target.value)} className={cn(input, 'mb-4')} />
+      {msg && (
+        <p role="status" className={cn('text-sm mb-4', msg.ok ? 'text-green-700' : 'text-red-600')}>{msg.text}</p>
+      )}
+      <button type="submit" disabled={busy} className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-60">
+        <KeyRound size={15} /> {busy ? 'Saving…' : 'Change password'}
+      </button>
+    </form>
   );
 }

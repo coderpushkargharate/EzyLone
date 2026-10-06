@@ -61,7 +61,7 @@ const PropertyLoanPage: React.FC = () => {
           <div className="mb-12 lg:mb-16">
             <div className="text-center mb-10 lg:mb-12">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
-                Transform Your Property Dreams Into Reality
+                Property Loans &amp; Loan Against Property
               </h1>
               <p className="text-base md:text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed px-2">
                 At EzyLoan, we offer hassle-free property loans tailored to meet your financial needs. Whether you want to buy, renovate, or expand your property, we've got you covered. Leverage your property's value to get funds for personal or business expenses.

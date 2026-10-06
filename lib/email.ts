@@ -1,8 +1,21 @@
 import nodemailer, { Transporter } from 'nodemailer';
+import { escapeHtml } from './validate';
 
 // Lazily-created shared transporter. Returns null if SMTP creds are absent so
 // the app still runs (emails simply skipped) — same behaviour as before.
 let transporter: Transporter | null | undefined;
+
+// Every visitor-supplied value is HTML-escaped before it goes into an email body,
+// so a form submission can't inject links/markup into staff or customer inboxes.
+function escapeFields<T extends Record<string, any>>(data: T): T {
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(data || {})) {
+    // A plain address has no HTML-special characters; keep it intact for `to:`.
+    const plainEmail = k === 'email' && typeof v === 'string' && /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+[.][A-Za-z]{2,}$/.test(v);
+    out[k] = typeof v === 'string' && !plainEmail ? escapeHtml(v) : v;
+  }
+  return out as T;
+}
 
 function getTransporter(): Transporter | null {
   if (transporter !== undefined) return transporter;
@@ -100,6 +113,7 @@ export async function sendSecurityAlert(key: string, subject: string, details: R
 
 // 📧 Welcome/Confirmation Email (Contact & Loan Application submissions)
 export async function sendWelcomeEmail(customerName: string, email?: string, submissionType: 'enquiry' | 'loan' = 'enquiry') {
+  customerName = escapeHtml(customerName);
   const t = getTransporter();
   if (!t || !email) return;
 
@@ -150,6 +164,7 @@ export async function sendWelcomeEmail(customerName: string, email?: string, sub
 
 // 📧 In-Principle Approval Email
 export async function sendLoanApprovalEmail(loan: { fullName: string; email?: string }) {
+  loan = escapeFields(loan);
   const t = getTransporter();
   if (!t || !loan.email) return;
 
@@ -198,6 +213,7 @@ export async function sendLoanApprovalEmail(loan: { fullName: string; email?: st
 
 // 📧 Loan Rejection Email
 export async function sendLoanRejectionEmail(loan: { fullName: string; email?: string }) {
+  loan = escapeFields(loan);
   const t = getTransporter();
   if (!t || !loan.email) return;
 
@@ -249,6 +265,7 @@ export async function sendLoanRejectionEmail(loan: { fullName: string; email?: s
 
 // 📧 Admin Notification for Contact Form
 export async function sendContactAdminNotification(contactData: any) {
+  contactData = escapeFields(contactData);
   const t = getTransporter();
   if (!t) return;
   if (!leadNotifyAllowed()) {
@@ -286,6 +303,7 @@ export async function sendContactAdminNotification(contactData: any) {
 
 // 📧 Admin Notification for Loan Application
 export async function sendLoanAdminNotification(loanData: any) {
+  loanData = escapeFields(loanData);
   const t = getTransporter();
   if (!t) return;
   if (!leadNotifyAllowed()) {
@@ -325,6 +343,7 @@ export async function sendLoanAdminNotification(loanData: any) {
 
 // 📧 Career Application Email (user confirmation + admin notification)
 export async function sendCareerApplicationEmail(applicationData: any) {
+  applicationData = escapeFields(applicationData);
   const t = getTransporter();
   if (!t) return;
 
@@ -371,7 +390,7 @@ export async function sendCareerApplicationEmail(applicationData: any) {
           <tr><td style="padding: 8px 0; font-weight: bold;">💼 Position Applied:</td><td><strong>${applicationData.jobTitle}</strong></td></tr>
           <tr><td style="padding: 8px 0; font-weight: bold;">⏱ Experience:</td><td>${applicationData.experience || 'Not specified'}</td></tr>
           <tr><td style="padding: 8px 0; font-weight: bold;">💰 Current CTC:</td><td>${applicationData.currentCTC || 'Not specified'}</td></tr>
-          <tr><td style="padding: 8px 0; font-weight: bold;">📄 Resume:</td><td><a href="${applicationData.resumeUrl}" target="_blank" style="color: #2563eb;">View/Download Resume</a></td></tr>
+          <tr><td style="padding: 8px 0; font-weight: bold;">📄 Resume:</td><td><a href="${String(applicationData.resumeUrl || '').startsWith('https://') ? applicationData.resumeUrl : '#'}" target="_blank" style="color: #2563eb;">View/Download Resume</a></td></tr>
           <tr><td style="padding: 8px 0; font-weight: bold; vertical-align: top;">💬 Why Hire:</td><td>${applicationData.whyHire || '-'}</td></tr>
         </table>
         <div style="background: #fef3c7; padding: 12px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
@@ -392,6 +411,7 @@ export async function sendCareerApplicationEmail(applicationData: any) {
 
 // 📧 Career Shortlist Email
 export async function sendCareerShortlistEmail(application: { fullName: string; email?: string; jobTitle: string }) {
+  application = escapeFields(application);
   const t = getTransporter();
   if (!t || !application.email) return;
 

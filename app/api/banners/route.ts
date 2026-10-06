@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Banner } from '@/lib/models/Banner';
 import { uploadBuffer } from '@/lib/cloudinary';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { bannerCache as BANNER_CACHE, BANNER_TTL_MS, invalidateBannerCache } from '@/lib/bannerCache';
 
 export const runtime = 'nodejs';
@@ -35,13 +35,16 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(banners, { headers });
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error fetching banners', error: error.message }, { status: 500 });
+    console.error('Error fetching banners', error);
+
+    return NextResponse.json({ message: 'Error fetching banners' }, { status: 500 });
   }
 }
 
 // POST /api/banners — upload banner (admin only)
 export async function POST(req: NextRequest) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { permission: 'banners' });
+  if ('error' in gate) return gate.error;
 
   try {
     const formData = await req.formData();
@@ -51,8 +54,11 @@ export async function POST(req: NextRequest) {
     if (!file || !page) {
       return NextResponse.json({ message: 'Image and page required' }, { status: 400 });
     }
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
       return NextResponse.json({ message: 'Only images allowed' }, { status: 400 });
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      return NextResponse.json({ message: 'Image must be under 8 MB' }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -61,7 +67,7 @@ export async function POST(req: NextRequest) {
     await connectDB();
     const banner = await Banner.create({
       image: result.secure_url,
-      page,
+      page: String(page).slice(0, 60),
       order: Number(formData.get('order')) || 0,
       isActive: true,
     });
@@ -70,6 +76,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(banner, { status: 201 });
   } catch (error: any) {
     console.error('Banner error:', error);
-    return NextResponse.json({ message: 'Error creating banner', error: error.message }, { status: 500 });
+    console.error('Error creating banner', error);
+
+    return NextResponse.json({ message: 'Error creating banner' }, { status: 500 });
   }
 }

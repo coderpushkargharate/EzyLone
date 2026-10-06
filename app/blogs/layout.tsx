@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'EzyLoan Blog – Loan Tips, Guides & Financial News',
+export const metadata = pageMeta({
+  path: '/blogs',
+  title: "Loan Guides, EMI Tips & Finance Articles",
   description:
-    'Read EzyLoan’s blog for loan guides, EMI tips, interest rate updates and financial advice to help you borrow smarter across Odisha and India.',
-  alternates: { canonical: '/blogs' },
-};
+    "Practical guides on car, personal and property loans: eligibility, documents, EMIs, interest rates and smarter borrowing for customers in Odisha and India.",
+});
 
 export default function BlogsLayout({ children }: { children: React.ReactNode }) {
   return children;

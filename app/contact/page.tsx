@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Phone, Mail, MapPin, Clock, Send, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
 import axios from 'axios';
-import Script from 'next/script';
 import HeroSection from '@/components/HeroSection';
 import { isIndianMobile } from '@/lib/phone';
 import { useFormGuard } from '@/components/FormGuard';
@@ -23,8 +22,8 @@ const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  // Spam guard (honeypot + simple math check).
-  const { guardNode, getGuardPayload, validateGuard, resetGuard } = useFormGuard();
+  // Invisible spam guard (honeypot + signed form token).
+  const { guardNode, getGuardPayload, resetGuard } = useFormGuard();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -57,33 +56,22 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) { setSubmitMessage('❌ Please correct the errors above before submitting.'); return; }
-    if (!validateGuard()) { setSubmitMessage('❌ Please answer the verification question correctly.'); return; }
     setIsSubmitting(true); setSubmitMessage('');
     try {
-      await axios.post('/api/contacts', { ...formData, ...getGuardPayload() }, { headers: { 'Content-Type': 'application/json' } });
+      const guard = await getGuardPayload();
+      await axios.post('/api/contacts', { ...formData, ...guard }, { headers: { 'Content-Type': 'application/json' } });
       setSubmitMessage('✅ Thank you! Your message has been sent successfully. We will get back to you within 24-48 business hours.');
       setFormData({ fullName: '', email: '', phoneNumber: '', loanType: '', loanAmount: '', message: '' });
       setFormErrors({});
       resetGuard();
     } catch (error) {
-      console.error('Submission error:', error);
-      setSubmitMessage('❌ Sorry, there was an error sending your message. Please try again or contact us directly at care@ezyloan.co.in.');
+      const serverMsg = axios.isAxiosError(error) && error.response && error.response.status < 500
+        ? error.response.data?.message
+        : undefined;
+      setSubmitMessage(typeof serverMsg === 'string' && serverMsg
+        ? `❌ ${serverMsg}`
+        : '❌ Sorry, there was an error sending your message. Please try again or contact us directly at care@ezyloan.co.in.');
     } finally { setIsSubmitting(false); }
-  };
-
-  // ✅ ONLY Organization Schema - NO FAQ Schema on contact page
-  const organizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "FinancialService",
-    "name": "EzyLoan (Dibyansh Associates)",
-    "url": "https://ezyloan.co.in",
-    "description": "EzyLoan is a loan facilitation service provider (DSA) connecting borrowers with partner banks and NBFCs across India. We are not a direct lender.",
-    "telephone": "+91-6372977626",
-    "contactPoint": { "@type": "ContactPoint", "telephone": "+91-6372977626", "contactType": "Customer Service", "areaServed": "IN", "availableLanguage": ["English", "Hindi"] },
-    "address": { "@type": "PostalAddress", "streetAddress": "1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur", "addressLocality": "Cuttack", "postalCode": "753011", "addressRegion": "Odisha", "addressCountry": "IN" },
-    "geo": { "@type": "GeoCoordinates", "latitude": 20.4618, "longitude": 85.8812 },
-    "openingHoursSpecification": { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"], "opens": "09:00", "closes": "19:00" },
-    "sameAs": ["https://facebook.com/ezyloan", "https://twitter.com/ezyloan", "https://linkedin.com/company/ezyloan"]
   };
 
   const contactInfo = [
@@ -99,10 +87,7 @@ const Contact = () => {
   return (
     <>
 
-      {/* ✅ ONLY Organization Schema - NO FAQ Schema */}
-      <Script id="organization-structured-data" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
-
-      <section id="contact" className="py-20 bg-gradient-to-br from-blue-50 via-white to-cyan-50 relative overflow-hidden" role="main">
+      <section id="contact" className="py-20 bg-gradient-to-br from-blue-50 via-white to-cyan-50 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="absolute top-1/4 -left-20 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-3xl animate-pulse"></div>
@@ -256,8 +241,8 @@ const Contact = () => {
                   />
                 </div>
                 
-                {/* Spam guard: hidden honeypot + a quick human check */}
-                <div>{guardNode}</div>
+                {/* Invisible spam guard (off-screen honeypot) */}
+                {guardNode}
 
                 {/* ✅ GLASS PRISM SUBMIT BUTTON */}
                 <button

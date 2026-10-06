@@ -1,12 +1,21 @@
-import type { Metadata } from 'next';
+import RelatedArticles from '@/components/RelatedArticles';
+import { pageMeta } from '@/lib/seo';
 
-export const metadata: Metadata = {
-  title: 'New Car Loan – Low Interest Rates, 24-Hour Approval',
+export const metadata = pageMeta({
+  path: '/car-loan',
+  title: "New Car Loan – Interest Rates & Eligibility",
   description:
-    'Get a new car loan with EzyLoan – competitive interest rates*, up to 100% on-road funding* and approval in 24 hours* across Odisha. *Subject to lender approval.',
-  alternates: { canonical: '/car-loan' },
-};
+    "Finance a new car through EzyLoan’s partner banks and NBFCs. Check eligibility, documents, tenure and indicative rates, then apply online.",
+});
+
+// Static page; the related-articles list refreshes hourly (and on blog publish).
+export const revalidate = 3600;
 
 export default function CarLoanLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <RelatedArticles topic="car" heading="Car loan guides" />
+    </>
+  );
 }

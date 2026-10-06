@@ -1,20 +1,16 @@
 import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/seo';
 
-const BASE_URL = 'https://www.ezyloan.co.in';
-
+// robots.txt is a crawl hint, NOT access control — private areas are protected
+// server-side (see lib/auth.ts). Notes:
+//  - /api/ is not content, so it isn't crawled.
+//  - Admin/login and the post-submit thank-you page are NOT disallowed: they
+//    send `noindex`, and a crawler must be able to fetch a page to see that
+//    (a disallowed URL can still be indexed from external links).
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [
-      {
-        userAgent: '*',
-        allow: '/',
-        // NOTE: the admin panel + login live on obscured paths and are
-        // deliberately NOT listed here — listing them in robots.txt would
-        // publicly reveal the secret URLs. They carry `noindex` metadata instead.
-        disallow: ['/ThankYouPage', '/api/'],
-      },
-    ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
-    host: BASE_URL,
+    rules: [{ userAgent: '*', allow: '/', disallow: ['/api/'] }],
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { JobApplication } from '@/lib/models/JobApplication';
-import { verifyAuth, unauthorized } from '@/lib/auth';
+import { requireAuth } from '@/lib/auth';
 import { sendCareerShortlistEmail } from '@/lib/email';
 
 export const runtime = 'nodejs';
@@ -11,7 +12,9 @@ const VALID = ['pending', 'reviewed', 'shortlisted', 'rejected'];
 
 // PUT /api/careers/:id/status — admin only
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  if (!verifyAuth(req)) return unauthorized();
+  const gate = await requireAuth(req, { adminOnly: true });
+  if ('error' in gate) return gate.error;
+  if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
 
   try {
     const { status } = await req.json();
@@ -29,6 +32,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json(application);
   } catch (error: any) {
-    return NextResponse.json({ message: 'Error updating status', error: error.message }, { status: 500 });
+    console.error('Error updating status', error);
+
+    return NextResponse.json({ message: 'Error updating status' }, { status: 500 });
   }
 }

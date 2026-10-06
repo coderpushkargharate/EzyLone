@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import { Blog } from '@/lib/models/Blog';
 import { PUBLIC_BLOG_FILTER } from '@/lib/blog';
 
-const BASE_URL = 'https://www.ezyloan.co.in';
+import { SITE_URL as BASE_URL } from '@/lib/seo';
 
 // Refresh the sitemap hourly so newly published blogs get picked up.
 export const revalidate = 3600;
@@ -40,9 +40,10 @@ const routes: { path: string; priority: number; changeFrequency: MetadataRoute.S
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
+  // No lastModified on static pages: stamping "now" on every request makes
+  // Google distrust lastmod for the whole site. Blogs carry their real dates.
   const staticEntries: MetadataRoute.Sitemap = routes.map(({ path, priority, changeFrequency }) => ({
-    url: `${BASE_URL}${path}`,
-    lastModified: now,
+    url: `${BASE_URL}${path === '/' ? '' : path}`,
     changeFrequency,
     priority,
   }));

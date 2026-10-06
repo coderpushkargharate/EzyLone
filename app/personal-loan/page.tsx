@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Script from 'next/script';
 import { 
   Wallet, ArrowRight, Clock, Shield, Zap, CheckCircle, 
   DollarSign, FileText, User, CreditCard, TrendingUp, AlertCircle,
@@ -81,54 +80,6 @@ const PersonalLoanPage: React.FC = () => {
     }
   };
 
-  // ✅ FAQ schema - Fixed trailing spaces
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is the minimum age requirement for a personal loan?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The minimum age requirement is 21 years and maximum is 65 years at the time of loan maturity. Subject to lender policy."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the minimum monthly income required for personal loan eligibility?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The minimum monthly income requirement is ₹25,000 net monthly income*. Subject to verification and lender underwriting."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the interest rate range for personal loans?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Interest rates* start from 10.5% p.a. and can go up to 18.0% p.a. depending on your credit profile, income, and lender policy."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the loan tenure available for personal loans?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Loan tenure ranges from 1 to 5 years with flexible repayment options. Final tenure subject to lender approval."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is prepayment allowed on personal loans?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, prepayment is allowed on personal loans* with minimal charges as per terms and conditions. Charges vary by lender."
-        }
-      }
-    ]
-  };
-
   // ✅ LOAN DETAILS FOR GOOGLE ADS COMPLIANCE
   const loanDetails = {
     interestRate: "10% – 28% p.a.*",
@@ -152,6 +103,46 @@ const PersonalLoanPage: React.FC = () => {
     employment: "Salaried / Self-employed",
   };
 
+  // FAQs shown on the page AND emitted as FAQPage schema from the same list, so
+  // the structured data always matches what visitors read. Numbers come from
+  // the loanDetails / eligibility values displayed above.
+  const faqs = [
+    {
+      q: "What is the age requirement for a personal loan?",
+      a: `Applicants are typically ${eligibility.age} old. Some lenders also cap the age at loan maturity. Subject to lender policy.`,
+    },
+    {
+      q: "What is the minimum income required for personal loan eligibility?",
+      a: `Most partner lenders look for a net monthly income of ${eligibility.income.replace('*', '')}, along with a stable job or business and a good repayment history. Subject to verification and lender underwriting.`,
+    },
+    {
+      q: "What is the interest rate range for personal loans?",
+      a: `Indicative rates range from ${loanDetails.interestRate.replace('*', '')} depending on your credit score, income, employer and the lender. The rate in your sanction letter is the one that applies.`,
+    },
+    {
+      q: "What loan tenure is available?",
+      a: `Personal loan tenure is usually ${loanDetails.tenure}. A longer tenure lowers your EMI but increases the total interest paid.`,
+    },
+    {
+      q: "Which documents do I need?",
+      a: "KYC (Aadhaar and PAN), address proof, the last 3 months' salary slips or 2 years' ITR for self-employed applicants, and 6 months of bank statements.",
+    },
+    {
+      q: "Is prepayment allowed on personal loans?",
+      a: "Yes, most lenders allow part-prepayment or foreclosure, sometimes after a lock-in period and with prepayment charges as per the lender's terms.",
+    },
+  ];
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map((f) => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": { "@type": "Answer", "text": f.a },
+    })),
+  };
+
   return (
     <>
  
@@ -161,21 +152,8 @@ const PersonalLoanPage: React.FC = () => {
         itemType="https://schema.org/WebPage"
       >
         {/* ✅ Structured Data for SEO - Fixed trailing spaces in schema URLs */}
-        <Script
-          id="personal-loan-structured-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ 
-            __html: JSON.stringify(personalLoanSchema) 
-          }}
-        />
-        
-        <Script
-          id="faq-structured-data"
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ 
-            __html: JSON.stringify(faqSchema) 
-          }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personalLoanSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
         {/* Banner Image Section */}
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-28 max-sm:pt-32">
@@ -725,6 +703,28 @@ const PersonalLoanPage: React.FC = () => {
             </Link>
           </div>
         </div>
+
+        {/* Personal loan FAQs (same list as the FAQPage schema above) */}
+        <section aria-labelledby="pl-faq-heading" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <h2 id="pl-faq-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
+            Personal Loan FAQs
+          </h2>
+          <div className="space-y-3">
+            {faqs.map((f) => (
+              <details key={f.q} className="group rounded-xl border border-gray-200 bg-white p-4 open:shadow-sm">
+                <summary className="cursor-pointer list-none flex justify-between items-center gap-4 font-semibold text-gray-900">
+                  {f.q}
+                  <span aria-hidden="true" className="text-blue-600 transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-3 text-gray-600 leading-relaxed">{f.a}</p>
+              </details>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-sm text-gray-600">
+            More answers in our <Link href="/faq" className="text-blue-700 underline">loan FAQs</Link>, or estimate your
+            repayment with the <Link href="/emi-calculator" className="text-blue-700 underline">EMI calculator</Link>.
+          </p>
+        </section>
 
       </div>
 
