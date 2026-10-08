@@ -141,13 +141,19 @@ export default function AdminApp() {
   // "Exit". Kept in sync via the 'wa-focus-change' window event.
   const [waFocus, setWaFocus] = useState(false);
   const router = useRouter();
+  // Admins may use every tab; employees only the tabs in their `permissions`.
+  // Background pollers below must respect this, otherwise every poll is a 403.
+  const canUseTab = (...tabs: string[]) =>
+    !!user && (user.role !== 'employee' || tabs.some((t) => (user.permissions || []).includes(t)));
+  const loggedIn = currentPage !== 'login';
+  const canSeeWhatsApp = loggedIn && canUseTab('whatsappChats');
   // New-WhatsApp-message counter (drives the red badge on the app symbol / tab
   // and the installed app-icon badge). Enabled once we're past the login screen.
-  const { count: waUnread, markSeen: markWaSeen } = useWhatsAppUnread(currentPage !== 'login');
+  const { count: waUnread, markSeen: markWaSeen } = useWhatsAppUnread(canSeeWhatsApp);
   // Register this device for Web Push once logged in, so alerts arrive even when
   // the app is fully closed. Ask for notification permission first (needed for
   // both the push subscription and the open-app browser notification).
-  usePushSubscribe(currentPage !== 'login');
+  usePushSubscribe(loggedIn && canUseTab('whatsappChats', 'leads', 'dashboard'));
   useEffect(() => {
     if (currentPage !== 'login') requestNotifyPermission();
   }, [currentPage]);
@@ -220,7 +226,7 @@ export default function AdminApp() {
   }
 
   // Standalone WhatsApp-chat app mode (only after we've confirmed a session).
-  if (waFocus && currentPage !== 'login') {
+  if (waFocus && canSeeWhatsApp) {
     return (
       <WhatsAppFocusApp
         user={user}
@@ -474,7 +480,8 @@ function AdminDashboard({
 
   // Fetch dashboard stats
   useEffect(() => {
-    if (currentPage === 'dashboard') {
+    // Only users who may see the Overview tab — otherwise its APIs return 403.
+    if (currentPage === 'dashboard' && (isAdminUser || permissions.includes('dashboard'))) {
       fetchDashboardStats();
     }
     // Viewing the WhatsApp chats = everything so far is seen; clear the badge.
@@ -1624,8 +1631,7 @@ function BlogsManager({
   const uploadImage = async (file: File): Promise<string> => {
     const fd = new FormData();
     fd.append('image', file);
-    fd.append('page', 'blog');
-    const response = await axios.post(`/api/banners`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    const response = await axios.post(`/api/blogs/upload`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
     return response.data.image;
   };
 
@@ -1659,7 +1665,7 @@ function BlogsManager({
         setError(res.message || 'Failed to save blog');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to save blog');
+      setError(err.response?.data?.message || err.message || 'Failed to save blog');
       setIsUploadingImage(false);
     }
     setIsSubmitting(false);
