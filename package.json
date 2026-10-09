@@ -11,7 +11,9 @@
     "test:twilio": "node --env-file=.env.local scripts/test-twilio.mjs",
     "test:ezysaathi": "node scripts/run-ezysaathi-tests.mjs",
     "test:unit": "node scripts/test-cloudinary-url.mjs && node scripts/test-webhook-auth.mjs",
-    "test:security": "node scripts/test-security.mjs"
+    "test:security": "node scripts/test-security.mjs",
+    "test:staging": "node scripts/test-staging.mjs",
+    "check:env": "node scripts/check-env.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",

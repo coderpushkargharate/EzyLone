@@ -40,7 +40,9 @@ export async function POST(req: NextRequest) {
   });
 
   // Verify the request really came from Twilio. The signed URL must be the exact
-  // public URL Twilio called — honour proxy headers so it matches behind Vercel.
+  // public URL Twilio called — honour proxy headers. Next.js sets
+  // x-forwarded-proto to "http" when the proxy omits it, so nginx must send
+  // `proxy_set_header X-Forwarded-Proto $scheme;` or every signature fails.
   const proto = req.headers.get('x-forwarded-proto') || 'https';
   const host = req.headers.get('x-forwarded-host') || req.headers.get('host') || '';
   const url = `${proto}://${host}${req.nextUrl.pathname}`;

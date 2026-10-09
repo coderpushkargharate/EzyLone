@@ -5,6 +5,10 @@ import mongoose from 'mongoose';
 // every request. Same database as before — data is untouched.
 
 const DATABASE_URL = process.env.DATABASE_URL;
+// The database name is fixed here, NOT taken from the path in DATABASE_URL —
+// a staging URL ending in /staging would still open 'mydatabase'. Staging must
+// set DATABASE_NAME (and preferably use a separate cluster and DB user).
+export const DATABASE_NAME = process.env.DATABASE_NAME?.trim() || 'mydatabase';
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -31,7 +35,7 @@ export async function connectDB(): Promise<typeof mongoose> {
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
-      dbName: 'mydatabase',
+      dbName: DATABASE_NAME,
     });
   }
 

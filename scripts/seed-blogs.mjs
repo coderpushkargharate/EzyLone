@@ -235,7 +235,7 @@ ${CTA}
 ];
 
 async function main() {
-  await mongoose.connect(DATABASE_URL, { dbName: 'mydatabase' });
+  await mongoose.connect(DATABASE_URL, { dbName: process.env.DATABASE_NAME?.trim() || 'mydatabase' });
   console.log('✅ Connected to MongoDB');
 
   // Remove the earlier generic (non-service) posts so only service posts remain.

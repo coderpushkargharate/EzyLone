@@ -58,6 +58,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
   }
 
+  // A Meta App Secret is 32 hex characters. Reject anything else up front: a
+  // mistyped secret would make every Lead Ads event fail signature checks.
+  const appSecret = config?.appSecret;
+  if (appSecret != null && appSecret !== '' && !(typeof appSecret === 'string' && (appSecret.includes('••') || /^[0-9a-f]{32}$/i.test(appSecret)))) {
+    return NextResponse.json(
+      { error: 'App Secret looks wrong — copy the 32-character value from Meta App settings → Basic.' },
+      { status: 400 }
+    );
+  }
+
   const existing = await Integration.findOne({ provider });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mergedConfig: Record<string, any> = { ...(existing?.config || {}) };

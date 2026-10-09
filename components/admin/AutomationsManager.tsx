@@ -368,6 +368,10 @@ function ConfigureIntegrationModal({ provider, onClose, onSaved }: { provider: P
 
   async function save() {
     if (!verifyToken.trim()) { setError('Verify token is required'); return; }
+    if (provider === 'facebook' && appSecret.trim() && !/^[0-9a-f]{32}$/i.test(appSecret.trim())) {
+      setError('App Secret looks wrong — copy the 32-character value from Meta App settings → Basic.');
+      return;
+    }
     setSaving(true);
     setError('');
 

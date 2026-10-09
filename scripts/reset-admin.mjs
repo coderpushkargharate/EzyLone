@@ -28,7 +28,7 @@ const UserSchema = new mongoose.Schema(
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 
 async function main() {
-  await mongoose.connect(DATABASE_URL, { dbName: 'mydatabase' });
+  await mongoose.connect(DATABASE_URL, { dbName: process.env.DATABASE_NAME?.trim() || 'mydatabase' });
   console.log('✅ Connected to MongoDB');
 
   const existing = await User.find({}, 'username').lean();

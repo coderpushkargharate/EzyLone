@@ -17,7 +17,7 @@ if (!DATABASE_URL) {
 }
 
 const run = async () => {
-  await mongoose.connect(DATABASE_URL, { dbName: 'mydatabase' });
+  await mongoose.connect(DATABASE_URL, { dbName: process.env.DATABASE_NAME?.trim() || 'mydatabase' });
   const coll = mongoose.connection.collection('blogs');
 
   const missing = await coll.countDocuments({ status: { $exists: false } });
