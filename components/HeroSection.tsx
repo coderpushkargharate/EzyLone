@@ -928,6 +928,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                aria-label="Full name"
                 type="text"
                 placeholder="Full Name *"
                 value={formData.fullName}
@@ -955,6 +956,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                aria-label="Email address"
                 type="email"
                 placeholder="Email Address *"
                 value={formData.email}
@@ -986,6 +988,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               <div className="relative">
                 <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                 <input
+                  aria-label="Name"
                   type="text"
                   placeholder="Name *"
                   value={formData.fullName}
@@ -1010,6 +1013,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               <div className="relative">
                 <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                 <input
+                  aria-label="Email"
                   type="email"
                   placeholder="Email *"
                   value={formData.email}
@@ -1056,6 +1060,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             🇮🇳 +91
           </span>
           <input
+            aria-label="10-digit mobile number"
             type="tel"
             placeholder="10-digit mobile number *"
             maxLength={10}
@@ -1105,6 +1110,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             } text-gray-400`}
           />
           <input
+            aria-label="Loan amount (optional)"
             type="text"
             placeholder="Loan Amount (Optional)"
             value={formData.loanAmount}
@@ -1509,8 +1515,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 {testimonials.map((testimonial, index) => (
                   <div
                     key={`testimonial-${index}`}
-                    className="flex-shrink-0 px-2 sm:px-3"
-                    style={{ width: `${100 / testimonialsPerView}%` }}
+                    // Width via CSS (lg = the same 1024px breakpoint as the matchMedia
+                    // above) so the server HTML already has the desktop 3-up layout;
+                    // sizing from state made cards resize after hydration (CLS).
+                    className="flex-shrink-0 px-2 sm:px-3 w-full lg:w-1/3"
                   >
                     <div className="glass-prism flex items-start gap-4 bg-white/70 rounded-xl p-5 h-full">
                       <div className="flex-shrink-0">

@@ -53,10 +53,12 @@ export default function AdminLoginForm({
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Username or Email</label>
+            <label htmlFor="login-username" className="block text-sm font-medium text-gray-700 mb-2">Username or Email</label>
             <div className="relative">
               <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                id="login-username"
+                autoComplete="username"
                 type="text"
                 name="username"
                 value={formData.username}
@@ -69,10 +71,12 @@ export default function AdminLoginForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
+                id="login-password"
+                autoComplete="current-password"
                 type="password"
                 name="password"
                 value={formData.password}

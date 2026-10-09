@@ -1,4 +1,4 @@
-import { Link } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 import { pageMeta } from '@/lib/seo';
 
@@ -219,11 +219,13 @@ export default function LoanDisclosurePage() {
           {/* <p className="text-xs text-gray-500 mt-1">
             EzyLoan (Dibyansh Associates) | CIN: [To be added] | GST: [To be added]
           </p> */}
-          <p className="text-xs text-gray-400 mt-3">
-          <li>• <Link href="/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</Link></li>
-            <li>• <Link href="/terms-and-conditions" className="text-blue-600 hover:underline">Terms of Service</Link></li>
-            <li>• <Link href="/loan-disclosure" className="text-blue-600 hover:underline">Loan Disclosures</Link></li>
-          </p>
+          <nav aria-label="Related policies" className="mt-3">
+            <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-gray-400">
+              <li><Link href="/privacy-policy" className="text-blue-600 hover:underline">Privacy Policy</Link></li>
+              <li><Link href="/terms-and-conditions" className="text-blue-600 hover:underline">Terms of Service</Link></li>
+              <li><Link href="/compliance" className="text-blue-600 hover:underline">Compliance &amp; Grievance Redressal</Link></li>
+            </ul>
+          </nav>
         </div>
 
       </div>

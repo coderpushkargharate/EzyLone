@@ -51,7 +51,7 @@ const BANKING_PARTNERS = [
   },
   { 
     name: 'Bank of India', 
-    logo: '/banks/boi.webp',
+    logo: '/banks/boi.jpg',
     website: 'https://www.bankofindia.co.in',
     type: 'Bank'
   },

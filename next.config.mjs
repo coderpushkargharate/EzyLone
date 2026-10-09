@@ -5,13 +5,19 @@ const nextConfig = {
   images: {
     // Cache optimized images for 1 year (fixes "Use efficient cache lifetimes")
     minimumCacheTTL: 31536000,
+    // Only hosts the site actually uses. Every allowed host is fed to the image
+    // optimizer (sharp/libvips), so hosts where anyone can upload files
+    // (wikimedia, pexels) were removed, and Cloudinary is limited to this
+    // account's own cloud rather than every Cloudinary customer's uploads.
     remotePatterns: [
-      { protocol: 'https', hostname: 'res.cloudinary.com' },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        ...(process.env.CLOUDINARY_CLOUD_NAME ? { pathname: `/${process.env.CLOUDINARY_CLOUD_NAME}/**` } : {}),
+      },
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: 'www.google.com' },
-      { protocol: 'https', hostname: 'upload.wikimedia.org' },
-      { protocol: 'https', hostname: 'images.pexels.com' },
     ],
   },
   // Consolidate the apex domain onto the canonical www host so Google doesn't

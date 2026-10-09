@@ -199,13 +199,14 @@ const EMICalculatorPage: React.FC = () => {
             <div className="space-y-8">
               {/* Loan Amount */}
               <div className="group">
-                <label className="block text-black text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <label htmlFor="emi-amount" className="block text-black text-sm font-semibold text-gray-700 mb-3 flex items-center">
                   <span className="text-sm font-bold text-orange-500 mr-2">₹</span>
                   Loan Amount
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">₹</span>
                   <input
+                    id="emi-amount"
                     type="number"
                     value={loanAmount}
                     onChange={(e) => setLoanAmount(Number(e.target.value))}
@@ -215,6 +216,7 @@ const EMICalculatorPage: React.FC = () => {
                 </div>
                 <div className="relative mt-4">
                   <input
+                    aria-label="Loan amount slider"
                     type="range"
                     min="50000"
                     max="10000000"
@@ -236,12 +238,13 @@ const EMICalculatorPage: React.FC = () => {
 
               {/* Interest Rate */}
               <div className="group">
-                <label className="block text-black text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <label htmlFor="emi-rate" className="block text-black text-sm font-semibold text-gray-700 mb-3 flex items-center">
                   <TrendingUp className="w-4 h-4 mr-2 text-blue-500" />
                   Interest Rate (% per annum)
                 </label>
                 <div className="relative">
                   <input
+                    id="emi-rate"
                     type="number"
                     value={interestRate}
                     onChange={(e) => setInterestRate(Number(e.target.value))}
@@ -255,6 +258,7 @@ const EMICalculatorPage: React.FC = () => {
                 </div>
                 <div className="relative mt-4">
                   <input
+                    aria-label="Interest rate slider"
                     type="range"
                     min="5"
                     max="25"
@@ -276,12 +280,13 @@ const EMICalculatorPage: React.FC = () => {
 
               {/* Loan Tenure */}
               <div className="group">
-                <label className="block text-black text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <label htmlFor="emi-tenure" className="block text-black text-sm font-semibold text-gray-700 mb-3 flex items-center">
                   <Clock className="w-4 h-4 mr-2 text-green-500" />
                   Loan Tenure (in months)
                 </label>
                 <div className="relative">
                   <input
+                    id="emi-tenure"
                     type="number"
                     value={loanTenure}
                     onChange={(e) => setLoanTenure(Number(e.target.value))}
@@ -294,6 +299,7 @@ const EMICalculatorPage: React.FC = () => {
                 </div>
                 <div className="relative mt-4">
                   <input
+                    aria-label="Loan tenure slider"
                     type="range"
                     min="1"
                     max="360"
