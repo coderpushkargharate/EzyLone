@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendSecurityAlert } from './email';
+import { ipSourceConfigured, resolveClientIp } from './clientIp';
 
 // Simple in-memory fixed-window rate limiter, keyed by client IP. No external
 // dependency — good enough to blunt login brute-force and public-form spam on a
@@ -25,19 +26,23 @@ declare global {
 const buckets = global._rateBuckets || new Map<string, Bucket>();
 global._rateBuckets = buckets;
 
+let warnedUntrustedIp = false;
+
 /**
- * Client IP for rate limiting / blocking. The left-most X-Forwarded-For entry is
- * client-controlled and can be spoofed, so when the deployment's reverse proxy
- * sets a trustworthy header, name it in TRUSTED_IP_HEADER (e.g. "x-real-ip"
- * when nginx sets `proxy_set_header X-Real-IP $remote_addr;`, or
- * "cf-connecting-ip" behind Cloudflare) and it is used exclusively.
+ * Client IP for rate limiting / blocking — see lib/clientIp.ts for how
+ * TRUSTED_IP_HEADER / TRUSTED_PROXY_HOPS make it trustworthy. Without either,
+ * the value is spoofable: it is still used for rate limits, but lib/blocklist.ts
+ * refuses to auto-block on it.
  */
 export function getClientIp(req: NextRequest): string {
-  const trusted = process.env.TRUSTED_IP_HEADER?.trim().toLowerCase();
-  if (trusted) return req.headers.get(trusted)?.split(',')[0].trim() || 'unknown';
-  const xff = req.headers.get('x-forwarded-for');
-  if (xff) return xff.split(',')[0].trim();
-  return req.headers.get('x-real-ip') || 'unknown';
+  if (!warnedUntrustedIp && process.env.NODE_ENV === 'production' && !ipSourceConfigured()) {
+    warnedUntrustedIp = true;
+    console.warn(
+      'SECURITY: neither TRUSTED_IP_HEADER nor TRUSTED_PROXY_HOPS is set — client IPs come from the ' +
+        'spoofable X-Forwarded-For header, so automatic IP blocking is disabled. See docs/EZYLOAN_AUDIT_REPORT.md.'
+    );
+  }
+  return resolveClientIp(req.headers).ip;
 }
 
 /**

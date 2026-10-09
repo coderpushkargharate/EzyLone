@@ -215,6 +215,8 @@ export default function AutomationsManager() {
             <p className="text-xs text-gray-600 mt-1">
               If a form builder supports webhooks, point it at{' '}
               <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-xs">/api/webhook/lead</code> for instant capture.
+              Send the server&apos;s <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-xs">WEBHOOK_LEAD_SECRET</code> in
+              an <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-xs">x-webhook-secret</code> header; without it the endpoint is disabled.
             </p>
             <div className="mt-2 bg-gray-50 rounded-lg border border-gray-200 p-3">
               <pre className="text-xs text-gray-700 font-mono whitespace-pre-wrap">
@@ -330,6 +332,8 @@ function ConfigureIntegrationModal({ provider, onClose, onSaved }: { provider: P
   const [origin, setOrigin] = useState('');
   const [verifyToken, setVerifyToken] = useState('');
   const [pageAccessToken, setPageAccessToken] = useState('');
+  const [appSecret, setAppSecret] = useState('');
+  const [appSecretSet, setAppSecretSet] = useState(false);
   const [accessToken, setAccessToken] = useState('');
   const [phoneNumberId, setPhoneNumberId] = useState('');
   const [tokenSet, setTokenSet] = useState(false);
@@ -349,6 +353,7 @@ function ConfigureIntegrationModal({ provider, onClose, onSaved }: { provider: P
         setVerifyToken(cfg.verifyToken || randomToken());
         setPhoneNumberId(cfg.phoneNumberId || '');
         setTokenSet(Boolean(cfg.pageAccessToken_set || cfg.accessToken_set));
+        setAppSecretSet(Boolean(cfg.appSecret_set));
       })
       .finally(() => setLoading(false));
   }, [provider]);
@@ -370,6 +375,7 @@ function ConfigureIntegrationModal({ provider, onClose, onSaved }: { provider: P
     const config: Record<string, any> = { verifyToken: verifyToken.trim() };
     if (provider === 'facebook') {
       if (pageAccessToken.trim()) config.pageAccessToken = pageAccessToken.trim();
+      if (appSecret.trim()) config.appSecret = appSecret.trim();
     } else {
       if (accessToken.trim()) config.accessToken = accessToken.trim();
       config.phoneNumberId = phoneNumberId.trim();
@@ -410,7 +416,8 @@ function ConfigureIntegrationModal({ provider, onClose, onSaved }: { provider: P
                   <li>Open your Facebook App → <strong>Webhooks</strong> → add a <strong>Page</strong> subscription.</li>
                   <li>Paste the <strong>Callback URL</strong> and <strong>Verify Token</strong> below into Facebook.</li>
                   <li>Subscribe to the <strong>leadgen</strong> field.</li>
-                  <li>Generate a <strong>Page Access Token</strong> and paste it below, then Save.</li>
+                  <li>Generate a <strong>Page Access Token</strong> and paste it below.</li>
+                  <li>Copy the <strong>App Secret</strong> (App settings → Basic) below, then Save.</li>
                 </>
               ) : (
                 <>
@@ -454,6 +461,17 @@ function ConfigureIntegrationModal({ provider, onClose, onSaved }: { provider: P
                 <input type="password" value={pageAccessToken} onChange={(e) => setPageAccessToken(e.target.value)}
                   placeholder={tokenSet ? '••••••••' : 'Paste Page Access Token'}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 mt-4 uppercase tracking-wide">
+                  App Secret {appSecretSet && <span className="text-green-600 normal-case">(saved — leave blank to keep)</span>}
+                </label>
+                <input type="password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)}
+                  placeholder={appSecretSet ? '••••••••' : 'Paste App Secret'}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
+                {!appSecretSet && (
+                  <p className="text-xs text-amber-700 mt-1">
+                    Required: without the App Secret, lead events can&apos;t be verified and are rejected.
+                  </p>
+                )}
               </div>
             ) : (
               <>

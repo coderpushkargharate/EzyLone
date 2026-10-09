@@ -1,15 +1,9 @@
-import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createLeadFromWebhook } from '@/lib/ingest';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { isBlocked } from '@/lib/blocklist';
-
-function secretMatches(provided: string | null, secret: string): boolean {
-  if (!provided) return false;
-  const a = crypto.createHash('sha256').update(provided).digest();
-  const b = crypto.createHash('sha256').update(secret).digest();
-  return crypto.timingSafeEqual(a, b);
-}
+import { sendSecurityAlert } from '@/lib/email';
+import { envFlag, safeEqual } from '@/lib/webhookAuth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,14 +15,23 @@ export const dynamic = 'force-dynamic';
 //   { "name": "John Doe", "email": "john@x.com", "phone": "+91 98765 43210",
 //     "message": "I need a loan", "source": "Website Form" }
 //
-// Optional security: set WEBHOOK_LEAD_SECRET in .env.local and pass it as an
-// `x-webhook-secret` header (or `?secret=` query) so only your forms can post.
+// Authentication (fail closed): set WEBHOOK_LEAD_SECRET in the server env and
+// send it as an `x-webhook-secret` header (preferred), or `?secret=` for tools
+// that can't set headers (query strings can end up in proxy logs).
+// Without WEBHOOK_LEAD_SECRET the endpoint answers 503 and creates nothing.
+// WEBHOOK_LEAD_ALLOW_OPEN=true is an explicit escape hatch that re-opens it as a
+// public, rate-limited endpoint — anyone can then create leads.
 
 export async function POST(req: NextRequest) {
   const secret = process.env.WEBHOOK_LEAD_SECRET;
-  // Without a configured secret this endpoint is effectively public, so it gets
-  // the same per-IP budget as the website forms. SET WEBHOOK_LEAD_SECRET in
-  // production so only your own integrations can create leads.
+  if (!secret && !envFlag('WEBHOOK_LEAD_ALLOW_OPEN')) {
+    console.error('Rejected /api/webhook/lead — WEBHOOK_LEAD_SECRET is not set (endpoint is disabled until it is).');
+    sendSecurityAlert('lead-webhook-unconfigured', 'Lead webhook is rejecting requests', {
+      Reason: 'WEBHOOK_LEAD_SECRET is not set — /api/webhook/lead creates no leads until it is.',
+    }).catch(() => {});
+    return NextResponse.json({ error: 'Lead webhook is not configured.' }, { status: 503 });
+  }
+  // Open mode gets the same per-IP budget as the website forms.
   const limited = checkRateLimit(req, secret ? 'webhook-lead' : 'webhook-lead-open', {
     windowMs: secret ? 60_000 : 10 * 60_000,
     max: secret ? 60 : 8,
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest) {
 
   if (secret) {
     const provided = req.headers.get('x-webhook-secret') || req.nextUrl.searchParams.get('secret');
-    if (!secretMatches(provided, secret)) {
+    if (!safeEqual(provided, secret)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   } else if (await isBlocked(getClientIp(req))) {

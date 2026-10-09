@@ -319,7 +319,11 @@ export function buildLeadConfirmationMessage(name: string): string {
  * (e.g. while testing through a tunnel that rewrites the URL).
  */
 export function validateTwilioSignature(url: string, params: Record<string, string>, signature: string | null): boolean {
-  if (process.env.TWILIO_VALIDATE_SIGNATURE === 'false') return true;
+  if (process.env.TWILIO_VALIDATE_SIGNATURE === 'false') {
+    // Explicit opt-out (e.g. while debugging a proxy URL mismatch). Never silent.
+    console.warn('SECURITY: TWILIO_VALIDATE_SIGNATURE=false — accepting an UNVERIFIED WhatsApp webhook.');
+    return true;
+  }
 
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   if (!authToken || !signature) return false;

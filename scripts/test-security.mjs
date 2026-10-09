@@ -90,6 +90,27 @@ async function main() {
     check('foreign Origin POST → 401/403', [401, 403].includes(r.status), `got ${r.status}`);
   }
 
+  console.log('\nWebhooks fail closed (payloads can never create a lead)');
+  {
+    // A leadgen id that cannot resolve at the Graph API, so even a server in
+    // FACEBOOK_ALLOW_UNSIGNED mode saves nothing.
+    const fbBody = JSON.stringify({ entry: [{ changes: [{ field: 'leadgen', value: { leadgen_id: '0' } }] }] });
+    const unsigned = await req('/api/webhook/facebook', { method: 'POST', headers: { 'content-type': 'application/json' }, body: fbBody });
+    check('Facebook webhook: unsigned POST → 403', unsigned.status === 403, `got ${unsigned.status} (open? check App Secret / FACEBOOK_ALLOW_UNSIGNED)`);
+    const forged = await req('/api/webhook/facebook', { method: 'POST', headers: { 'content-type': 'application/json', 'x-hub-signature-256': 'sha256=' + '0'.repeat(64) }, body: fbBody });
+    check('Facebook webhook: forged signature → 403', forged.status === 403, `got ${forged.status}`);
+    const verify = await req('/api/webhook/facebook?hub.mode=subscribe&hub.verify_token=wrong-token&hub.challenge=x');
+    check('Facebook verify handshake with wrong token → 403', verify.status === 403, `got ${verify.status}`);
+
+    // Empty body: even an open endpoint answers 400 without creating anything.
+    const noSecret = await req('/api/webhook/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+    check('Lead webhook: no secret → 401/503', [401, 503].includes(noSecret.status), `got ${noSecret.status} (open? check WEBHOOK_LEAD_SECRET / WEBHOOK_LEAD_ALLOW_OPEN)`);
+    const badSecret = await req('/api/webhook/lead', { method: 'POST', headers: { 'content-type': 'application/json', 'x-webhook-secret': 'wrong-secret' }, body: '{}' });
+    check('Lead webhook: wrong secret → 401/503', [401, 503].includes(badSecret.status), `got ${badSecret.status}`);
+    // The Twilio webhook is deliberately not probed: on a server with
+    // TWILIO_VALIDATE_SIGNATURE=false it would store a message and send a push.
+  }
+
   console.log('\nPublic blog data exposes published posts only');
   {
     const r = await req('/api/blogs');

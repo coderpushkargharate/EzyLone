@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { Integration } from '@/lib/models/Integration';
 import { createLeadFromWebhook } from '@/lib/ingest';
+import { sendSecurityAlert } from '@/lib/email';
+import { envFlag, safeEqual, verifyMetaSignature } from '@/lib/webhookAuth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
   const cfg = await getFacebookConfig();
   const expected = cfg?.verifyToken || process.env.FACEBOOK_VERIFY_TOKEN;
 
-  if (mode === 'subscribe' && expected && token === expected) {
+  if (mode === 'subscribe' && expected && safeEqual(token, expected)) {
     return new NextResponse(challenge || '', {
       status: 200,
       headers: { 'Content-Type': 'text/plain' },
@@ -48,18 +49,16 @@ export async function GET(req: NextRequest) {
   return new NextResponse('Forbidden', { status: 403 });
 }
 
-// Optional signature check — only enforced when an App Secret is saved.
+// Signature policy (fail closed):
+//  - App Secret saved (Automations → Facebook → App Secret) or FACEBOOK_APP_SECRET
+//    set → every POST must carry a valid X-Hub-Signature-256, else 403.
+//  - No App Secret → 403, because anyone could otherwise forge lead events.
+//    FACEBOOK_ALLOW_UNSIGNED=true is an explicit, temporary escape hatch: requests
+//    are accepted but logged, and a lead is only saved when its leadgen_id really
+//    resolves through the Graph API with your Page token (forged ids don't).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function signatureOk(raw: string, header: string | null, cfg: Record<string, any> | null): boolean {
-  const appSecret = cfg?.appSecret || process.env.FACEBOOK_APP_SECRET;
-  if (!appSecret) return true; // not configured → can't verify, allow
-  if (!header) return false;
-  const expected = 'sha256=' + crypto.createHmac('sha256', appSecret).update(raw, 'utf-8').digest('hex');
-  try {
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(header));
-  } catch {
-    return false;
-  }
+function appSecretFrom(cfg: Record<string, any> | null): string | undefined {
+  return cfg?.appSecret || process.env.FACEBOOK_APP_SECRET || undefined;
 }
 
 // Pull the full lead field data from the Graph API for one leadgen_id.
@@ -84,9 +83,25 @@ export async function POST(req: NextRequest) {
   const raw = await req.text();
   const cfg = await getFacebookConfig();
 
-  if (!signatureOk(raw, req.headers.get('x-hub-signature-256'), cfg)) {
+  const sig = verifyMetaSignature(raw, req.headers.get('x-hub-signature-256'), appSecretFrom(cfg));
+  if (sig === 'invalid') {
     console.warn('Rejected Facebook webhook — invalid signature');
     return new NextResponse('Forbidden', { status: 403 });
+  }
+  const verified = sig === 'valid';
+  if (!verified) {
+    if (!envFlag('FACEBOOK_ALLOW_UNSIGNED')) {
+      console.error(
+        'Rejected Facebook webhook — no App Secret configured, so the request cannot be verified. ' +
+          'Save the App Secret in Automations → Facebook Lead Ads (or set FACEBOOK_APP_SECRET).'
+      );
+      sendSecurityAlert('fb-webhook-unconfigured', 'Facebook Lead Ads webhook is rejecting events', {
+        Reason: 'No App Secret configured — leads are NOT being received until it is saved.',
+        Fix: 'Admin → Automations → Facebook Lead Ads → Configure → App Secret',
+      }).catch(() => {});
+      return new NextResponse('Forbidden', { status: 403 });
+    }
+    console.warn('Accepting UNSIGNED Facebook webhook (FACEBOOK_ALLOW_UNSIGNED=true) — set an App Secret.');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +138,12 @@ export async function POST(req: NextRequest) {
       [fields.first_name, fields.last_name].filter(Boolean).join(' ').trim();
     const email = fields.email || '';
     const phone = fields.phone_number || fields.phone || '';
+
+    // Unverified request: only trust lead ids Meta actually resolved for us.
+    if (!verified && !name && !email && !phone) {
+      console.warn('Ignored unsigned Facebook leadgen event whose id did not resolve via the Graph API.');
+      continue;
+    }
 
     try {
       await createLeadFromWebhook({

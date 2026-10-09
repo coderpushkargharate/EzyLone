@@ -10,7 +10,7 @@
     "migrate:blogs": "node --env-file=.env.local scripts/migrate-blog-status.mjs",
     "test:twilio": "node --env-file=.env.local scripts/test-twilio.mjs",
     "test:ezysaathi": "node scripts/run-ezysaathi-tests.mjs",
-    "test:unit": "node scripts/test-cloudinary-url.mjs",
+    "test:unit": "node scripts/test-cloudinary-url.mjs && node scripts/test-webhook-auth.mjs",
     "test:security": "node scripts/test-security.mjs"
   },
   "dependencies": {

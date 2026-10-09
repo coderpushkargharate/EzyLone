@@ -1,5 +1,6 @@
 import { connectDB } from './db';
 import { BlockedIp } from './models/BlockedIp';
+import { ipSourceConfigured } from './clientIp';
 
 // IP blocklist for the public lead forms. The hot path (every form POST) checks
 // an in-memory Set so there's no per-request DB round-trip; the Set is seeded
@@ -54,6 +55,13 @@ export async function isBlocked(ip: string | undefined | null): Promise<boolean>
 /** Add an IP to the blocklist (in-memory + persisted). `by` = 'auto' or admin username. */
 export async function blockIp(ip: string, reason = 'manual', by = 'auto'): Promise<void> {
   if (!usableIp(ip)) return;
+  // Automatic blocks are permanent, so they must never rest on an IP the client
+  // could have forged (X-Forwarded-For) — otherwise anyone could get an innocent
+  // visitor banned. Manual blocks by an admin are always allowed.
+  if (by === 'auto' && !ipSourceConfigured()) {
+    console.warn(`Auto-block skipped (${reason}): client IP source is not trusted — set TRUSTED_IP_HEADER or TRUSTED_PROXY_HOPS.`);
+    return;
+  }
   blocked.add(ip);
   strikes.delete(ip);
   try {
@@ -107,7 +115,8 @@ export async function recordStrike(
   threshold = 3,
   windowMs = 60 * 60 * 1000 // 1 hour
 ): Promise<boolean> {
-  if (!usableIp(ip)) return false;
+  // Strikes lead to an automatic block — only count them on a trusted IP.
+  if (!usableIp(ip) || !ipSourceConfigured()) return false;
   const now = Date.now();
   const rec = strikes.get(ip);
   if (!rec || rec.resetAt <= now) {
