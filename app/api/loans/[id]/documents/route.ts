@@ -68,16 +68,20 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!url) return NextResponse.json({ message: 'url required' }, { status: 400 });
 
     await connectDB();
-    const loan = await LoanApplication.findByIdAndUpdate(
-      params.id,
+    // Match the document on THIS loan, so the Cloudinary delete below can only
+    // ever remove a file that was actually attached here — never an arbitrary
+    // asset (another loan's KYC, a resume, a banner) named in the query string.
+    const loan = await LoanApplication.findOneAndUpdate(
+      { _id: params.id, 'documents.url': url },
       { $pull: { documents: { url } } },
       { new: true }
     );
+    if (!loan) return NextResponse.json({ message: 'Document not found' }, { status: 404 });
+
     // Best-effort remove from Cloudinary — a failure here shouldn't block the DB
     // detach the admin already asked for.
     try { await destroyImageByUrl(url); } catch { /* ignore */ }
 
-    if (!loan) return NextResponse.json({ message: 'Loan not found' }, { status: 404 });
     return NextResponse.json(loan);
   } catch (error: any) {
     console.error('Error deleting document', error);

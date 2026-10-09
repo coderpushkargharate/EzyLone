@@ -36,8 +36,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (isActive !== null) update.isActive = isActive === 'true';
 
     if (avatarFile && avatarFile.size > 0) {
-      if (!avatarFile.type.startsWith('image/')) {
+      if (!avatarFile.type.startsWith('image/') || avatarFile.type === 'image/svg+xml') {
         return NextResponse.json({ message: 'Avatar must be an image' }, { status: 400 });
+      }
+      if (avatarFile.size > 5 * 1024 * 1024) {
+        return NextResponse.json({ message: 'Avatar must be under 5 MB' }, { status: 400 });
       }
       const buffer = Buffer.from(await avatarFile.arrayBuffer());
       const result = await uploadBuffer(buffer, { folder: 'testimonials', resource_type: 'image' });

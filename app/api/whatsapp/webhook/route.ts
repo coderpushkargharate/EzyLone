@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
 
   const from = params.From || 'unknown';
   const bodyText = (params.Body || '').toString();
-  console.log(`📩 Inbound WhatsApp (Twilio) from ${from}: ${bodyText}`);
+  // Don't write customers' phone numbers or message text to server logs — the
+  // conversation is already stored (access-controlled) in the database.
+  console.log(`📩 Inbound WhatsApp (Twilio) from …${from.slice(-4)} (${bodyText.length} chars)`);
 
   // Alert the admin app immediately (works even when it's closed). The sender's
   // name (if Twilio provides one) or number, plus a short message preview.

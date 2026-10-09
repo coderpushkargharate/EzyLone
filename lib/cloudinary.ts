@@ -21,9 +21,15 @@ cloudinary.config({
 
 export { cloudinary };
 
-/** Delete an image asset given its secure URL. Returns a promise (fire-and-forget ok). */
+/**
+ * Delete an asset given its secure URL. Returns a promise (fire-and-forget ok).
+ * Only URLs on this account's Cloudinary cloud are accepted, and the resource
+ * type (image vs raw, e.g. PDFs) is read from the URL so raw files are removed too.
+ */
 export function destroyImageByUrl(url: string) {
-  return cloudinary.uploader.destroy(extractPublicIdFromUrl(url));
+  const parsed = parseCloudinaryUrl(url);
+  if (!parsed) return Promise.resolve({ result: 'skipped' });
+  return cloudinary.uploader.destroy(parsed.publicId, { resource_type: parsed.resourceType });
 }
 
 /** Delete a raw asset (e.g. resume PDF) by its public_id. */
@@ -42,17 +48,39 @@ export function uploadBuffer(buffer: Buffer, options: UploadApiOptions): Promise
   });
 }
 
-/** Best-effort extraction of a Cloudinary public_id from a secure URL (for deletes). */
-export function extractPublicIdFromUrl(url: string): string {
+/**
+ * Parse a delivery URL of this account's cloud:
+ *   https://res.cloudinary.com/<cloud>/<image|raw|video>/upload/[transforms/][v123/]<public_id>[.ext]
+ * Image/video public_ids exclude the extension; raw public_ids include it.
+ * Returns null for anything that isn't an asset of the configured cloud.
+ */
+export function parseCloudinaryUrl(
+  url: string
+): { publicId: string; resourceType: 'image' | 'raw' | 'video' } | null {
+  let u: URL;
   try {
-    const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split('/');
-    const filename = pathParts[pathParts.length - 1];
-    const publicId = filename.split('.')[0];
-    const folderPath = pathParts.slice(0, -1).join('/').replace('/image/upload', '');
-    return folderPath ? `${folderPath}/${publicId}` : publicId;
+    u = new URL(url);
   } catch {
-    const match = url.match(/\/v\d+\/(.+)\.[a-zA-Z]+$/);
-    return match ? match[1] : url;
+    return null;
   }
+  const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+  if (u.hostname !== 'res.cloudinary.com') return null;
+  const parts = u.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  const [cloudName, resourceType, deliveryType, ...rest] = parts;
+  if (cloud && cloudName !== cloud) return null;
+  if (resourceType !== 'image' && resourceType !== 'raw' && resourceType !== 'video') return null;
+  if (deliveryType !== 'upload' || rest.length === 0) return null;
+
+  // Drop transformation segments and the version segment preceding the public_id.
+  const vIdx = rest.findIndex((p) => /^v\d+$/.test(p));
+  const idParts = vIdx >= 0 ? rest.slice(vIdx + 1) : rest.filter((p) => !p.includes(','));
+  if (idParts.length === 0) return null;
+  let publicId = idParts.join('/');
+  if (resourceType !== 'raw') publicId = publicId.replace(/\.[a-z0-9]+$/i, '');
+  return { publicId, resourceType };
+}
+
+/** Back-compat wrapper: the public_id of a Cloudinary URL ('' if not one). */
+export function extractPublicIdFromUrl(url: string): string {
+  return parseCloudinaryUrl(url)?.publicId || '';
 }
