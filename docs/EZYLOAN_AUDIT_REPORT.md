@@ -11,7 +11,10 @@ bug-free: §5 lists what was tested, what failed and what could not be tested, a
 | `6c28b56` | Loan-disclosure links + hydration error, BOI logo, homepage CLS, input labels, image host allowlist |
 | `155af10` | First version of this report |
 | `1843053` | Fail-closed webhooks, trusted client-IP handling, App Secret field in admin |
-| (this commit) | Report corrections, webhook/IP documentation, claims checklist |
+| `b0bb941` | Report corrections, webhook/IP documentation, claims checklist |
+| `f1f2a4f` | Staging round: `DATABASE_NAME` override (DB name was hard-coded), App Secret format validation, `check-env` and `test:staging` scripts |
+
+**Staging readiness:** see `docs/STAGING_CHECKLIST.md` (step-by-step checklist, env vars, PASS/FAIL/BLOCKED, rollback, owner actions) and `docs/CLAIMS_REVIEW.md` (claims decisions). Where they differ from §5/§9 below, they are newer.
 
 ## 1. Architecture (verified from the code)
 
@@ -308,6 +311,8 @@ The owner (and compliance, where relevant) should tick each item with evidence, 
 7. Code quality (lint warnings only): 88 unused variables, 18 `<img>` that could be `next/image`, `any` types.
 
 ## 9. Deployment checklist (reviewed — nothing has been deployed)
+
+> Superseded in detail by `docs/STAGING_CHECKLIST.md`. Two additions found while preparing staging: (1) the app ignored the DB name in `DATABASE_URL` and always opened `mydatabase`, now configurable via `DATABASE_NAME`, which staging must set; (2) nginx must forward `X-Forwarded-Proto`, or Next.js reports `http` and every Twilio signature fails.
 
 **Build requirements (verified):** Node `^18.18 || ^19.8 || >=20` (from `next@15.5.27`'s `engines`; tested locally
 on Node 24). `npm ci` from the committed lockfile. `CLOUDINARY_CLOUD_NAME` must be present when `npm run build` runs: the
