@@ -214,11 +214,7 @@ export default function LoanDisclosurePage() {
         {/* Last Updated & Footer */}
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-500">
-            Last Updated: {new Date().toLocaleDateString('en-IN', { 
-              day: '2-digit', 
-              month: 'short', 
-              year: 'numeric' 
-            })}
+            Last Updated: 06 Oct 2026
           </p>
           {/* <p className="text-xs text-gray-500 mt-1">
             EzyLoan (Dibyansh Associates) | CIN: [To be added] | GST: [To be added]

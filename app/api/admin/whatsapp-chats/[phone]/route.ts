@@ -22,7 +22,8 @@ function decodePhone(raw: string): string {
 // GET /api/admin/whatsapp-chats/<phone> — full conversation transcript for one
 // user, oldest→newest, so an admin can read exactly what they asked the Ezy AI
 // WhatsApp bot and how it replied.
-export async function GET(req: NextRequest, { params }: { params: { phone: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ phone: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'whatsappChats' });
   if ('error' in gate) return gate.error;
   try {
@@ -45,7 +46,8 @@ export async function GET(req: NextRequest, { params }: { params: { phone: strin
 // Flip a single conversation between the auto-reply bot and human takeover. In
 // 'manual' mode the inbound webhook stops auto-replying to this user (see
 // getContactMode in whatsappBrain) and the admin answers by hand via POST below.
-export async function PATCH(req: NextRequest, { params }: { params: { phone: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ phone: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'whatsappChats' });
   if ('error' in gate) return gate.error;
   try {
@@ -74,7 +76,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { phone: str
 // On success the message is appended to the durable transcript as an 'admin'
 // turn so it shows in the conversation. Also flips the contact to 'manual' so
 // the bot doesn't fight the human on the next inbound message.
-export async function POST(req: NextRequest, { params }: { params: { phone: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ phone: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'whatsappChats' });
   if ('error' in gate) return gate.error;
   try {
@@ -130,7 +133,8 @@ export async function POST(req: NextRequest, { params }: { params: { phone: stri
 }
 
 // DELETE /api/admin/whatsapp-chats/<phone> — remove one user's whole transcript.
-export async function DELETE(req: NextRequest, { params }: { params: { phone: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ phone: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'whatsappChats' });
   if ('error' in gate) return gate.error;
   try {

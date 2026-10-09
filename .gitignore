@@ -13,3 +13,7 @@ build/
 # EzyLone repo must not track or compile it (see tsconfig "exclude" too).
 EzyLoanCrm/
 .banklogo-originals-backup/
+
+# Temporary test build output
+.tmp-test/
+.tmp-unit/

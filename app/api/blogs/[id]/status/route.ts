@@ -20,7 +20,8 @@ export const dynamic = 'force-dynamic';
 // The workflow (draft → pending → published / rejected / archived) is enforced
 // server-side; the client status is never trusted. Publishing runs the SEO
 // checklist and refuses if there are critical errors.
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'blogs' });
   if ('error' in gate) return gate.error;
   const isAdminUser = gate.auth.role === 'admin';

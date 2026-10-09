@@ -32,7 +32,7 @@ export default function TermsPage() {
       }
     },
     "datePublished": "2024-01-01",
-    "dateModified": new Date().toISOString().split('T')[0],
+    "dateModified": "2026-10-06",
     "mainEntity": {
       "@type": "WebPage",
       "name": "Terms & Conditions",
@@ -60,12 +60,8 @@ export default function TermsPage() {
             Terms & Conditions
           </h1>
           <p className="text-gray-600">
-            <time dateTime={new Date().toISOString().split('T')[0]}>
-              Last Updated: {new Date().toLocaleDateString('en-IN', { 
-                day: '2-digit', 
-                month: 'long', 
-                year: 'numeric' 
-              })}
+            <time dateTime="2026-10-06">
+              Last Updated: 06 October 2026
             </time>
             {/* <span className="ml-2 text-gray-400">| Version 2.1</span> */}
           </p>

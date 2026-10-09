@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     template: '%s | EzyLoan',
   },
   description:
-    'Get instant approval on personal loans, business loans, car loans & more. Low interest rates*, minimal documentation, 100% online process with EzyLoan. *Rates subject to lender approval.',
+    'EzyLoan (Dibyansh Associates) is a loan facilitator (DSA) helping you compare and apply for personal, car, business and property loans with RBI-regulated partner banks & NBFCs. Approval and rates are decided by the lender.',
   keywords: [
     'personal loan', 'business loan', 'car loan', 'loan online', 'instant loan',
     'ezyloan', 'quick loan', 'low interest loan', 'loan against property',
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     siteName: 'EzyLoan',
     title: 'EzyLoan - Quick & Easy Loans Online',
     description:
-      'Get instant approval on personal, business & car loans. Low rates*, minimal docs. *Subject to lender approval.',
+      'Compare and apply for personal, car, business & property loans through partner banks and NBFCs. Approval and rates are decided by the lender.',
     images: [
       {
         url: `${BASE_URL}/og-image.jpg`,
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'EzyLoan - Quick & Easy Loans Online',
-    description: 'Get instant approval on personal, business & car loans. *Rates subject to approval.',
+    description: 'Compare and apply for personal, car, business & property loans through partner banks and NBFCs.',
     images: [`${BASE_URL}/og-image.jpg`],
     creator: '@ezyloan',
     site: '@ezyloan',

@@ -13,7 +13,8 @@ const ALLOWED = ['image/', 'application/pdf'];
 
 // POST /api/loans/:id/documents — admin only. Upload a KYC document (PDF/image)
 // to Cloudinary and attach it to the loan file.
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'loans' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
@@ -59,7 +60,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 }
 
 // DELETE /api/loans/:id/documents?url=... — admin only. Detach + remove asset.
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'loans' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });

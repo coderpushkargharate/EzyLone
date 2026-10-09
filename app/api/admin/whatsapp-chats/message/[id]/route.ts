@@ -11,7 +11,8 @@ export const dynamic = 'force-dynamic';
 // Remove a SINGLE transcript row from the admin panel (one bubble in the chat).
 // Note: this only clears our stored copy — it does NOT unsend the message from
 // the user's WhatsApp (the WhatsApp API doesn't allow that reliably).
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'whatsappChats' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });

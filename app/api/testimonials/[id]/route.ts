@@ -9,7 +9,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // PUT /api/testimonials/:id — update (admin only). multipart: fields + optional avatar file.
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'testimonials' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
@@ -61,7 +62,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 // DELETE /api/testimonials/:id — admin only
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'testimonials' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });

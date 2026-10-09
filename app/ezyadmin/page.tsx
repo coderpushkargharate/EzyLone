@@ -314,6 +314,8 @@ function WhatsAppFocusApp({
           </button>
           {menuOpen && (
             <div className="absolute right-0 mt-1 w-48 bg-white text-gray-700 rounded-xl shadow-lg border border-gray-100 overflow-hidden z-10">
+              {/* Full page load on purpose: leaves the admin PWA shell for the public site. */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/"
                 onClick={() => setMenuOpen(false)}
@@ -498,6 +500,8 @@ function AdminDashboard({
     else if (currentPage === 'loans' && loans.length === 0) fetchLoans();
     else if (currentPage === 'blogs' && blogs.length === 0) fetchBlogs();
     else if (currentPage === 'testimonials' && testimonials.length === 0) fetchTestimonials();
+    // Fetch once per tab visit; the cached lists are deliberately not deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   const fetchDashboardStats = async () => {
@@ -912,6 +916,7 @@ function AdminDashboard({
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {/* Back to the public website home page (the app opens straight into
                 admin, so this is the way out to the site). */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/"
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium hover:bg-blue-100 transition"

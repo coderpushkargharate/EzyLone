@@ -31,6 +31,9 @@ const nextConfig = {
       // 301s only catch external/bookmarked/email references to the short paths.
       { source: '/terms', destination: '/terms-and-conditions', permanent: true },
       { source: '/privacy', destination: '/privacy-policy', permanent: true },
+      // Articles live at /blog/<slug> but the index is /blogs — so a visitor (or
+      // crawler) trimming an article URL back to /blog would otherwise hit a 404.
+      { source: '/blog', destination: '/blogs', permanent: true },
     ]
   },
   async headers() {

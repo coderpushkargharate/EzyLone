@@ -13,7 +13,8 @@ export const dynamic = 'force-dynamic';
 // disabled) revokes the employee's existing sessions so it applies immediately.
 
 // PATCH /api/employees/:id — update name, permissions, disabled and (optionally) password.
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { adminOnly: true });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Employee not found' }, { status: 404 });
@@ -60,7 +61,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE /api/employees/:id — remove an employee account and everything tied to its login.
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { adminOnly: true });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Employee not found' }, { status: 404 });

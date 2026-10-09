@@ -41,7 +41,8 @@ const URL_FIELDS = ['image', 'canonicalUrl', 'ogImage'];
 // reaches the public site without approval.
 // Handles slug changes safely: when a PUBLISHED post's slug changes, the old
 // slug is preserved in previousSlugs so /blog/<old> 301-redirects to /blog/<new>.
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'blogs' });
   if ('error' in gate) return gate.error;
   const { auth } = gate;
@@ -111,7 +112,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 // DELETE /api/blogs/:id — admins may delete anything; employees only posts that
 // are not live (a published URL disappearing is an admin decision).
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'blogs' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Blog not found' }, { status: 404 });

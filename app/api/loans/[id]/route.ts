@@ -23,7 +23,8 @@ const EDITABLE_FIELDS = [
 // (applicant edits, decision status, and the pipeline/commission fields). A
 // status change to approved/rejected fires the same applicant email as the
 // dedicated /status route. `payoutAmount` is recomputed from disbursed × payout%.
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'loans' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
@@ -70,7 +71,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE /api/loans/:id — admin only
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: 'loans' });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });

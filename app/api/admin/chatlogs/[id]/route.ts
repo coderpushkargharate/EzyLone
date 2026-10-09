@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 
 // PATCH /api/admin/chatlogs/[id] — mark a logged question resolved/dismissed
 // (e.g. after teaching the bot an answer for it, or ignoring spam).
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: ['ezyBrain', 'ezyInsights'] });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });
@@ -32,7 +33,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE /api/admin/chatlogs/[id] — remove a single logged question.
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const gate = await requireAuth(req, { permission: ['ezyBrain', 'ezyInsights'] });
   if ('error' in gate) return gate.error;
   if (!isValidObjectId(params.id)) return NextResponse.json({ message: 'Not found' }, { status: 404 });

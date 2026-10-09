@@ -84,7 +84,8 @@ const getRelated = cache(async (blog: BlogDoc): Promise<BlogDoc[]> => {
 });
 
 // ---- Per-blog SEO metadata ----
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const blog = await getBlog(params.slug);
   if (!blog) return { title: 'Blog Not Found', robots: { index: false, follow: true } };
 
@@ -125,7 +126,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BlogDetails({ params }: { params: { slug: string } }) {
+export default async function BlogDetails(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   const blog = await getBlog(params.slug);
 
   if (!blog) {

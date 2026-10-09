@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 
 // GET /api/blog/:slug — public single blog. Only PUBLISHED posts are exposed;
 // drafts/pending/rejected/archived return 404 so they can't leak publicly.
-export async function GET(_req: Request, { params }: { params: { slug: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
   try {
     await connectDB();
     const blog = await Blog.findOne({ slug: params.slug, ...PUBLIC_BLOG_FILTER }).lean();

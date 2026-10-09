@@ -21,12 +21,8 @@ export default function CompliancePage() {
             Compliance & Disclosure
           </h1>
           <p className="text-gray-600">
-            <time dateTime={new Date().toISOString().split('T')[0]}>
-              Last Updated: {new Date().toLocaleDateString('en-IN', { 
-                day: '2-digit', 
-                month: 'long', 
-                year: 'numeric' 
-              })}
+            <time dateTime="2026-10-06">
+              Last Updated: 06 October 2026
             </time>
           </p>
           <p className="mt-3 text-sm text-gray-600">
