@@ -104,6 +104,7 @@ export function publicConnectionView(c: IMarketingConnection | null) {
           selectedAdAccountIds: c.meta.selectedAdAccountIds || [],
           datasetId: c.meta.datasetId,
           capiTokenSet: !!c.meta.capiTokenEnc,
+          capiVerifiedAt: c.meta.capiVerifiedAt,
         }
       : undefined,
     google: c.google
@@ -118,6 +119,7 @@ export function publicConnectionView(c: IMarketingConnection | null) {
           sites: c.google.sites || [],
           ga4PropertyId: c.google.ga4PropertyId,
           ga4Properties: c.google.ga4Properties || [],
+          uploadVerifiedAt: c.google.uploadVerifiedAt,
         }
       : undefined,
   };

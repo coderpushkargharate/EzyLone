@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/db';
 import { requireAuth } from '@/lib/auth';
 import { getConnection, publicConnectionView } from '@/lib/marketing/connections';
 import { getSettings } from '@/lib/marketing/settings';
-import { encryptionKeySource } from '@/lib/marketing/secrets';
+import { keyStatus } from '@/lib/marketing/keyManager';
 import { credentialStatus } from '@/lib/credentials';
 import { setupChecklist } from '@/lib/marketing/setup';
 import { googleAppConfig, metaAppConfig, publicBaseUrl, workerEnabled, META_GRAPH_VERSION, GOOGLE_ADS_API_VERSION } from '@/lib/marketing/config';
@@ -36,10 +36,10 @@ export async function GET(req: NextRequest) {
     JobLease.find({ _id: { $in: ['marketing:health', 'marketing:insights'] } }).lean(),
     Integration.findOne({ provider: 'facebook' }).lean(),
   ]);
-  const [mcfg, gcfg, credentials] = await Promise.all([metaAppConfig(), googleAppConfig(), credentialStatus()]);
+  const [mcfg, gcfg, credentials, key] = await Promise.all([metaAppConfig(), googleAppConfig(), credentialStatus(), keyStatus()]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fbCfg = ((fbInteg as any)?.config || {}) as Record<string, unknown>;
-  const keySource = encryptionKeySource();
+  const keySource = key.source;
   const keys = Object.fromEntries(credentials.map((c) => [c.name, c.set]));
   // The legacy Automations form can also hold the App Secret / verify token.
   if (fbCfg.appSecret) keys.META_APP_SECRET = true;
@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
   const metaView = publicConnectionView(meta);
   const googleView = publicConnectionView(google);
   const base = publicBaseUrl();
+  const leadsVerified = !!(await MetaLeadReceipt.exists({ status: 'done' }));
 
   return NextResponse.json(
     {
@@ -57,9 +58,10 @@ export async function GET(req: NextRequest) {
       credentials,
       setup: setupChecklist({
         keys,
-        encryptionKey: !!keySource,
-        meta: { status: metaView.status, pages: metaView.meta?.pages || [], datasetId: metaView.meta?.datasetId, capiTokenSet: metaView.meta?.capiTokenSet, missingScopes: metaView.missingScopes },
-        google: { status: googleView.status, customerId: googleView.google?.customerId, searchConsoleSite: googleView.google?.searchConsoleSite, ga4PropertyId: googleView.google?.ga4PropertyId, missingScopes: googleView.missingScopes },
+        encryptionKey: !key.problem,
+        baseUrl: base,
+        meta: { status: metaView.status, pages: metaView.meta?.pages || [], datasetId: metaView.meta?.datasetId, capiTokenSet: metaView.meta?.capiTokenSet, capiVerified: !!metaView.meta?.capiVerifiedAt, leadsVerified, missingScopes: metaView.missingScopes },
+        google: { status: googleView.status, customerId: googleView.google?.customerId, searchConsoleSite: googleView.google?.searchConsoleSite, ga4PropertyId: googleView.google?.ga4PropertyId, uploadVerified: !!googleView.google?.uploadVerifiedAt, missingScopes: googleView.missingScopes },
         mappings: settings.eventMappings.map((m) => ({ meta: !!m.meta?.enabled, google: !!m.google?.enabled })),
         testMode: { meta: settings.testMode?.meta !== false, google: settings.testMode?.google !== false },
       }),
@@ -75,6 +77,8 @@ export async function GET(req: NextRequest) {
       environment: {
         encryptionKeySet: !!keySource,
         encryptionKeySource: keySource,
+        // Non-secret key facts for the panel (file path, fingerprint match, problem text).
+        encryptionKey: { present: key.present, source: key.source, file: key.file, defaultFile: key.defaultFile, matches: key.matches, encryptedRecords: key.encryptedRecords, problem: key.problem },
         metaAppIdSet: !!mcfg.appId,
         metaAppSecretSet: !!(mcfg.appSecret || fbCfg.appSecret),
         metaVerifyTokenSet: !!keys.FACEBOOK_VERIFY_TOKEN,

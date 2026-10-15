@@ -5,6 +5,7 @@ import { getConnection, recordConnectionError, recordConnectionSuccess } from '.
 import { loadDeliveryContext } from '../delivery';
 import type { DeliveryOutcome } from '../delivery';
 import { PlatformError } from '../types';
+import { MarketingConnection } from '@/lib/models/MarketingConnection';
 
 // Google Ads conversion delivery through the Data Manager API, plus status
 // verification and retraction. Status vocabulary is deliberately conservative:
@@ -58,6 +59,7 @@ export async function deliverGoogleEvent(ev: IConversionEvent): Promise<Delivery
   try {
     const res = await ingestEvents(built.body!);
     await recordConnectionSuccess('google');
+    await MarketingConnection.updateOne({ provider: 'google' }, { $set: { 'google.uploadVerifiedAt': new Date() } });
     const warn = res.fieldWarnings?.length ? ` Field warnings: ${JSON.stringify(res.fieldWarnings).slice(0, 300)}` : '';
     if (ev.testMode) {
       return { status: 'skipped', message: `TEST (validateOnly): Google validated the request; nothing was ingested.${warn}` };

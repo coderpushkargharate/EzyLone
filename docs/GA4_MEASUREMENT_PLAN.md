@@ -1,9 +1,18 @@
 # GA4 measurement plan — ezyloan.co.in
 
-GA4 is **optional**. It turns on only when `NEXT_PUBLIC_GA4_MEASUREMENT_ID` (format `G-XXXXXXXXXX`) is set at **build
-time**. Without it the site loads only the existing Google Ads tag, exactly as before. The GA4 config shares the
-existing gtag.js loader in `app/layout.tsx`, so there is no second loader and nothing extra on the critical path.
-Non-production builds send `debug_mode: true`, so test traffic shows in GA4 DebugView instead of the reports.
+GA4 is **optional** and turns on in one of two ways:
+- **Runtime (no rebuild):** save the Measurement ID in Admin → Marketing & Ads → Settings → API keys, or set
+  `GA4_MEASUREMENT_ID` in the server env. `components/SiteTags.tsx` fetches `/api/site-tags` (cached 5 min) after the
+  page is idle and calls `gtag('config', id)` on the existing gtag.js loader.
+- **Build time:** `NEXT_PUBLIC_GA4_MEASUREMENT_ID` is inlined into the layout by `npm run build`. When it is set, it
+  takes precedence and the panel value is not used for the tag.
+
+Without either, the site loads only the existing Google Ads tag, exactly as before. Non-production builds send
+`debug_mode: true`, so test traffic shows in GA4 DebugView instead of the reports.
+
+**Limitation of the runtime path:** the GA4 config is applied a few seconds after load (when the browser is idle).
+Events fired before that, which is rare because forms take longer to fill, reach Google Ads but not GA4. Page views
+are sent when the config runs. Use the build-time variable if every early hit matters.
 
 All events go through `trackEvent()` in `lib/analytics.ts`, which:
 - drops any parameter whose **key** looks like contact or identity data (name, email, phone, address, PAN, Aadhaar,
@@ -41,7 +50,7 @@ consent defaults before the `gtag('config', …)` calls in `app/layout.tsx`. Tha
 was left unchanged.
 
 ## Validation
-1. Build with `NEXT_PUBLIC_GA4_MEASUREMENT_ID` set to a test property, then open GA4 → Admin → DebugView.
+1. Save a test property's Measurement ID in the panel (or set it at build time), load the site, then open GA4 → Admin → DebugView.
 2. Focus a form → `form_start` once. Submit it empty → `form_error`. Submit it validly on staging →
    `generate_lead` / `submit_application`.
 3. On `/emi-calculator`, move a slider and wait 2 s → `calculator_complete`, once.

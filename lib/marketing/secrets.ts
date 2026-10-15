@@ -1,73 +1,114 @@
 import crypto from 'crypto';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 // Encryption-at-rest for integration credentials (OAuth access and refresh
 // tokens, Page tokens, the Meta CAPI token, API keys saved in the panel).
 // AES-256-GCM with a key that never goes into the database, so a copy of the
-// database alone never yields a usable secret. Key source, in order:
-//   1. MARKETING_ENCRYPTION_KEY (server env), or
-//   2. a key file on the server (MARKETING_KEY_FILE, default ./.data/marketing.key),
-//      created automatically with mode 0600 on first use. Back it up: if it is
-//      lost, saved keys/tokens must be re-entered and platforms reconnected.
+// database alone never yields a usable secret.
 //
-// Pure module (no DB / Next imports) so it is unit-tested directly.
+// Key source (READ-ONLY here — this module never creates a key):
+//   1. MARKETING_ENCRYPTION_KEY (server env), else
+//   2. the key file: MARKETING_KEY_FILE, else ~/.ezyloan/marketing.key, else the
+//      legacy ./.data/marketing.key.
+// A new key file is created ONLY by createKeyFile(), which lib/marketing/keyManager.ts
+// calls after confirming that no encrypted data or key fingerprint already
+// exists in the database — so a lost key is reported, never silently replaced.
+//
+// No DB / Next imports, so it is unit-tested directly.
 
 const PREFIX = 'enc:v1:';
 
 export class MarketingConfigError extends Error {}
 
-function keyFilePath(): string {
-  return process.env.MARKETING_KEY_FILE?.trim() || path.join(process.cwd(), '.data', 'marketing.key');
+/** Where a newly created key file is written. */
+export function defaultKeyFilePath(): string {
+  return process.env.MARKETING_KEY_FILE?.trim() || path.join(os.homedir(), '.ezyloan', 'marketing.key');
 }
 
-let fileKey: string | null = null;
+/** Key file locations checked, in order (first existing one wins). */
+export function keyFileCandidates(): string[] {
+  const configured = process.env.MARKETING_KEY_FILE?.trim();
+  if (configured) return [configured];
+  return [path.join(os.homedir(), '.ezyloan', 'marketing.key'), path.join(process.cwd(), '.data', 'marketing.key')];
+}
 
-/** Read the key file, creating it (0600) on first use. Returns null if the disk is not writable. */
-function keyFromFile(create: boolean): string | null {
-  if (fileKey) return fileKey;
-  const file = keyFilePath();
-  try {
-    fileKey = fs.readFileSync(file, 'utf8').trim() || null;
-    if (fileKey) return fileKey;
-  } catch {
-    /* missing */
-  }
-  if (!create) return null;
-  try {
-    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-    const k = crypto.randomBytes(32).toString('base64');
-    fs.writeFileSync(file, k, { mode: 0o600, flag: 'wx' }); // wx: never overwrite an existing key
-    fileKey = k;
-    return k;
-  } catch {
+let cached: { raw: string; source: 'env' | 'file'; file?: string } | null = null;
+
+/** Forget the cached key (tests; after createKeyFile). */
+export function resetKeyCache(): void {
+  cached = null;
+}
+
+function readKey(): { raw: string; source: 'env' | 'file'; file?: string } | null {
+  const envKey = process.env.MARKETING_ENCRYPTION_KEY?.trim();
+  if (envKey) return { raw: envKey, source: 'env' };
+  if (cached) return cached;
+  for (const file of keyFileCandidates()) {
     try {
-      fileKey = fs.readFileSync(file, 'utf8').trim() || null; // another process won the race
-      return fileKey;
+      const raw = fs.readFileSync(file, 'utf8').trim();
+      if (raw) {
+        cached = { raw, source: 'file', file };
+        return cached;
+      }
     } catch {
-      return null;
+      /* not there */
     }
   }
+  return null;
 }
 
-/** Where the encryption key comes from ('env' | 'file'), or null when none is usable. */
+function parseKey(raw: string): Buffer {
+  const key = /^[0-9a-f]{64}$/i.test(raw) ? Buffer.from(raw, 'hex') : Buffer.from(raw, 'base64');
+  if (key.length !== 32) throw new MarketingConfigError('The encryption key must be 32 bytes (64 hex chars or base64).');
+  return key;
+}
+
+/** Where the key comes from, without creating anything. */
 export function encryptionKeySource(): 'env' | 'file' | null {
-  if (process.env.MARKETING_ENCRYPTION_KEY?.trim()) return 'env';
-  return keyFromFile(true) ? 'file' : null;
+  return readKey()?.source || null;
 }
 
-function loadKey(raw = process.env.MARKETING_ENCRYPTION_KEY?.trim() || keyFromFile(true) || undefined): Buffer {
-  if (!raw) {
+export function encryptionKeyFile(): string | undefined {
+  return readKey()?.file;
+}
+
+/**
+ * Non-secret identifier of the current key: HMAC-SHA256(key, label), first 16 hex.
+ * Stored in the DB so a different key is detected; it cannot be used to recover the key.
+ */
+export function keyFingerprint(): string | null {
+  const k = readKey();
+  if (!k) return null;
+  return crypto.createHmac('sha256', parseKey(k.raw)).update('ezyloan-marketing-key-check-v1').digest('hex').slice(0, 16);
+}
+
+/**
+ * Create a new key file (0600 in a 0700 directory). Never overwrites: fails if the
+ * file exists. Callers must check for existing encrypted data first (keyManager).
+ */
+export function createKeyFile(): string {
+  const file = defaultKeyFilePath();
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(file, crypto.randomBytes(32).toString('base64'), { mode: 0o600, flag: 'wx' });
+  try {
+    fs.chmodSync(file, 0o600);
+  } catch {
+    /* non-POSIX filesystem */
+  }
+  resetKeyCache();
+  return file;
+}
+
+function loadKey(): Buffer {
+  const k = readKey();
+  if (!k) {
     throw new MarketingConfigError(
-      'No encryption key: set MARKETING_ENCRYPTION_KEY, or make the app folder writable so .data/marketing.key can be created.'
+      'No encryption key on the server. Set MARKETING_ENCRYPTION_KEY or restore the key file (see Marketing & Ads → Settings).'
     );
   }
-  const trimmed = raw.trim();
-  const key = /^[0-9a-f]{64}$/i.test(trimmed) ? Buffer.from(trimmed, 'hex') : Buffer.from(trimmed, 'base64');
-  if (key.length !== 32) {
-    throw new MarketingConfigError('MARKETING_ENCRYPTION_KEY must be 32 bytes (64 hex chars or base64).');
-  }
-  return key;
+  return parseKey(k.raw);
 }
 
 export function encryptionConfigured(): boolean {

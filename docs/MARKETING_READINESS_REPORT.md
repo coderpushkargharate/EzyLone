@@ -20,7 +20,7 @@ findings are not repeated here.
 | Meta OAuth / assets / CAPI / insights | **New — code complete, unverified live** | Mocked tests; blocked on credentials and App Review. |
 | Google Ads: OAuth / accounts / conversion actions / Data Manager uploads / verification / retraction / spend | **New — code complete, unverified live** | Mocked tests; blocked on credentials and developer token. Retraction of Data-Manager-ingested conversions is unverified. |
 | Search Console (performance, URL inspection, sitemaps) | **New — code complete, unverified live** | Mocked tests. |
-| GA4 Data API reports + optional GA4 web tag/events | **New — code complete, unverified live** | Tag inert until `NEXT_PUBLIC_GA4_MEASUREMENT_ID` is set. |
+| GA4 Data API reports + optional GA4 web tag/events | **New — code complete, unverified live** | Tag inert until a Measurement ID is saved in the panel / `GA4_MEASUREMENT_ID` (runtime) or `NEXT_PUBLIC_GA4_MEASUREMENT_ID` (build time). |
 | CRM attribution, lifecycle timestamps, conversion ledger, worker | **New — verified** | 217 integration/unit checks + production-build runtime test. |
 | Audit log | **New — verified** | Tests confirm entries and that no secrets are stored. |
 | Lead scoring, rule-based assignment, stale-lead alerts, follow-up tasks | **Missing — not implemented** | See §8 (P2). `assignedTo` and `followUpDate` already exist on leads; the external EzyLoanCrm writes the same collection, so rules need agreement with that app. |

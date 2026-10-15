@@ -132,7 +132,7 @@ export async function disconnectGoogle(): Promise<void> {
   }
   await MarketingConnection.updateOne(
     { provider: 'google' },
-    { $set: { status: 'disconnected', scopes: [], missingScopes: [] }, $unset: { tokenEnc: '', refreshTokenEnc: '', tokenExpiresAt: '' } }
+    { $set: { status: 'disconnected', scopes: [], missingScopes: [] }, $unset: { tokenEnc: '', refreshTokenEnc: '', tokenExpiresAt: '', 'google.uploadVerifiedAt': '' } }
   );
   await syncLog('google', 'oauth', 'info', 'Google disconnected — refresh token revoked and deleted');
 }

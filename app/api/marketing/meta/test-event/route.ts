@@ -8,6 +8,7 @@ import { graph } from '@/lib/marketing/meta/graph';
 import { buildMetaEvent, parseMetaResponse } from '@/lib/marketing/meta/payload';
 import { errorResponse } from '@/lib/marketing/http';
 import { syncLog } from '@/lib/marketing/log';
+import { MarketingConnection } from '@/lib/models/MarketingConnection';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -41,7 +42,10 @@ export async function POST(req: NextRequest) {
     const body = await graph.postNoProof(`/${creds.datasetId}/events`, creds.token, { data: JSON.stringify([built.event]), test_event_code: code });
     const parsed = parseMetaResponse(body, 1);
     await syncLog('meta', 'capi', parsed.ok ? 'ok' : 'error', `TEST event ${parsed.ok ? 'received' : 'not confirmed'} by Meta (fbtrace ${parsed.fbtraceId || 'n/a'})`);
-    if (parsed.ok) await recordConnectionSuccess('meta');
+    if (parsed.ok) {
+      await recordConnectionSuccess('meta');
+      await MarketingConnection.updateOne({ provider: 'meta' }, { $set: { 'meta.capiVerifiedAt': new Date() } });
+    }
     return NextResponse.json({ ok: parsed.ok, eventsReceived: parsed.eventsReceived, fbtraceId: parsed.fbtraceId, messages: parsed.messages, reason: parsed.reason });
   } catch (e) {
     await syncLog('meta', 'capi', 'error', `TEST event failed: ${e instanceof Error ? e.message : String(e)}`);

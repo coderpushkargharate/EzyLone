@@ -41,6 +41,7 @@ export default function CredentialsPanel({ status, isAdmin, onSaved }: { status:
   const creds: any[] = status.credentials || [];
   const setup: any[] = status.setup || [];
   const urls = status.urls || {};
+  const key = status.environment?.encryptionKey;
   const required = setup.filter((s) => !s.optional);
   const doneCount = required.filter((s) => s.done).length;
 
@@ -95,10 +96,22 @@ export default function CredentialsPanel({ status, isAdmin, onSaved }: { status:
       {/* API keys */}
       <section className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-1"><KeyRound size={16} className="text-amber-600" />API keys</h2>
-        <p className="text-xs text-gray-500 mb-4">
-          Secrets are encrypted on the server ({status.environment?.encryptionKeySource === 'env' ? 'key from MARKETING_ENCRYPTION_KEY' : status.environment?.encryptionKeySource === 'file' ? 'key file .data/marketing.key on the server, back it up' : 'no encryption key available'}) and are never shown again after saving.
-          A value set in the server environment overrides the panel.
+        <p className="text-xs text-gray-500 mb-2">
+          Secrets are encrypted on the server and are never shown again after saving. A value set in the server environment overrides the panel.
         </p>
+        <p className="text-xs text-gray-500 mb-4">
+          Encryption key:{' '}
+          {key?.source === 'env' && 'MARKETING_ENCRYPTION_KEY (server environment).'}
+          {key?.source === 'file' && <>key file <code className="text-[11px]">{key.file}</code>. Back this file up; without it, saved secrets cannot be read.</>}
+          {!key?.source && !key?.problem && <>none yet. One is created at <code className="text-[11px]">{key?.defaultFile}</code> when you save the first secret.</>}
+        </p>
+        {key?.problem && (
+          <div role="alert" className="text-xs rounded-lg px-3 py-2 mb-4 bg-red-50 text-red-800">
+            <p className="font-semibold mb-1">Encryption key problem: saving secrets is blocked</p>
+            <p>{key.problem}</p>
+            <p className="mt-1">Expected location: <code>{key.file || key.defaultFile}</code> (or set MARKETING_ENCRYPTION_KEY). Restore it from your backup, then restart the app.</p>
+          </div>
+        )}
         {msg && <p className={`text-xs rounded-lg px-3 py-2 mb-3 ${msg.ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>{msg.text}</p>}
         {generated && (
           <div className="text-xs rounded-lg px-3 py-2 mb-3 bg-amber-50 text-amber-900">
@@ -116,8 +129,8 @@ export default function CredentialsPanel({ status, isAdmin, onSaved }: { status:
                   <div key={c.name} className="border border-gray-100 rounded-xl p-3">
                     <div className="flex items-center justify-between gap-2 mb-1">
                       <label htmlFor={`cred-${c.name}`} className="text-sm font-medium text-gray-800">{c.label}{c.required && <span className="text-red-500"> *</span>}</label>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.set ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {c.set ? (c.source === 'env' ? 'set on server' : 'saved') : 'not set'}
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${c.unreadable ? 'bg-red-50 text-red-700' : c.set ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {c.unreadable ? 'saved, unreadable (key mismatch)' : c.set ? (c.source === 'env' ? 'set on server' : 'saved') : 'not set'}
                       </span>
                     </div>
                     <p className="text-[11px] text-gray-500 mb-2">{c.help} {c.link && <a href={c.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-0.5 text-blue-600 underline">Open <ExternalLink size={10} /></a>}</p>

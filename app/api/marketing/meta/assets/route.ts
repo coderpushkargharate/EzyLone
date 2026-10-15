@@ -8,6 +8,7 @@ import { getConnection, getMetaUserToken, publicConnectionView } from '@/lib/mar
 import { listPixels, saveMetaConnection, setPageSubscription } from '@/lib/marketing/meta/oauth';
 import { checkMetaHealth } from '@/lib/marketing/health';
 import { encryptSecret } from '@/lib/marketing/secrets';
+import { ensureEncryptionKey } from '@/lib/marketing/keyManager';
 import { errorResponse } from '@/lib/marketing/http';
 import { syncLog } from '@/lib/marketing/log';
 
@@ -62,11 +63,14 @@ export async function POST(req: NextRequest) {
           set['meta.datasetId'] = ds || undefined;
         }
         if (typeof body.capiToken === 'string' && body.capiToken.trim()) {
+          await ensureEncryptionKey();
           const t = body.capiToken.trim();
           if (t.length < 20 || t.length > 1000 || /\s/.test(t)) return NextResponse.json({ message: 'That does not look like an access token.' }, { status: 400 });
           set['meta.capiTokenEnc'] = encryptSecret(t);
         }
-        if (Object.keys(set).length) await MarketingConnection.updateOne({ provider: 'meta' }, { $set: set });
+        // A new dataset or token must be re-verified (Send test event) before the checklist trusts it.
+        const resetVerify = set['meta.capiTokenEnc'] !== undefined || (body.datasetId !== undefined && set['meta.datasetId'] !== conn.meta?.datasetId);
+        if (Object.keys(set).length) await MarketingConnection.updateOne({ provider: 'meta' }, { $set: set, ...(resetVerify ? { $unset: { 'meta.capiVerifiedAt': '' } } : {}) });
         await audit(gate.auth, 'config_change', 'meta_assets', { adAccounts: set['meta.selectedAdAccountIds'], datasetId: set['meta.datasetId'], capiTokenReplaced: !!set['meta.capiTokenEnc'] }, req);
         await syncLog('meta', 'oauth', 'info', `Meta asset selection updated by ${gate.auth.username}${set['meta.capiTokenEnc'] ? ' (Conversions API token replaced)' : ''}`);
         break;

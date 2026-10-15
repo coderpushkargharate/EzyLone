@@ -128,6 +128,7 @@ const input = 'w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:
 
 const OAUTH_ERRORS: Record<string, string> = {
   encryption_key_missing: 'MARKETING_ENCRYPTION_KEY is not set on the server — credentials cannot be stored safely.',
+  encryption_key_problem: 'The server encryption key is missing or does not match the saved credentials. See Settings → API keys for details; restore the original key before connecting.',
   meta_app_not_configured: 'META_APP_ID / META_APP_SECRET are not configured on the server.',
   google_app_not_configured: 'GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET are not configured on the server.',
   meta_state_invalid: 'The Meta sign-in link expired or was opened in another session. Please try again.',

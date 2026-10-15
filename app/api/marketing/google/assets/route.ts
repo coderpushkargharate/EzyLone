@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
               accountName: info.name || customerId,
               lastSuccessAt: new Date(),
             },
+            ...(customerId !== conn.google?.customerId ? { $unset: { 'google.uploadVerifiedAt': '' } } : {}),
           }
         );
         await audit(gate.auth, 'config_change', 'google_ads_account', { customerId, loginCustomerId }, req);

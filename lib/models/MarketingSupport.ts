@@ -125,3 +125,18 @@ const JobLeaseSchema = new Schema<IJobLease>(
 
 export const JobLease: Model<IJobLease> =
   (mongoose.models.JobLease as Model<IJobLease>) || mongoose.model<IJobLease>('JobLease', JobLeaseSchema);
+
+// ── Encryption-key fingerprint (detects a missing or replaced key) ────────────
+export interface IKeyCheck {
+  _id: string; // 'encryption'
+  fingerprint: string; // HMAC of the key — cannot be used to recover it
+  createdAt: Date;
+}
+
+const KeyCheckSchema = new Schema<IKeyCheck>(
+  { _id: { type: String }, fingerprint: { type: String, required: true }, createdAt: { type: Date, default: Date.now } },
+  { collection: 'key_checks', versionKey: false }
+);
+
+export const KeyCheck: Model<IKeyCheck> =
+  (mongoose.models.KeyCheck as Model<IKeyCheck>) || mongoose.model<IKeyCheck>('KeyCheck', KeyCheckSchema);

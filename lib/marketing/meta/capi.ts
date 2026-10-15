@@ -5,6 +5,7 @@ import { getCapiCredentials, recordConnectionError, recordConnectionSuccess } fr
 import { loadDeliveryContext } from '../delivery';
 import type { DeliveryOutcome } from '../delivery';
 import { PlatformError } from '../types';
+import { MarketingConnection } from '@/lib/models/MarketingConnection';
 
 // Send one ledger event to the Meta Conversions API.
 
@@ -60,6 +61,7 @@ export async function deliverMetaEvent(ev: IConversionEvent): Promise<DeliveryOu
       return { status: 'retry', errorKind: 'transient', message: parsed.reason || 'Unexpected Meta response.', traceId: parsed.fbtraceId };
     }
     await recordConnectionSuccess('meta');
+    await MarketingConnection.updateOne({ provider: 'meta' }, { $set: { 'meta.capiVerifiedAt': new Date() } });
     return {
       status: 'sent',
       traceId: parsed.fbtraceId,

@@ -39,6 +39,7 @@ export interface IMarketingConnection {
     selectedAdAccountIds: string[];
     datasetId?: string; // Pixel / dataset id used for the Conversions API
     capiTokenEnc?: string; // Events Manager dataset access token (encrypted)
+    capiVerifiedAt?: Date; // last time Meta confirmed receipt of a CAPI event (test or real)
   };
   google?: {
     customerId?: string;
@@ -50,6 +51,7 @@ export interface IMarketingConnection {
     sites?: { siteUrl: string; permissionLevel?: string }[];
     ga4PropertyId?: string; // numeric property id
     ga4Properties?: { id: string; name: string; account?: string }[];
+    uploadVerifiedAt?: Date; // last time Google accepted or validated a conversion upload
   };
   updatedAt: Date;
   createdAt: Date;
@@ -78,6 +80,7 @@ const MarketingConnectionSchema = new Schema<IMarketingConnection>(
       selectedAdAccountIds: { type: [String], default: [] },
       datasetId: String,
       capiTokenEnc: String,
+      capiVerifiedAt: Date,
     },
     google: {
       customerId: String,
@@ -89,6 +92,7 @@ const MarketingConnectionSchema = new Schema<IMarketingConnection>(
       sites: { type: [Schema.Types.Mixed], default: [] },
       ga4PropertyId: String,
       ga4Properties: { type: [Schema.Types.Mixed], default: [] },
+      uploadVerifiedAt: Date,
     },
   },
   { timestamps: true, collection: 'marketing_connections' }

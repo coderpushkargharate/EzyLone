@@ -111,16 +111,25 @@ GA4 IDs reach the website through `GET /api/site-tags`, so no rebuild is needed.
 setup checklist and every webhook/redirect URL to paste into Meta, Google and form tools. Saves are audited
 (`credentials_change`, names only).
 
-**Encryption key:** `MARKETING_ENCRYPTION_KEY` if set. Otherwise the server creates `.data/marketing.key` (mode 0600,
-gitignored; override the path with `MARKETING_KEY_FILE`) on first use. **Back that file up**, and keep it when
-redeploying into a new folder. If it is lost, saved keys and OAuth tokens must be re-entered and the platforms
-reconnected.
+**Encryption key** (protects saved secrets and OAuth tokens; never stored in the database):
+- Source: `MARKETING_ENCRYPTION_KEY`, else the key file (`MARKETING_KEY_FILE`, else `~/.ezyloan/marketing.key`, else
+  the legacy `./.data/marketing.key`). The default sits **outside the app folder**, so a fresh clone or
+  `git clean -fdx` cannot delete it.
+- A key file is created (mode 0600, directory 0700) **only on a fresh install**: no encrypted record and no stored key
+  fingerprint in the database. If encrypted data exists and the key is missing, **no new key is generated**. Saving
+  secrets and connecting are blocked, and the panel shows the expected path.
+- A non-secret fingerprint (HMAC of the key) is stored in `key_checks`. A different key (wrong env value, another
+  server's file) is reported as a mismatch instead of silently producing unreadable data.
+- **Backup:** `sudo cp ~/.ezyloan/marketing.key /root/backup/ezyloan-marketing.key && sudo chmod 600 /root/backup/ezyloan-marketing.key`
+  (and keep an off-server copy in a password manager). **Restore:** put the file back at the same path with mode 0600
+  (or set `MARKETING_ENCRYPTION_KEY` to its contents) and restart the app. **Lost for good:** delete the saved secrets
+  and connections, then re-enter the keys and reconnect. That is a deliberate manual decision, never automatic.
 
 Hand-over guide for the account owner (where to get each key, with links): `https://claude.ai/artifact/NkcayS4JPZYyJFbnBtwGwc`.
 
 ### Environment variables (optional when using the panel; placeholders only, see `.env.example`)
 ```
-MARKETING_ENCRYPTION_KEY=<32 random bytes, base64>   # REQUIRED before connecting anything; keep stable
+MARKETING_ENCRYPTION_KEY=<32 random bytes, base64>   # optional: else ~/.ezyloan/marketing.key (see above); keep stable
 MARKETING_PUBLIC_BASE_URL=https://www.ezyloan.co.in   # OAuth redirect origin (defaults to NEXT_PUBLIC_SITE_URL)
 MARKETING_WORKER_ENABLED=                              # "false" → use cron + MARKETING_CRON_SECRET
 MARKETING_CRON_SECRET=<random>
@@ -132,7 +141,9 @@ GOOGLE_OAUTH_CLIENT_ID=<client id>
 GOOGLE_OAUTH_CLIENT_SECRET=<client secret>
 GOOGLE_ADS_DEVELOPER_TOKEN=<token>                     # reporting/account lists only
 GOOGLE_ADS_API_VERSION=v25
-NEXT_PUBLIC_GA4_MEASUREMENT_ID=G-XXXXXXXXXX            # optional, build time
+GA4_MEASUREMENT_ID=G-XXXXXXXXXX                        # optional, runtime (or set in the panel; no rebuild)
+META_PIXEL_ID=<pixel id>                               # optional, runtime (or set in the panel; no rebuild)
+# NEXT_PUBLIC_GA4_MEASUREMENT_ID / NEXT_PUBLIC_META_PIXEL_ID: build-time variants; when baked in they win.
 ```
 `node --env-file=.env.local scripts/check-env.mjs --target=production` now reports all of these (names and
 status only, never values).
@@ -175,7 +186,8 @@ status only, never values).
 
 ## 8. Deployment and rollback
 1. Merge to staging first. `npm ci && npm run build`, then `pm2 restart <staging app>`.
-2. Set `MARKETING_ENCRYPTION_KEY` (and the Meta/Google vars when ready) **before** connecting. Missing vars only
+2. Decide the encryption-key source (env var, or let the first secret save create `~/.ezyloan/marketing.key`) and
+   **back it up**. Enter keys in the panel or env. Missing keys only
    disable the new features; existing site, CRM and webhooks behave as before.
 3. Run `npm run test:marketing` and `npm run test:marketing-runtime` (needs `MONGOD_BIN`) on a dev machine. On
    staging, run `npm run test:security` against the staging URL.

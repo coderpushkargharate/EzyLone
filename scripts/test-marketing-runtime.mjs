@@ -128,12 +128,13 @@ try {
   check('/ezyadmin renders for admin', admin.status === 200 && admin.text.includes('<html'));
 
   console.log('\nAPI keys saved in the panel take effect without a restart');
-  const keyPut = await req('/api/marketing/credentials', { method: 'PUT', cookie, headers: { origin: BASE }, json: { values: { META_PIXEL_ID: '123456789012', GA4_MEASUREMENT_ID: 'G-RUNTIME123' } } });
+  const keyPut = await req('/api/marketing/credentials', { method: 'PUT', cookie, headers: { origin: BASE }, json: { values: { META_PIXEL_ID: '123456789012', GA4_MEASUREMENT_ID: 'G-RUNTIME123', WEBHOOK_LEAD_SECRET: 'runtime-secret-0123456789' } } });
   check('admin saves Pixel + GA4 IDs', keyPut.status === 200, JSON.stringify(keyPut.body).slice(0, 200));
   const tags = (await req('/api/site-tags')).body;
   check('public /api/site-tags serves them immediately', tags.metaPixelId === '123456789012' && tags.ga4MeasurementId === 'G-RUNTIME123');
   const st2 = (await req('/api/marketing/status', { cookie })).body;
-  check('encryption key file auto-created on the server', st2.environment.encryptionKeySource === 'file' && fs.existsSync(path.join(tmp, 'keys', 'marketing.key')));
+  check('fresh install: key file created on the first secret save, fingerprint matches', st2.environment.encryptionKeySource === 'file' && st2.environment.encryptionKey.matches === true && fs.existsSync(path.join(tmp, 'keys', 'marketing.key')));
+  check('status/credentials responses contain no secret value', !JSON.stringify(st2).includes('runtime-secret-0123456789') && !JSON.stringify(keyPut.body).includes('runtime-secret-0123456789'));
 
   console.log('\nSettings → worker processes queue in the background');
   const put = await req('/api/marketing/settings', {

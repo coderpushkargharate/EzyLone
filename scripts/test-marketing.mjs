@@ -206,9 +206,12 @@ check('GA4 rows mapped by header names', JSON.stringify(shape.ga4Rows({ dimensio
 check('URL must belong to property (domain + prefix)', shape.urlBelongsToSite('https://www.ezyloan.co.in/x', 'sc-domain:ezyloan.co.in') && !shape.urlBelongsToSite('https://evil.com/?ezyloan.co.in', 'sc-domain:ezyloan.co.in') && shape.urlBelongsToSite('https://www.ezyloan.co.in/a', 'https://www.ezyloan.co.in/') && !shape.urlBelongsToSite('https://ezyloan.co.in.evil.com/', 'https://ezyloan.co.in/'));
 const sp = analytics.sanitizeParams({ form_id: 'hero', email: 'a@b.com', user_name: 'Rahul', loan_type: 'Car', note: 'call 98765 43210', other: 'x@y.co', ok: 3 });
 const steps0 = setupMod.setupChecklist({ keys: {}, encryptionKey: true, meta: { status: 'disconnected', pages: [] }, google: { status: 'disconnected' }, mappings: [], testMode: { meta: true, google: true } });
-check('setup checklist: fresh install → only encryption step done', steps0.filter((s) => s.done).map((s) => s.id).join() === 'enc');
-const steps1 = setupMod.setupChecklist({ keys: { META_APP_ID: true, META_APP_SECRET: true, FACEBOOK_VERIFY_TOKEN: true }, encryptionKey: true, meta: { status: 'connected', pages: [{ subscribed: true }], datasetId: '1', capiTokenSet: true, missingScopes: [] }, google: { status: 'disconnected' }, mappings: [{ meta: true, google: false }], testMode: { meta: false, google: true } });
-check('setup checklist: Meta fully set up + live', ['meta-keys', 'meta-connect', 'meta-page', 'meta-capi', 'map', 'live'].every((id) => steps1.find((s) => s.id === id).done));
+check('setup checklist: fresh install → only basics done', steps0.filter((s) => s.done).map((s) => s.id).join() === 'enc,base');
+check('setup checklist: http base URL flagged', !setupMod.setupChecklist({ keys: {}, encryptionKey: true, baseUrl: 'http://ezyloan.co.in', meta: { status: 'disconnected', pages: [] }, google: { status: 'disconnected' }, mappings: [], testMode: { meta: true, google: true } }).find((s) => s.id === 'base').done);
+const savedOnly = setupMod.setupChecklist({ keys: {}, encryptionKey: true, meta: { status: 'connected', pages: [{ subscribed: true }], datasetId: '1', capiTokenSet: true, capiVerified: false, leadsVerified: false }, google: { status: 'disconnected' }, mappings: [], testMode: { meta: true, google: true } });
+check('setup checklist: saved-but-unverified CAPI and Lead Ads are NOT done', !savedOnly.find((s) => s.id === 'meta-capi').done && !savedOnly.find((s) => s.id === 'meta-leads').done);
+const steps1 = setupMod.setupChecklist({ keys: { META_APP_ID: true, META_APP_SECRET: true, FACEBOOK_VERIFY_TOKEN: true }, encryptionKey: true, meta: { status: 'connected', pages: [{ subscribed: true }], datasetId: '1', capiTokenSet: true, capiVerified: true, leadsVerified: true, missingScopes: [] }, google: { status: 'disconnected' }, mappings: [{ meta: true, google: false }], testMode: { meta: false, google: true } });
+check('setup checklist: Meta fully set up + verified + live', ['meta-keys', 'meta-connect', 'meta-page', 'meta-leads', 'meta-capi', 'map', 'live'].every((id) => steps1.find((s) => s.id === id).done));
 check('GA4 params: PII keys and email/phone-like values dropped', JSON.stringify(sp) === '{"form_id":"hero","loan_type":"Car","ok":3}');
 
 // ───────────────────────────── Part 2: integration ─────────────────────────────
@@ -720,6 +723,66 @@ async function integration() {
   check('status: no secret values exposed', !JSON.stringify(st).includes('lead-secret-0123456789abcdef') && !JSON.stringify(st).includes(gen.value));
   const clr = await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { GA4_MEASUREMENT_ID: '' } });
   check('clearing a key removes it', clr.status === 200 && !(await AppCredential.findOne({ name: 'GA4_MEASUREMENT_ID' }).lean()));
+
+  section('Encryption key safety');
+  const km = await import('../lib/marketing/keyManager.ts');
+  const sec = await import('../lib/marketing/secrets.ts');
+  const { KeyCheck } = await import('../lib/models/MarketingSupport.ts');
+  const realKey = process.env.MARKETING_ENCRYPTION_KEY;
+  const keyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ezy-key-'));
+  process.env.MARKETING_KEY_FILE = path.join(keyDir, 'sub', 'marketing.key');
+  const st1 = await km.keyStatus();
+  check('current key matches stored fingerprint', st1.present && st1.source === 'env' && st1.matches === true && !st1.problem && st1.encryptedRecords > 0, JSON.stringify(st1));
+  process.env.MARKETING_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64');
+  sec.resetKeyCache();
+  const st2 = await km.keyStatus();
+  check('a different key is detected as a mismatch', st2.matches === false && /not the key/.test(st2.problem || ''));
+  const wrongPut = await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { META_PIXEL_ID: '111111111', WEBHOOK_LEAD_SECRET: 'another-secret-0123456789' } });
+  check('saving secrets with the wrong key → 409, nothing saved (not even the public ID)', wrongPut.status === 409 && (await AppCredential.findOne({ name: 'META_PIXEL_ID' }).lean()).value === '123456789012');
+  clearCredentialCache();
+  const unreadable = (await (await call(credRoute, 'GET', '/api/marketing/credentials', adminC)).json()).credentials.find((c) => c.name === 'WEBHOOK_LEAD_SECRET');
+  check('undecryptable saved secret is reported as unreadable, not silently "not set"', unreadable.unreadable === true);
+  delete process.env.MARKETING_ENCRYPTION_KEY;
+  sec.resetKeyCache();
+  const st3 = await km.keyStatus();
+  check('missing key with existing encrypted data → problem reported', !st3.present && /missing/.test(st3.problem || ''));
+  let refused = false;
+  try { await km.ensureEncryptionKey(); } catch { refused = true; }
+  check('missing key with existing data → NO new key generated', refused && !fs.existsSync(process.env.MARKETING_KEY_FILE));
+  const conn3 = await call(connectRoute, 'GET', '/api/marketing/meta/connect', adminC);
+  check('connect blocked while the key problem exists', new URL(conn3.headers.get('location')).searchParams.get('error') === 'encryption_key_problem');
+  // Pre-fingerprint data: no stored fingerprint → the key must prove it can read existing ciphertext.
+  await KeyCheck.deleteMany({});
+  process.env.MARKETING_ENCRYPTION_KEY = crypto.randomBytes(32).toString('base64');
+  sec.resetKeyCache();
+  check('no fingerprint + wrong key → still detected by a decrypt probe', (await km.keyStatus()).matches === false);
+  process.env.MARKETING_ENCRYPTION_KEY = realKey;
+  sec.resetKeyCache();
+  check('no fingerprint + right key → accepted and fingerprint stored', (await km.ensureEncryptionKey()).matches === true && !!(await KeyCheck.findById('encryption').lean()));
+  // Fresh install (separate empty state): no ciphertext, no fingerprint, no key → file created once.
+  const savedCreds = await AppCredential.find().lean();
+  const savedConns = await MarketingConnection.find().lean();
+  await AppCredential.deleteMany({});
+  await MarketingConnection.deleteMany({});
+  await KeyCheck.deleteMany({});
+  delete process.env.MARKETING_ENCRYPTION_KEY;
+  sec.resetKeyCache();
+  const fresh = await km.ensureEncryptionKey();
+  const keyText = fs.readFileSync(process.env.MARKETING_KEY_FILE, 'utf8');
+  check('fresh install → key file created and fingerprint stored', fresh.source === 'file' && fresh.file === process.env.MARKETING_KEY_FILE && keyText.length >= 40 && fresh.matches === true);
+  if (process.platform !== 'win32') check('key file mode 0600', (fs.statSync(process.env.MARKETING_KEY_FILE).mode & 0o777) === 0o600);
+  await km.ensureEncryptionKey();
+  check('second call reuses the same key (never regenerated)', fs.readFileSync(process.env.MARKETING_KEY_FILE, 'utf8') === keyText);
+  // Restore the shared test state.
+  await AppCredential.deleteMany({});
+  await KeyCheck.deleteMany({});
+  if (savedCreds.length) await AppCredential.insertMany(savedCreds);
+  if (savedConns.length) await MarketingConnection.insertMany(savedConns);
+  process.env.MARKETING_ENCRYPTION_KEY = realKey;
+  delete process.env.MARKETING_KEY_FILE;
+  sec.resetKeyCache();
+  await km.ensureEncryptionKey();
+  clearCredentialCache();
 
   const actions = await AuditLog.distinct('action');
   check('audit log recorded settings change, exports, retries, connect attempts, property selection', ['config_change', 'export', 'conversion_retry_bulk', 'sitemap_submit', 'credentials_change'].every((a) => actions.includes(a)), JSON.stringify(actions));

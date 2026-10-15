@@ -77,13 +77,27 @@ const keyOk = (() => {
   const buf = /^[0-9a-f]{64}$/i.test(v) ? Buffer.from(v, 'hex') : Buffer.from(v, 'base64');
   return buf.length === 32;
 })();
-row(keyOk === null ? 'WARN' : keyOk ? 'PASS' : 'FAIL', 'MARKETING_ENCRYPTION_KEY',
-  keyOk === null ? 'unset — Meta/Google cannot be connected (tokens cannot be stored encrypted)' : keyOk ? 'set, 32 bytes — keep it stable (changing it invalidates stored tokens)' : 'not 32 bytes (64 hex chars or base64)');
+if (keyOk !== null) {
+  row(keyOk ? 'PASS' : 'FAIL', 'MARKETING_ENCRYPTION_KEY', keyOk ? 'set, 32 bytes — keep it stable (a different key cannot read saved secrets)' : 'not 32 bytes (64 hex chars or base64)');
+} else {
+  const { existsSync, statSync } = await import('node:fs');
+  const { homedir } = await import('node:os');
+  const { join } = await import('node:path');
+  const files = env.MARKETING_KEY_FILE?.trim() ? [env.MARKETING_KEY_FILE.trim()] : [join(homedir(), '.ezyloan', 'marketing.key'), join(process.cwd(), '.data', 'marketing.key')];
+  const found = files.find((f) => existsSync(f));
+  if (found) {
+    const mode = statSync(found).mode & 0o777;
+    row(process.platform === 'win32' || (mode & 0o077) === 0 ? 'PASS' : 'FAIL', 'Encryption key file', `${found} (mode ${mode.toString(8)}) — back it up; ${(mode & 0o077) === 0 || process.platform === 'win32' ? 'permissions OK' : 'run: chmod 600 ' + found}`);
+  } else {
+    row('INFO', 'Encryption key', `none yet — created at ${files[0]} when the first secret is saved on a fresh install (refused if saved secrets already exist)`);
+  }
+}
 row(has('META_APP_ID') ? 'PASS' : 'INFO', 'META_APP_ID', has('META_APP_ID') ? 'set' : 'unset — "Connect Meta" disabled (legacy manual Lead Ads token still works)');
 row(has('GOOGLE_OAUTH_CLIENT_ID') && has('GOOGLE_OAUTH_CLIENT_SECRET') ? 'PASS' : 'INFO', 'GOOGLE_OAUTH_CLIENT_ID / _SECRET', has('GOOGLE_OAUTH_CLIENT_ID') && has('GOOGLE_OAUTH_CLIENT_SECRET') ? 'set' : 'unset — Google Ads / Search Console / GA4 cannot be connected');
 row(has('GOOGLE_ADS_DEVELOPER_TOKEN') ? 'PASS' : 'INFO', 'GOOGLE_ADS_DEVELOPER_TOKEN', has('GOOGLE_ADS_DEVELOPER_TOKEN') ? 'set' : 'unset — Ads account lists, conversion actions and spend reporting unavailable (uploads still work)');
 row(env.MARKETING_WORKER_ENABLED === 'false' ? (has('MARKETING_CRON_SECRET') ? 'INFO' : 'WARN') : 'PASS', 'MARKETING_WORKER_ENABLED',
   env.MARKETING_WORKER_ENABLED === 'false' ? (has('MARKETING_CRON_SECRET') ? 'in-process worker off — make sure cron calls POST /api/marketing/worker' : 'worker off and no MARKETING_CRON_SECRET — queued conversions/leads only process when an admin clicks "Process queue now"') : 'in-process worker on');
+if (has('GA4_MEASUREMENT_ID')) row(/^G-[A-Z0-9]{4,20}$/.test(env.GA4_MEASUREMENT_ID.trim()) ? 'PASS' : 'FAIL', 'GA4_MEASUREMENT_ID', 'must look like G-XXXXXXX; read at runtime');
 if (has('NEXT_PUBLIC_GA4_MEASUREMENT_ID')) row(/^G-[A-Z0-9]{4,20}$/.test(env.NEXT_PUBLIC_GA4_MEASUREMENT_ID.trim()) ? 'PASS' : 'FAIL', 'NEXT_PUBLIC_GA4_MEASUREMENT_ID', 'must look like G-XXXXXXX; inlined at build time');
 
 // ── Cloudinary (CLOUD_NAME is also read at BUILD time by next.config.mjs) ──

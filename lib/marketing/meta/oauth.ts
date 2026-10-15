@@ -177,7 +177,7 @@ export async function disconnectMeta(): Promise<void> {
     { provider: 'meta' },
     {
       $set: { status: 'disconnected', scopes: [], missingScopes: [], 'meta.pages': [], 'meta.adAccounts': [] },
-      $unset: { tokenEnc: '', tokenExpiresAt: '', dataAccessExpiresAt: '', 'meta.capiTokenEnc': '' },
+      $unset: { tokenEnc: '', tokenExpiresAt: '', dataAccessExpiresAt: '', 'meta.capiTokenEnc': '', 'meta.capiVerifiedAt': '' },
     }
   );
   await syncLog('meta', 'oauth', 'info', 'Meta disconnected — tokens deleted and permissions revoked');

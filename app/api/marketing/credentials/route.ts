@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { audit } from '@/lib/audit';
-import { CRED_DEFS, credentialStatus, generateSecretValue, saveCredential } from '@/lib/credentials';
+import { CRED_DEFS, credentialStatus, generateSecretValue, saveCredential, validateCredential } from '@/lib/credentials';
 import { syncLog } from '@/lib/marketing/log';
+import { ensureEncryptionKey } from '@/lib/marketing/keyManager';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,19 @@ export async function PUT(req: NextRequest) {
   const values = body.values && typeof body.values === 'object' ? body.values : null;
   if (!values) return NextResponse.json({ message: 'Send { values: { NAME: value } }.' }, { status: 400 });
 
+  // Validate everything first, so a bad value never leaves a half-saved set.
+  for (const [name, value] of Object.entries(values)) {
+    const invalid = validateCredential(name, value);
+    if (invalid) return NextResponse.json({ message: invalid, saved: [] }, { status: 400 });
+  }
+  // Secrets need a usable key that matches existing data — check before saving anything.
+  if (Object.entries(values).some(([n, v]) => CRED_DEFS.find((d) => d.name === n)?.secret && String(v ?? '').trim())) {
+    try {
+      await ensureEncryptionKey();
+    } catch (e) {
+      return NextResponse.json({ message: e instanceof Error ? e.message : 'Encryption key problem.', saved: [] }, { status: 409 });
+    }
+  }
   const changed: string[] = [];
   for (const [name, value] of Object.entries(values)) {
     const err = await saveCredential(name, value, gate.auth.username);

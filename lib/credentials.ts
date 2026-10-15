@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 import { connectDB } from './db';
 import { AppCredential } from './models/AppCredential';
-import { decryptSecret, encryptSecret, encryptionKeySource } from './marketing/secrets';
+import { decryptSecret, encryptSecret } from './marketing/secrets';
+import { ensureEncryptionKey } from './marketing/keyManager';
 
 // Central registry of the API keys the integrations need, with "where to get
 // it" help. Resolution order for every key:
@@ -90,7 +91,7 @@ export const CRED_DEFS: CredDef[] = [
 
 const DEF = new Map(CRED_DEFS.map((d) => [d.name, d]));
 const TTL_MS = 30_000;
-let cache: { at: number; values: Map<string, string> } | null = null;
+let cache: { at: number; values: Map<string, string>; unreadable: Set<string> } | null = null;
 
 function fromEnv(def: CredDef): string | undefined {
   for (const k of [def.name, ...(def.envAliases || [])]) {
@@ -100,9 +101,10 @@ function fromEnv(def: CredDef): string | undefined {
   return undefined;
 }
 
-async function load(): Promise<Map<string, string>> {
-  if (cache && Date.now() - cache.at < TTL_MS) return cache.values;
+async function loadAll(): Promise<{ values: Map<string, string>; unreadable: Set<string> }> {
+  if (cache && Date.now() - cache.at < TTL_MS) return cache;
   const values = new Map<string, string>();
+  const unreadable = new Set<string>();
   try {
     await connectDB();
     const rows = await AppCredential.find({}).lean();
@@ -111,14 +113,18 @@ async function load(): Promise<Map<string, string>> {
         const v = r.enc ? decryptSecret(r.enc) : r.value;
         if (v) values.set(r.name, v);
       } catch {
-        /* undecryptable (key changed) — treated as unset */
+        unreadable.add(r.name); // key missing or different — surfaced in the panel, never silently replaced
       }
     }
   } catch {
     /* DB unavailable — env values still work */
   }
-  cache = { at: Date.now(), values };
-  return values;
+  cache = { at: Date.now(), values, unreadable };
+  return cache;
+}
+
+async function load(): Promise<Map<string, string>> {
+  return (await loadAll()).values;
 }
 
 export function clearCredentialCache(): void {
@@ -132,7 +138,7 @@ export async function getCredential(name: string): Promise<string | undefined> {
 }
 
 export async function credentialStatus() {
-  const values = await load();
+  const { values, unreadable } = await loadAll();
   return CRED_DEFS.map((d) => {
     const env = fromEnv(d);
     const saved = values.get(d.name);
@@ -149,10 +155,21 @@ export async function credentialStatus() {
       generate: !!d.generate,
       set: !!value,
       source: env ? 'env' : saved ? 'panel' : null,
+      unreadable: !env && unreadable.has(d.name),
       // Public IDs are shown; secrets never leave the server (only whether they are set).
       value: d.secret ? undefined : value,
     };
   });
+}
+
+/** Validate without saving. Returns an error string, or null when the value is acceptable ('' = clear). */
+export function validateCredential(name: string, raw: unknown): string | null {
+  const def = DEF.get(name);
+  if (!def) return `Unknown key ${name}`;
+  if (raw !== '' && typeof raw !== 'string') return `${def.label}: expected text.`;
+  const value = String(raw).trim();
+  if (value && !def.pattern.test(value)) return `${def.label}: expected ${def.formatHint}.`;
+  return null;
 }
 
 /** Save (or clear with '') one key. Returns an error string on invalid input. */
@@ -165,7 +182,13 @@ export async function saveCredential(name: string, raw: unknown, user: string): 
     await AppCredential.deleteOne({ name });
   } else {
     if (!def.pattern.test(value)) return `${def.label}: expected ${def.formatHint}.`;
-    if (def.secret && !encryptionKeySource()) return 'No encryption key available on the server.';
+    if (def.secret) {
+      try {
+        await ensureEncryptionKey();
+      } catch (e) {
+        return e instanceof Error ? e.message : 'Encryption key problem.';
+      }
+    }
     await AppCredential.updateOne(
       { name },
       { $set: def.secret ? { enc: encryptSecret(value), updatedBy: user } : { value, updatedBy: user }, $unset: def.secret ? { value: '' } : { enc: '' } },
