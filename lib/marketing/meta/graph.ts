@@ -12,8 +12,8 @@ import { PlatformError } from '../types';
 
 const BASE = `https://graph.facebook.com/${META_GRAPH_VERSION}`;
 
-function proof(token: string): string | undefined {
-  const secret = metaAppConfig().appSecret;
+async function proof(token: string): Promise<string | undefined> {
+  const secret = (await metaAppConfig()).appSecret;
   return secret ? crypto.createHmac('sha256', secret).update(token).digest('hex') : undefined;
 }
 
@@ -24,7 +24,7 @@ async function call(method: 'GET' | 'POST' | 'DELETE', path: string, token: stri
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined) qs.set(k, String(v));
   qs.set('access_token', token);
-  const p = opts.noProof ? undefined : proof(token);
+  const p = opts.noProof ? undefined : await proof(token);
   if (p) qs.set('appsecret_proof', p);
 
   let res: Response;
@@ -80,7 +80,7 @@ export async function debugToken(inputToken: string): Promise<{
   dataAccessExpiresAt: Date | null;
   userId?: string;
 }> {
-  const { appId, appSecret } = metaAppConfig();
+  const { appId, appSecret } = await metaAppConfig();
   if (!appId || !appSecret) throw new PlatformError({ kind: 'config', retryable: false, message: 'META_APP_ID / META_APP_SECRET not configured.' });
   const body = await call('GET', '/debug_token', `${appId}|${appSecret}`, { input_token: inputToken });
   const d = (body.data || {}) as Record<string, unknown>;

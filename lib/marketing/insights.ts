@@ -8,6 +8,7 @@ import { campaignDailyMetrics } from './google/api';
 import { PlatformError } from './types';
 import { recordConnectionError } from './connections';
 import { syncLog } from './log';
+import { getCredential } from '../credentials';
 
 // Platform-reported spend / performance, fetched through the official APIs
 // only when the connection has the needed access (Meta ads_read, Google Ads
@@ -75,7 +76,7 @@ export async function syncGoogleMetrics(days = 30): Promise<{ rows: number; skip
   const conn = await MarketingConnection.findOne({ provider: 'google' }).lean<IMarketingConnection>();
   if (!conn?.refreshTokenEnc || conn.status === 'disconnected') return { rows: 0, skipped: 'Google not connected' };
   if (!conn.google?.customerId) return { rows: 0, skipped: 'No Google Ads customer selected' };
-  if (!process.env.GOOGLE_ADS_DEVELOPER_TOKEN) return { rows: 0, skipped: 'GOOGLE_ADS_DEVELOPER_TOKEN not configured' };
+  if (!(await getCredential('GOOGLE_ADS_DEVELOPER_TOKEN'))) return { rows: 0, skipped: 'Google Ads developer token not configured' };
   const started = Date.now();
   try {
     const data = await campaignDailyMetrics(conn.google.customerId, ymd(new Date(Date.now() - days * 86_400_000)), ymd(new Date()), conn.google.loginCustomerId);

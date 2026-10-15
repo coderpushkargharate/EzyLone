@@ -7,6 +7,7 @@ import ScrollReveal from '@/components/ScrollReveal';
 import Script from 'next/script';
 import MetaPixel from '@/components/MetaPixel';
 import AttributionCapture from '@/components/AttributionCapture';
+import SiteTags from '@/components/SiteTags';
 import { GOOGLE_ADS_ID, GA4_MEASUREMENT_ID } from '@/lib/ads';
 
 // Inter, self-hosted: ONE 48 KB variable WOFF2 (Latin subset) covers every
@@ -276,6 +277,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MetaPixel />
         {/* UTM / click-id capture for CRM attribution (localStorage only; see lib/marketing/clientAttribution.ts). */}
         <AttributionCapture />
+        {/* Pixel / GA4 IDs saved in the admin panel (no rebuild needed). */}
+        <SiteTags />
 
         {/* ✅ GOOGLE ADS - loaded ONCE here for the whole site.
             The inline init runs `afterInteractive` so window.gtag + dataLayer

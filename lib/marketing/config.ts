@@ -1,5 +1,8 @@
-// Server-only environment configuration for the marketing integrations.
-// None of these are NEXT_PUBLIC_*: they never reach the browser bundle.
+import { getCredential } from '../credentials';
+
+// Server-only configuration for the marketing integrations. API keys come from
+// lib/credentials.ts (server env first, then Admin → Marketing & Ads → Settings
+// → API keys). None of these reach the browser bundle.
 
 function env(name: string): string | undefined {
   const v = process.env[name];
@@ -14,12 +17,12 @@ export function publicBaseUrl(): string {
   return (env('MARKETING_PUBLIC_BASE_URL') || env('NEXT_PUBLIC_SITE_URL') || 'http://localhost:3000').replace(/\/$/, '');
 }
 
-export function metaAppConfig() {
+export async function metaAppConfig() {
   return {
-    appId: env('META_APP_ID'),
-    // FACEBOOK_APP_SECRET is the variable the existing Lead Ads webhook already uses.
-    appSecret: env('META_APP_SECRET') || env('FACEBOOK_APP_SECRET'),
-    configId: env('META_LOGIN_CONFIG_ID'), // optional: Facebook Login for Business configuration
+    appId: await getCredential('META_APP_ID'),
+    // Also reads FACEBOOK_APP_SECRET (the variable the existing Lead Ads webhook already uses).
+    appSecret: await getCredential('META_APP_SECRET'),
+    configId: await getCredential('META_LOGIN_CONFIG_ID'), // optional: Facebook Login for Business configuration
     scopes: (env('META_OAUTH_SCOPES') ||
       'pages_show_list,pages_read_engagement,pages_manage_metadata,pages_manage_ads,leads_retrieval,ads_read,business_management')
       .split(',')
@@ -41,11 +44,11 @@ export const GOOGLE_SCOPES = {
   analytics: 'https://www.googleapis.com/auth/analytics.readonly',
 } as const;
 
-export function googleAppConfig() {
+export async function googleAppConfig() {
   return {
-    clientId: env('GOOGLE_OAUTH_CLIENT_ID'),
-    clientSecret: env('GOOGLE_OAUTH_CLIENT_SECRET'),
-    developerToken: env('GOOGLE_ADS_DEVELOPER_TOKEN'),
+    clientId: await getCredential('GOOGLE_OAUTH_CLIENT_ID'),
+    clientSecret: await getCredential('GOOGLE_OAUTH_CLIENT_SECRET'),
+    developerToken: await getCredential('GOOGLE_ADS_DEVELOPER_TOKEN'),
     // One Google consent covers every Google feature in the panel; each feature
     // reports its own missing scope. Override with GOOGLE_OAUTH_SCOPES (space-separated).
     scopes: (env('GOOGLE_OAUTH_SCOPES') || [GOOGLE_SCOPES.ads, GOOGLE_SCOPES.dataManager, GOOGLE_SCOPES.searchConsole, GOOGLE_SCOPES.analytics].join(' '))

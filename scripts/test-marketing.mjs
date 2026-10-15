@@ -68,6 +68,7 @@ const settingsMod = await import('../lib/marketing/settings.ts');
 const dashMath = await import('../lib/marketing/dashboard.ts');
 const shape = await import('../lib/marketing/google/reportShape.ts');
 const analytics = await import('../lib/analytics.ts');
+const setupMod = await import('../lib/marketing/setup.ts');
 
 section('Normalization + hashing (Meta / Google specs)');
 check('email trimmed+lowercased then hashed', norm.metaHash.email('  John.Doe@Example.COM ') === sha('john.doe@example.com'));
@@ -204,6 +205,10 @@ check('isYmd strict', shape.isYmd('2026-10-01') && !shape.isYmd('2026-10-1') && 
 check('GA4 rows mapped by header names', JSON.stringify(shape.ga4Rows({ dimensionHeaders: [{ name: 'date' }], metricHeaders: [{ name: 'sessions' }], rows: [{ dimensionValues: [{ value: '20261001' }], metricValues: [{ value: '42' }] }] })) === '[{"date":"20261001","sessions":42}]');
 check('URL must belong to property (domain + prefix)', shape.urlBelongsToSite('https://www.ezyloan.co.in/x', 'sc-domain:ezyloan.co.in') && !shape.urlBelongsToSite('https://evil.com/?ezyloan.co.in', 'sc-domain:ezyloan.co.in') && shape.urlBelongsToSite('https://www.ezyloan.co.in/a', 'https://www.ezyloan.co.in/') && !shape.urlBelongsToSite('https://ezyloan.co.in.evil.com/', 'https://ezyloan.co.in/'));
 const sp = analytics.sanitizeParams({ form_id: 'hero', email: 'a@b.com', user_name: 'Rahul', loan_type: 'Car', note: 'call 98765 43210', other: 'x@y.co', ok: 3 });
+const steps0 = setupMod.setupChecklist({ keys: {}, encryptionKey: true, meta: { status: 'disconnected', pages: [] }, google: { status: 'disconnected' }, mappings: [], testMode: { meta: true, google: true } });
+check('setup checklist: fresh install → only encryption step done', steps0.filter((s) => s.done).map((s) => s.id).join() === 'enc');
+const steps1 = setupMod.setupChecklist({ keys: { META_APP_ID: true, META_APP_SECRET: true, FACEBOOK_VERIFY_TOKEN: true }, encryptionKey: true, meta: { status: 'connected', pages: [{ subscribed: true }], datasetId: '1', capiTokenSet: true, missingScopes: [] }, google: { status: 'disconnected' }, mappings: [{ meta: true, google: false }], testMode: { meta: false, google: true } });
+check('setup checklist: Meta fully set up + live', ['meta-keys', 'meta-connect', 'meta-page', 'meta-capi', 'map', 'live'].every((id) => steps1.find((s) => s.id === id).done));
 check('GA4 params: PII keys and email/phone-like values dropped', JSON.stringify(sp) === '{"form_id":"hero","loan_type":"Car","ok":3}');
 
 // ───────────────────────────── Part 2: integration ─────────────────────────────
@@ -679,10 +684,47 @@ async function integration() {
   check('overview: unconfigured block gives a reason instead of numbers', ov2.search.ok === false && /property/.test(ov2.search.reason));
   check('GA4 report: anonymous → 401', (await call(gaRoute, 'GET', '/api/marketing/analytics?from=2026-09-01&to=2026-09-10')).status === 401);
 
+  section('API keys entered in the admin panel');
+  const credRoute = await import('../app/api/marketing/credentials/route.ts');
+  const tagsRoute = await import('../app/api/site-tags/route.ts');
+  const leadHook = await import('../app/api/webhook/lead/route.ts');
+  const { AppCredential } = await import('../lib/models/AppCredential.ts');
+  const { getCredential, clearCredentialCache } = await import('../lib/credentials.ts');
+  check('keys GET: marketing employee → 403', (await call(credRoute, 'GET', '/api/marketing/credentials', viewC)).status === 403);
+  check('keys PUT: marketing employee → 403', (await call(credRoute, 'PUT', '/api/marketing/credentials', viewC, { values: { META_PIXEL_ID: '1234567' } })).status === 403);
+  check('keys PUT: invalid format → 400', (await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { GA4_MEASUREMENT_ID: 'UA-123' } })).status === 400);
+  check('keys PUT: unknown key → 400', (await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { DATABASE_URL: 'x' } })).status === 400);
+  const putRes = await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { META_PIXEL_ID: '123456789012', GA4_MEASUREMENT_ID: 'G-ABC1234567', WEBHOOK_LEAD_SECRET: 'lead-secret-0123456789abcdef' } });
+  const putBody = await putRes.json();
+  check('keys PUT: admin saves valid keys', putRes.status === 200 && putBody.saved.length === 3);
+  check('response never contains a secret value', !JSON.stringify(putBody).includes('lead-secret-0123456789abcdef') && putBody.credentials.find((c) => c.name === 'WEBHOOK_LEAD_SECRET').set === true);
+  const stored = await AppCredential.findOne({ name: 'WEBHOOK_LEAD_SECRET' }).lean();
+  check('secret stored encrypted, public ID stored plain', stored.enc?.startsWith('enc:v1:') && !stored.value && (await AppCredential.findOne({ name: 'META_PIXEL_ID' }).lean()).value === '123456789012');
+  clearCredentialCache();
+  check('saved key resolves for the integrations', (await getCredential('WEBHOOK_LEAD_SECRET')) === 'lead-secret-0123456789abcdef');
+  await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { META_APP_ID: '999999999' } });
+  check('server env overrides the panel value', (await getCredential('META_APP_ID')) === process.env.META_APP_ID && (await (await call(credRoute, 'GET', '/api/marketing/credentials', adminC)).json()).credentials.find((c) => c.name === 'META_APP_ID').source === 'env');
+  const gen = await (await call(credRoute, 'POST', '/api/marketing/credentials', adminC, { action: 'generate', name: 'FACEBOOK_VERIFY_TOKEN' })).json();
+  check('generate verify token → returned once, saved encrypted', typeof gen.value === 'string' && gen.value.length >= 20 && (await AppCredential.findOne({ name: 'FACEBOOK_VERIFY_TOKEN' }).lean()).enc?.startsWith('enc:v1:'));
+  check('cannot generate arbitrary keys', (await call(credRoute, 'POST', '/api/marketing/credentials', adminC, { action: 'generate', name: 'META_APP_SECRET' })).status === 400);
+  const hs = await route.GET(new NextRequest(`https://www.ezyloan.co.in/api/webhook/facebook?hub.mode=subscribe&hub.verify_token=${encodeURIComponent(gen.value)}&hub.challenge=CH123`));
+  check('Meta webhook verification uses the panel verify token', hs.status === 200 && (await hs.text()) === 'CH123');
+  check('wrong verify token → 403', (await route.GET(new NextRequest('https://www.ezyloan.co.in/api/webhook/facebook?hub.mode=subscribe&hub.verify_token=nope&hub.challenge=x'))).status === 403);
+  const leadPost = (secret) => leadHook.POST(new NextRequest('https://www.ezyloan.co.in/api/webhook/lead', { method: 'POST', headers: { 'content-type': 'application/json', ...(secret ? { 'x-webhook-secret': secret } : {}) }, body: JSON.stringify({ name: 'Zap Lead', email: 'zap@example.com', source: 'Zapier' }) }));
+  check('lead webhook: wrong secret → 401', (await leadPost('wrong')).status === 401);
+  check('lead webhook: panel secret → 200', (await leadPost('lead-secret-0123456789abcdef')).status === 200);
+  const tags = await (await tagsRoute.GET()).json();
+  check('public site-tags returns only the validated public IDs', tags.metaPixelId === '123456789012' && tags.ga4MeasurementId === 'G-ABC1234567' && Object.keys(tags).length === 2);
+  const st = await (await call(statusRoute, 'GET', '/api/marketing/status', adminC)).json();
+  check('status: setup checklist + URLs to configure', Array.isArray(st.setup) && st.setup.length >= 10 && st.urls.metaWebhook.endsWith('/api/webhook/facebook') && st.urls.leadWebhook.endsWith('/api/webhook/lead'));
+  check('status: no secret values exposed', !JSON.stringify(st).includes('lead-secret-0123456789abcdef') && !JSON.stringify(st).includes(gen.value));
+  const clr = await call(credRoute, 'PUT', '/api/marketing/credentials', adminC, { values: { GA4_MEASUREMENT_ID: '' } });
+  check('clearing a key removes it', clr.status === 200 && !(await AppCredential.findOne({ name: 'GA4_MEASUREMENT_ID' }).lean()));
+
   const actions = await AuditLog.distinct('action');
-  check('audit log recorded settings change, exports, retries, connect attempts, property selection', ['config_change', 'export', 'conversion_retry_bulk', 'sitemap_submit'].every((a) => actions.includes(a)), JSON.stringify(actions));
+  check('audit log recorded settings change, exports, retries, connect attempts, property selection', ['config_change', 'export', 'conversion_retry_bulk', 'sitemap_submit', 'credentials_change'].every((a) => actions.includes(a)), JSON.stringify(actions));
   const auditText = JSON.stringify(await AuditLog.find().lean());
-  check('audit log holds no tokens/secrets', !/EAA|ya29|enc:v1:|capitoken/.test(auditText));
+  check('audit log holds no tokens/secrets', !/EAA|ya29|enc:v1:|capitoken|lead-secret-0123456789abcdef/.test(auditText) && !auditText.includes(gen.value));
   check('audit log API: marketing employee → 403', (await call(auditRoute, 'GET', '/api/admin/audit-log', viewC)).status === 403);
   check('audit log API: admin → 200', (await call(auditRoute, 'GET', '/api/admin/audit-log', adminC)).status === 200);
 

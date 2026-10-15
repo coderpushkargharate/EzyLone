@@ -4,6 +4,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { isBlocked } from '@/lib/blocklist';
 import { sendSecurityAlert } from '@/lib/email';
 import { envFlag, safeEqual } from '@/lib/webhookAuth';
+import { getCredential } from '@/lib/credentials';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,7 +24,8 @@ export const dynamic = 'force-dynamic';
 // public, rate-limited endpoint — anyone can then create leads.
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.WEBHOOK_LEAD_SECRET;
+  // Server env, or the secret saved in Admin → Marketing & Ads → Settings → API keys.
+  const secret = await getCredential('WEBHOOK_LEAD_SECRET');
   if (!secret && !envFlag('WEBHOOK_LEAD_ALLOW_OPEN')) {
     console.error('Rejected /api/webhook/lead — WEBHOOK_LEAD_SECRET is not set (endpoint is disabled until it is).');
     sendSecurityAlert('lead-webhook-unconfigured', 'Lead webhook is rejecting requests', {

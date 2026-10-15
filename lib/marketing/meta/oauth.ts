@@ -15,8 +15,8 @@ import { syncLog } from '../log';
 // a long-lived user token do not expire, but are invalidated if the user's
 // access is revoked — the health check catches that).
 
-export function metaAuthorizeUrl(state: string): string {
-  const cfg = metaAppConfig();
+export async function metaAuthorizeUrl(state: string): Promise<string> {
+  const cfg = await metaAppConfig();
   if (!cfg.appId) throw new PlatformError({ kind: 'config', retryable: false, message: 'META_APP_ID is not configured.' });
   const p = new URLSearchParams({
     client_id: cfg.appId,
@@ -37,7 +37,7 @@ async function tokenRequest(params: Record<string, string>): Promise<{ access_to
 }
 
 export async function exchangeMetaCode(code: string): Promise<string> {
-  const cfg = metaAppConfig();
+  const cfg = await metaAppConfig();
   if (!cfg.appId || !cfg.appSecret) throw new PlatformError({ kind: 'config', retryable: false, message: 'META_APP_ID / META_APP_SECRET not configured.' });
   const short = await tokenRequest({ client_id: cfg.appId, client_secret: cfg.appSecret, redirect_uri: cfg.redirectUri, code });
   const long = await tokenRequest({

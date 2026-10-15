@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   if (!encryptionConfigured()) return backToAdmin({ error: 'encryption_key_missing' });
   try {
     const { state } = await createOAuthState('meta', gate.auth);
-    return NextResponse.redirect(metaAuthorizeUrl(state), { status: 303 });
+    return NextResponse.redirect(await metaAuthorizeUrl(state), { status: 303 });
   } catch {
     return backToAdmin({ error: 'meta_app_not_configured' });
   }

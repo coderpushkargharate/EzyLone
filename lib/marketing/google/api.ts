@@ -33,8 +33,8 @@ async function send(url: string, init: RequestInit, extraHeaders: Record<string,
   return body as Record<string, unknown>;
 }
 
-function adsHeaders(loginCustomerId?: string | null): Record<string, string> {
-  const dev = googleAppConfig().developerToken;
+async function adsHeaders(loginCustomerId?: string | null): Promise<Record<string, string>> {
+  const dev = (await googleAppConfig()).developerToken;
   if (!dev) throw new PlatformError({ kind: 'config', retryable: false, message: 'GOOGLE_ADS_DEVELOPER_TOKEN is not configured.' });
   const h: Record<string, string> = { 'developer-token': dev };
   const login = loginCustomerId ? cleanCustomerId(loginCustomerId) : null;
@@ -43,7 +43,7 @@ function adsHeaders(loginCustomerId?: string | null): Record<string, string> {
 }
 
 export async function listAccessibleCustomers(): Promise<string[]> {
-  const body = await send(`${ADS_BASE}/customers:listAccessibleCustomers`, { method: 'GET' }, adsHeaders());
+  const body = await send(`${ADS_BASE}/customers:listAccessibleCustomers`, { method: 'GET' }, await adsHeaders());
   return ((body.resourceNames as string[]) || []).map((r) => r.replace('customers/', ''));
 }
 
@@ -56,7 +56,7 @@ export async function gaqlSearch(customerId: string, query: string, loginCustome
     const body = await send(`${ADS_BASE}/customers/${cid}/googleAds:search`, {
       method: 'POST',
       body: JSON.stringify({ query, ...(pageToken ? { pageToken } : {}) }),
-    }, adsHeaders(loginCustomerId));
+    }, await adsHeaders(loginCustomerId));
     rows.push(...((body.results as Record<string, unknown>[]) || []));
     pageToken = body.nextPageToken as string | undefined;
     if (!pageToken) break;
@@ -120,5 +120,5 @@ export async function retrieveRequestStatus(requestId: string): Promise<Record<s
 export async function uploadConversionAdjustments(customerId: string, body: Record<string, unknown>, loginCustomerId?: string | null) {
   const cid = cleanCustomerId(customerId);
   if (!cid) throw new PlatformError({ kind: 'invalid', retryable: false, message: 'Invalid customer ID.' });
-  return send(`${ADS_BASE}/customers/${cid}:uploadConversionAdjustments`, { method: 'POST', body: JSON.stringify(body) }, adsHeaders(loginCustomerId));
+  return send(`${ADS_BASE}/customers/${cid}:uploadConversionAdjustments`, { method: 'POST', body: JSON.stringify(body) }, await adsHeaders(loginCustomerId));
 }

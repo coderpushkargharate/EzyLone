@@ -102,7 +102,23 @@ Mongoose creates their indexes at startup:
 **Rollback of data:** none needed for the old code, which ignores these collections. To remove the feature
 completely, drop the collections above. That is optional and destructive, so do it only with explicit approval.
 
-## 5. Environment variables (placeholders only; see `.env.example`)
+## 5. API keys: admin panel or environment
+
+All API keys can be entered in **Admin → Marketing & Ads → Settings → API keys** (admin only). Public IDs are
+stored as-is; secrets are AES-256-GCM encrypted and never returned by any API. A server environment variable with
+the same name always overrides the panel value. Saved keys take effect within 30 s with no restart. The Pixel and
+GA4 IDs reach the website through `GET /api/site-tags`, so no rebuild is needed. The Settings tab also shows a live
+setup checklist and every webhook/redirect URL to paste into Meta, Google and form tools. Saves are audited
+(`credentials_change`, names only).
+
+**Encryption key:** `MARKETING_ENCRYPTION_KEY` if set. Otherwise the server creates `.data/marketing.key` (mode 0600,
+gitignored; override the path with `MARKETING_KEY_FILE`) on first use. **Back that file up**, and keep it when
+redeploying into a new folder. If it is lost, saved keys and OAuth tokens must be re-entered and the platforms
+reconnected.
+
+Hand-over guide for the account owner (where to get each key, with links): `https://claude.ai/artifact/NkcayS4JPZYyJFbnBtwGwc`.
+
+### Environment variables (optional when using the panel; placeholders only, see `.env.example`)
 ```
 MARKETING_ENCRYPTION_KEY=<32 random bytes, base64>   # REQUIRED before connecting anything; keep stable
 MARKETING_PUBLIC_BASE_URL=https://www.ezyloan.co.in   # OAuth redirect origin (defaults to NEXT_PUBLIC_SITE_URL)

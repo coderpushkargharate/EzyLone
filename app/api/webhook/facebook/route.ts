@@ -6,6 +6,7 @@ import { envFlag, safeEqual, verifyMetaSignature } from '@/lib/webhookAuth';
 import { recordLeadgen, processReceiptNow } from '@/lib/marketing/meta/leads';
 import type { LeadgenChange } from '@/lib/marketing/meta/leads';
 import { metaAppConfig } from '@/lib/marketing/config';
+import { getCredential } from '@/lib/credentials';
 import { mlog, syncLog } from '@/lib/marketing/log';
 
 export const runtime = 'nodejs';
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
   const challenge = params.get('hub.challenge');
 
   const cfg = await getFacebookConfig();
-  const expected = cfg?.verifyToken || process.env.FACEBOOK_VERIFY_TOKEN;
+  const expected = cfg?.verifyToken || (await getCredential('FACEBOOK_VERIFY_TOKEN'));
 
   if (mode === 'subscribe' && expected && safeEqual(token, expected)) {
     return new NextResponse(challenge || '', {
@@ -62,8 +63,8 @@ export async function GET(req: NextRequest) {
 //    are accepted but logged, and a lead is only saved when its leadgen_id really
 //    resolves through the Graph API with your Page token (forged ids don't).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function appSecretFrom(cfg: Record<string, any> | null): string | undefined {
-  return cfg?.appSecret || metaAppConfig().appSecret || undefined;
+async function appSecretFrom(cfg: Record<string, any> | null): Promise<string | undefined> {
+  return cfg?.appSecret || (await metaAppConfig()).appSecret || undefined;
 }
 
 export async function POST(req: NextRequest) {
@@ -71,7 +72,7 @@ export async function POST(req: NextRequest) {
   if (raw.length > MAX_BODY_BYTES) return new NextResponse('Payload too large', { status: 413 });
   const cfg = await getFacebookConfig();
 
-  const sig = verifyMetaSignature(raw, req.headers.get('x-hub-signature-256'), appSecretFrom(cfg));
+  const sig = verifyMetaSignature(raw, req.headers.get('x-hub-signature-256'), await appSecretFrom(cfg));
   if (sig === 'invalid') {
     console.warn('Rejected Facebook webhook — invalid signature');
     return new NextResponse('Forbidden', { status: 403 });

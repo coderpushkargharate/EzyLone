@@ -18,3 +18,6 @@ EzyLoanCrm/
 .tmp-test/
 .tmp-unit/
 .tmp-unit-webhook/
+
+# Server-generated encryption key for saved API keys/tokens (never commit)
+/.data/

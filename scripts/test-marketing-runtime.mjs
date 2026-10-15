@@ -59,7 +59,9 @@ const env = {
   JWT_SECRET: crypto.randomBytes(48).toString('base64url'),
   ADMIN_USERNAME: ADMIN.username,
   ADMIN_PASSWORD: ADMIN.password,
-  MARKETING_ENCRYPTION_KEY: crypto.randomBytes(32).toString('base64'),
+  // No env key: exercises the auto-created key file (as on a server without MARKETING_ENCRYPTION_KEY).
+  MARKETING_ENCRYPTION_KEY: '',
+  MARKETING_KEY_FILE: path.join(tmp, 'keys', 'marketing.key'),
   MARKETING_PUBLIC_BASE_URL: `http://localhost:${port}`,
   META_APP_ID: '1234567890',
   META_APP_SECRET: 'c'.repeat(32),
@@ -124,6 +126,14 @@ try {
   check('anonymous status → 401', (await req('/api/marketing/status')).status === 401);
   const admin = await req('/ezyadmin', { cookie });
   check('/ezyadmin renders for admin', admin.status === 200 && admin.text.includes('<html'));
+
+  console.log('\nAPI keys saved in the panel take effect without a restart');
+  const keyPut = await req('/api/marketing/credentials', { method: 'PUT', cookie, headers: { origin: BASE }, json: { values: { META_PIXEL_ID: '123456789012', GA4_MEASUREMENT_ID: 'G-RUNTIME123' } } });
+  check('admin saves Pixel + GA4 IDs', keyPut.status === 200, JSON.stringify(keyPut.body).slice(0, 200));
+  const tags = (await req('/api/site-tags')).body;
+  check('public /api/site-tags serves them immediately', tags.metaPixelId === '123456789012' && tags.ga4MeasurementId === 'G-RUNTIME123');
+  const st2 = (await req('/api/marketing/status', { cookie })).body;
+  check('encryption key file auto-created on the server', st2.environment.encryptionKeySource === 'file' && fs.existsSync(path.join(tmp, 'keys', 'marketing.key')));
 
   console.log('\nSettings → worker processes queue in the background');
   const put = await req('/api/marketing/settings', {

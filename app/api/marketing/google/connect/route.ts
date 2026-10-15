@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   if (!encryptionConfigured()) return backToAdmin({ error: 'encryption_key_missing' });
   try {
     const { state, codeChallenge } = await createOAuthState('google', gate.auth, true);
-    return NextResponse.redirect(googleAuthorizeUrl(state, codeChallenge!), { status: 303 });
+    return NextResponse.redirect(await googleAuthorizeUrl(state, codeChallenge!), { status: 303 });
   } catch {
     return backToAdmin({ error: 'google_app_not_configured' });
   }

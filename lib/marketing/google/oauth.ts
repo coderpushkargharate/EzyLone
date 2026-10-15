@@ -13,8 +13,8 @@ import { syncLog } from '../log';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
-export function googleAuthorizeUrl(state: string, codeChallenge: string): string {
-  const cfg = googleAppConfig();
+export async function googleAuthorizeUrl(state: string, codeChallenge: string): Promise<string> {
+  const cfg = await googleAppConfig();
   if (!cfg.clientId) throw new PlatformError({ kind: 'config', retryable: false, message: 'GOOGLE_OAUTH_CLIENT_ID is not configured.' });
   const p = new URLSearchParams({
     client_id: cfg.clientId,
@@ -47,7 +47,7 @@ async function tokenCall(params: Record<string, string>) {
 }
 
 export async function exchangeGoogleCode(code: string, codeVerifier: string, connectedBy: string): Promise<void> {
-  const cfg = googleAppConfig();
+  const cfg = await googleAppConfig();
   if (!cfg.clientId || !cfg.clientSecret) throw new PlatformError({ kind: 'config', retryable: false, message: 'Google OAuth client is not configured.' });
   const t = await tokenCall({
     code,
@@ -94,7 +94,7 @@ export async function getGoogleAccessToken(force = false): Promise<string> {
   if (!force && conn.tokenEnc && conn.tokenExpiresAt && new Date(conn.tokenExpiresAt).getTime() > Date.now()) {
     return decryptSecret(conn.tokenEnc)!;
   }
-  const cfg = googleAppConfig();
+  const cfg = await googleAppConfig();
   if (!cfg.clientId || !cfg.clientSecret) throw new PlatformError({ kind: 'config', retryable: false, message: 'Google OAuth client is not configured.' });
   try {
     const t = await tokenCall({

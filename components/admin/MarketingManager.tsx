@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SearchConsoleView, AnalyticsView } from './SearchAnalyticsViews';
+import CredentialsPanel from './CredentialsPanel';
 import {
   Megaphone, RefreshCw, CheckCircle2, AlertTriangle, XCircle, Link2, Unlink, Download, Play,
   Facebook, Search, Settings2, ListChecks, History, BarChart3, Copy, Check, Info,
@@ -228,7 +229,12 @@ export default function MarketingManager() {
           {view === 'integrations' && <IntegrationsView status={status} isAdmin={isAdmin} busy={busy} run={run} />}
           {view === 'events' && <EventsView isAdmin={isAdmin} />}
           {view === 'history' && <HistoryView isAdmin={isAdmin} />}
-          {view === 'settings' && <SettingsView status={status} isAdmin={isAdmin} busy={busy} run={run} />}
+          {view === 'settings' && (
+            <div className="space-y-5">
+              <CredentialsPanel status={status} isAdmin={isAdmin} onSaved={loadStatus} />
+              <SettingsView status={status} isAdmin={isAdmin} busy={busy} run={run} />
+            </div>
+          )}
         </>
       )}
     </div>
@@ -389,18 +395,18 @@ function IntegrationsView({ status, isAdmin, busy, run }: { status: any; isAdmin
   const lastOf = (provider: string, kind: string) => status.lastSync.find((l: any) => l.provider === provider && l.kind === kind);
 
   const missingEnv = [
-    !env.encryptionKeySet && 'MARKETING_ENCRYPTION_KEY',
-    !env.metaAppIdSet && 'META_APP_ID',
-    !env.metaAppSecretSet && 'META_APP_SECRET (or FACEBOOK_APP_SECRET)',
-    !env.googleClientSet && 'GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET',
-    !env.googleDeveloperTokenSet && 'GOOGLE_ADS_DEVELOPER_TOKEN (reporting & account lists only)',
+    !env.encryptionKeySet && 'Encryption key (MARKETING_ENCRYPTION_KEY or a writable app folder)',
+    !env.metaAppIdSet && 'Meta App ID',
+    !env.metaAppSecretSet && 'Meta App Secret',
+    !env.googleClientSet && 'Google OAuth Client ID / Secret',
+    !env.googleDeveloperTokenSet && 'Google Ads developer token (reporting & account lists only)',
   ].filter(Boolean);
 
   return (
     <div className="space-y-5">
       {missingEnv.length > 0 && (
         <div className="rounded-xl bg-amber-50 text-amber-800 text-sm px-4 py-3">
-          <p className="font-medium mb-1">Server configuration missing</p>
+          <p className="font-medium mb-1">API keys missing: add them in the Settings tab → API keys</p>
           <ul className="list-disc ml-5 text-xs space-y-0.5">{missingEnv.map((m) => <li key={String(m)}>{m}</li>)}</ul>
         </div>
       )}
