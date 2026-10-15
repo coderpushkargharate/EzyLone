@@ -232,7 +232,7 @@ export async function analyticsReport(from: string, to: string, opts: { fresh?: 
       const prev = previousPeriod(from, to);
       const dateRanges = [{ startDate: from, endDate: to }];
       const totalsMetrics = ['sessions', 'totalUsers', 'newUsers', 'screenPageViews', 'engagementRate', 'keyEvents'].map((name) => ({ name }));
-      const [totals, prevTotals, trend, channels, landing, devices, events] = await Promise.all([
+      const [totals, prevTotals, trend, channels, landing, devices, events, cities] = await Promise.all([
         runReport(pid, { dateRanges, metrics: totalsMetrics }),
         runReport(pid, { dateRanges: [{ startDate: prev.from, endDate: prev.to }], metrics: totalsMetrics }),
         runReport(pid, { dateRanges, dimensions: [{ name: 'date' }], metrics: [{ name: 'sessions' }, { name: 'totalUsers' }, { name: 'keyEvents' }], orderBys: [{ dimension: { dimensionName: 'date' } }], limit: '400' }),
@@ -245,6 +245,8 @@ export async function analyticsReport(from: string, to: string, opts: { fresh?: 
           metrics: [{ name: 'eventCount' }, { name: 'totalUsers' }],
           dimensionFilter: { filter: { fieldName: 'eventName', inListFilter: { values: GA4_FUNNEL_EVENTS } } },
         }),
+        // City comes from GA4's IP-based geolocation (Search Console has no city data).
+        runReport(pid, { dateRanges, dimensions: [{ name: 'city' }, { name: 'region' }], metrics: [{ name: 'sessions' }, { name: 'totalUsers' }, { name: 'keyEvents' }], orderBys: [{ metric: { metricName: 'sessions' }, desc: true }], limit: '50' }),
       ]);
       const t = totals[0] || {};
       const p = prevTotals[0] || {};
@@ -260,11 +262,13 @@ export async function analyticsReport(from: string, to: string, opts: { fresh?: 
         channels,
         landingPages: landing,
         devices,
+        cities,
         funnelEvents: GA4_FUNNEL_EVENTS.map((e) => events.find((r) => r.eventName === e) || { eventName: e, eventCount: 0, totalUsers: 0 }),
         notes: [
           'GA4 figures are sampled/modelled by Google where applicable and use the property’s time zone; recent days can still change.',
           'GA4 counts sessions and events, not CRM leads — compare with the CRM-confirmed numbers on the Dashboard tab.',
           '“Key events” are the events marked as key events in your GA4 property settings.',
+          'City is GA4’s estimate from the visitor’s IP address; “(not set)” means GA4 could not determine it.',
         ],
       };
     })

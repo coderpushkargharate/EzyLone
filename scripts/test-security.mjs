@@ -38,7 +38,7 @@ const PROTECTED_GET = [
   '/api/marketing/status', '/api/marketing/dashboard', '/api/marketing/events', `/api/marketing/events/${ZERO_ID}`,
   '/api/marketing/sync-logs', '/api/marketing/export', '/api/marketing/meta/connect', '/api/marketing/meta/callback',
   '/api/marketing/google/connect', '/api/marketing/google/callback',
-  '/api/marketing/search?from=2026-01-01&to=2026-01-31', '/api/marketing/analytics?from=2026-01-01&to=2026-01-31', '/api/admin/audit-log',
+  '/api/marketing/overview', '/api/marketing/search?from=2026-01-01&to=2026-01-31', '/api/marketing/analytics?from=2026-01-01&to=2026-01-31', '/api/admin/audit-log',
 ];
 
 const PROTECTED_WRITES = [

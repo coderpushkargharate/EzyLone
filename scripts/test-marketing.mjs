@@ -669,6 +669,14 @@ async function integration() {
   const ga = await (await call(gaRoute, 'GET', '/api/marketing/analytics?from=2026-09-01&to=2026-09-10', viewC)).json();
   check('GA4 report: totals + comparison', ga.totals.sessions === 200 && ga.previousTotals.sessions === 100 && ga.change.sessions === 100);
   check('GA4 funnel events include zero rows for missing events', ga.funnelEvents.find((e) => e.eventName === 'generate_lead').eventCount === 7 && ga.funnelEvents.find((e) => e.eventName === 'form_start').eventCount === 0);
+  check('GA4 report includes cities', Array.isArray(ga.cities) && ga.cities.length === 1);
+  const ovRoute = await import('../app/api/marketing/overview/route.ts');
+  const ov = await (await call(ovRoute, 'GET', '/api/marketing/overview', viewC)).json();
+  check('overview: Search Console clicks + GA4 + conversion counts', ov.search.ok && typeof ov.search.data.totals.clicks === 'number' && ov.analytics.ok && ov.conversions.meta.sent >= 1);
+  check('overview: employee without marketing tab → 403', (await call(ovRoute, 'GET', '/api/marketing/overview', empC)).status === 403);
+  await MarketingConnection.updateOne({ provider: 'google' }, { $set: { 'google.searchConsoleSite': null } });
+  const ov2 = await (await call(ovRoute, 'GET', '/api/marketing/overview', viewC)).json();
+  check('overview: unconfigured block gives a reason instead of numbers', ov2.search.ok === false && /property/.test(ov2.search.reason));
   check('GA4 report: anonymous → 401', (await call(gaRoute, 'GET', '/api/marketing/analytics?from=2026-09-01&to=2026-09-10')).status === 401);
 
   const actions = await AuditLog.distinct('action');

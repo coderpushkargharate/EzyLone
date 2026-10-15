@@ -247,6 +247,7 @@ export function AnalyticsView({ status, isAdmin, reload }: { status: any; isAdmi
             <Box title="Website funnel events"><Rows rows={data.funnelEvents} cols={[['eventName', 'Event'], ['eventCount', 'Count'], ['totalUsers', 'Users']]} /><p className="text-[11px] text-gray-400 mt-2">Events defined in docs/GA4_MEASUREMENT_PLAN.md. Zero can mean the event isn&apos;t firing yet or GA4 isn&apos;t configured on the site.</p></Box>
             <Box title="Top landing pages"><Rows rows={data.landingPages} cols={[['landingPage', 'Landing page'], ['sessions', 'Sessions'], ['engagementRate', 'Engaged', pct], ['keyEvents', 'Key events']]} /></Box>
             <Box title="Devices"><Rows rows={data.devices} cols={[['deviceCategory', 'Device'], ['sessions', 'Sessions'], ['totalUsers', 'Users']]} /></Box>
+            <Box title="Cities (website visitors, GA4)"><Rows rows={data.cities || []} cols={[['city', 'City'], ['region', 'State'], ['sessions', 'Sessions'], ['totalUsers', 'Users'], ['keyEvents', 'Key events']]} /></Box>
           </div>
           <ul className="space-y-1">{data.notes.map((x: string) => <li key={x} className="flex gap-1.5 text-[11px] text-gray-500"><LineChart size={12} className="mt-0.5 shrink-0" />{x}</li>)}</ul>
         </>

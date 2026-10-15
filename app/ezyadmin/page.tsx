@@ -63,6 +63,7 @@ import dynamic from 'next/dynamic';
 // Loaded on demand: the Marketing tab is large and most sessions never open it.
 const MarketingManager = dynamic(() => import('@/components/admin/MarketingManager'), { ssr: false });
 const AuditLogManager = dynamic(() => import('@/components/admin/AuditLogManager'), { ssr: false });
+const MarketingSnapshot = dynamic(() => import('@/components/admin/MarketingSnapshot'), { ssr: false });
 import EmployeesManager from '@/components/admin/EmployeesManager';
 import BlockedIpsManager from '@/components/admin/BlockedIpsManager';
 import AccountManager from '@/components/admin/AccountManager';
@@ -1149,6 +1150,9 @@ function DashboardOverview({ stats, analytics, setCurrentPage }: { stats: any; a
           </div>
         ))}
       </div>
+
+      {/* Search Console clicks, GA4 cities, conversions sent (Marketing permission only) */}
+      <MarketingSnapshot onOpen={setCurrentPage ? () => setCurrentPage('marketing') : undefined} />
 
       {/* Analytics charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
