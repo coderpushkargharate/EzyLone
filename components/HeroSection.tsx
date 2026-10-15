@@ -14,6 +14,9 @@ import { useFormGuard } from "@/components/FormGuard";
 import Image from "next/image";
 import { trackGoogleAdsConversion } from "@/lib/ads";
 import { trackMetaLead } from "@/components/MetaPixel";
+import AdConsentCheckbox from "@/components/AdConsentCheckbox";
+import { trackEvent } from "@/lib/analytics";
+import { getAttributionPayload, newLeadEventId } from "@/lib/marketing/clientAttribution";
 import { isIndianMobile } from "@/lib/phone";
 import {
   Clock,
@@ -493,6 +496,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   // Invisible spam guard (honeypot + signed form token) shared across all public forms.
   const { guardNode, getGuardPayload, resetGuard } = useFormGuard();
+  const [adConsent, setAdConsent] = useState(false);
   const [isLoanDropdownOpen, setIsLoanDropdownOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [testimonialIndex, setTestimonialIndex] = useState(0);
@@ -677,6 +681,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!validateForm()) {
+        trackEvent('form_error', { form_id: 'hero' });
         setSubmitMessage({ type: "error", text: "Please correct errors above" });
         return;
       }
@@ -685,11 +690,14 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       setFormErrors({});
       try {
         const guard = await getGuardPayload();
+        const leadEventId = newLeadEventId();
         const response = await axios.post(
           `/api/contacts`,
           {
             ...formData,
             ...guard,
+            adConsent,
+            attribution: getAttributionPayload(leadEventId),
             page: page === "home" ? "home" : page,
             source: "hero_form",
             timestamp: new Date().toISOString(),
@@ -715,7 +723,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           // Google Ads conversion (env-driven; safe no-op until the label is configured)
           trackGoogleAdsConversion();
           // Meta Pixel lead
-          trackMetaLead({ content_name: formData.loanType || "hero_form", currency: "INR", value: 1 });
+          trackMetaLead({ content_name: formData.loanType || "hero_form", currency: "INR", value: 1 }, leadEventId);
+          trackEvent('generate_lead', { form_id: 'hero', loan_type: formData.loanType || undefined, page_type: page });
         } else {
           throw new Error("Unexpected response");
         }
@@ -729,7 +738,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
         setIsSubmitting(false);
       }
     },
-    [formData, validateForm, page, getGuardPayload, resetGuard]
+    [formData, validateForm, page, getGuardPayload, resetGuard, adConsent]
   );
 
   const handleLoanTypeSelect = useCallback(
@@ -922,7 +931,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   const renderForm = (size: "sm" | "lg") => {
     const isLg = size === "lg";
     return (
-      <form onSubmit={handleFormSubmit} className={isLg ? "space-y-4" : "space-y-2.5"} noValidate>
+      <form onSubmit={handleFormSubmit} onFocusCapture={() => trackEvent("form_start", { form_id: "hero" }, { once: "form_start_hero" })} className={isLg ? "space-y-4" : "space-y-2.5"} noValidate>
         {isLg ? (
           <>
             <div className="relative">
@@ -1203,6 +1212,8 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             isMobile={!isHydrated ? false : window.innerWidth < 1024}
           />
         </div>
+
+        <AdConsentCheckbox checked={adConsent} onChange={setAdConsent} id="heroAdConsent" />
 
         {/* Invisible spam guard (off-screen honeypot) */}
         {guardNode}

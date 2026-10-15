@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
 import { requireAuth } from '@/lib/auth';
 import { sendLoanApprovalEmail, sendLoanRejectionEmail } from '@/lib/email';
+import { onLoanChanged } from '@/lib/marketing/lifecycle';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,7 +22,9 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       return NextResponse.json({ message: 'Invalid status value' }, { status: 400 });
     }
     await connectDB();
+    const before = await LoanApplication.findById(params.id).lean();
     const loan = await LoanApplication.findByIdAndUpdate(params.id, { status }, { new: true, runValidators: true });
+    if (before && loan) await onLoanChanged(before, loan.toObject());
 
     if (loan && status === 'approved') {
       await sendLoanApprovalEmail(loan);

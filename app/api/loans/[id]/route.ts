@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { LoanApplication } from '@/lib/models/LoanApplication';
 import { requireAuth } from '@/lib/auth';
 import { sendLoanApprovalEmail, sendLoanRejectionEmail } from '@/lib/email';
+import { onLoanChanged } from '@/lib/marketing/lifecycle';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -61,6 +62,9 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       if (update.status === 'approved') await sendLoanApprovalEmail(loan);
       else if (update.status === 'rejected') await sendLoanRejectionEmail(loan);
     }
+
+    // Approval / sanction / disbursal recorded by staff → conversion ledger (never throws).
+    if (loan) await onLoanChanged(existing.toObject(), loan.toObject());
 
     return NextResponse.json(loan);
   } catch (error: any) {

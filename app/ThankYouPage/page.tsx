@@ -7,6 +7,7 @@ import Script from 'next/script';
 import { CheckCircle, Mail, Phone, Clock, Home, MessageSquare, AlertCircle } from 'lucide-react';
 import { trackMetaLead } from '@/components/MetaPixel';
 import { trackGoogleAdsConversion } from '@/lib/ads';
+import { lastLeadEventId } from '@/lib/marketing/clientAttribution';
 
 const ThankYouPage = () => {
   const router = useRouter();
@@ -49,7 +50,8 @@ const ThankYouPage = () => {
     trackGoogleAdsConversion({ value: 1.0, currency: 'INR', transactionId: applicationId || undefined });
 
     // ✅ Meta (Facebook) Pixel conversion
-    trackMetaLead({ value: 1.0, currency: 'INR' });
+    // Same eventID as the form's Pixel call → Meta counts one Lead, not two.
+    trackMetaLead({ value: 1.0, currency: 'INR' }, lastLeadEventId());
   }, [applicationId]);
 
   // ✅ Structured Data for ConfirmationPage - Fixed trailing spaces

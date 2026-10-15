@@ -14,6 +14,9 @@ import {   Truck, ArrowRight, Percent, Clock, Shield, DollarSign, FileText, Aler
 
 import { isIndianMobile } from "@/lib/phone";
 import { useFormGuard } from "@/components/FormGuard";
+import AdConsentCheckbox from "@/components/AdConsentCheckbox";
+import { trackEvent } from "@/lib/analytics";
+import { getAttributionPayload, newLeadEventId } from "@/lib/marketing/clientAttribution";
 
 const BASE_URL = 'https://www.ezyloan.co.in'; // ✅ Fixed: No trailing spaces
 
@@ -36,6 +39,8 @@ const ApplyNowPage: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   // Invisible spam guard (honeypot + signed form token).
   const { guardNode, getGuardPayload } = useFormGuard();
+  // Optional ad-measurement consent (separate from the required data-processing consent).
+  const [adConsent, setAdConsent] = useState(false);
 
   // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
   const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -105,6 +110,7 @@ const ApplyNowPage: React.FC = () => {
     e.preventDefault();
     
     if (!validateForm()) {
+      trackEvent('form_error', { form_id: 'apply_now' });
       setSubmitMessage('❌ Please correct the errors above before submitting.');
       return;
     }
@@ -114,7 +120,8 @@ const ApplyNowPage: React.FC = () => {
 
     try {
       const guard = await getGuardPayload();
-      await axios.post('/api/loans', { ...formData, ...guard }, {
+      const leadEventId = newLeadEventId();
+      await axios.post('/api/loans', { ...formData, ...guard, adConsent, attribution: getAttributionPayload(leadEventId) }, {
         headers: { 'Content-Type': 'application/json' }
       });
 
@@ -128,7 +135,8 @@ const ApplyNowPage: React.FC = () => {
       }
 
       // ✅ Track conversion for Meta (Facebook) Pixel
-      trackMetaLead({ content_name: formData.loanType, currency: 'INR', value: 1 });
+      trackMetaLead({ content_name: formData.loanType, currency: 'INR', value: 1 }, leadEventId);
+      trackEvent('submit_application', { form_id: 'apply_now', loan_type: formData.loanType });
 
       // ✅ Redirect to Thank You page after successful submission
       router.push("/ThankYouPage");
@@ -327,7 +335,7 @@ const ApplyNowPage: React.FC = () => {
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 leading-tight">Apply for Your Loan Online*</h1>
                 <p className="text-blue-100 text-sm mb-6">*Submission does not guarantee approval. Final terms determined by partner lender.</p>
 
-                <form onSubmit={handleSubmit} className="space-y-6" noValidate aria-label="Loan application form">
+                <form onSubmit={handleSubmit} onFocusCapture={() => trackEvent("form_start", { form_id: "apply_now" }, { once: "form_start_apply" })} className="space-y-6" noValidate aria-label="Loan application form">
                   {/* Personal Details */}
                   <div>
                     <h3 className="font-semibold mb-4 text-blue-100">Personal Details</h3>
@@ -566,6 +574,8 @@ const ApplyNowPage: React.FC = () => {
                       <p className="mt-1 text-xs text-red-200" role="alert">{formErrors.consent}</p>
                     )}
                   </div>
+
+                  <AdConsentCheckbox checked={adConsent} onChange={setAdConsent} tone="dark" />
 
                   {/* Invisible spam guard (off-screen honeypot) */}
                   {guardNode}

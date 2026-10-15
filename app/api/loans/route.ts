@@ -12,6 +12,8 @@ import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 import { normalizeIndianMobile } from '@/lib/phone';
 import { geoGateIndia } from '@/lib/geo';
+import { marketingFromForm } from '@/lib/marketing/formCapture';
+import { onLoanCreated } from '@/lib/marketing/lifecycle';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -147,10 +149,20 @@ export async function POST(req: NextRequest) {
         ip: geo.ip,
         country: geo.country || undefined,
         countryCode: geo.countryCode || undefined,
+        // Attribution (UTMs / click ids) + the optional ad-measurement consent checkbox.
+        marketing: marketingFromForm(req, body, {
+          crmSource: 'Website Apply Now',
+          consentSource: 'website_apply_form',
+          clientIp: geo.ip || ip,
+          loanType,
+        }),
       });
     } catch (crmErr) {
       console.error('Lead capture failed (application still saved):', crmErr);
     }
+
+    // A submitted application is a CRM lifecycle event (conversion ledger). Never throws.
+    await onLoanCreated(loanApplication.toObject());
 
     // External notifications (CRM mirror + WhatsApp confirmation) are fired WITHOUT
     // awaiting: the application is already saved, so they must never delay or break

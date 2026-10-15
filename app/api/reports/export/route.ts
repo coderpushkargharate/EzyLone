@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { LoanApplication } from '@/lib/models/LoanApplication';
+import { audit } from '@/lib/audit';
 import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
@@ -63,6 +64,7 @@ export async function GET(req: NextRequest) {
   }
 
   const stamp = new Date().toISOString().slice(0, 10);
+  await audit(gate.auth, 'export', `crm_${type}`, { from, to }, req);
   return new NextResponse(csv, {
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',

@@ -12,6 +12,7 @@ import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendLeadConfirmationWhatsApp } from '@/lib/whatsapp';
 import { normalizeIndianMobile } from '@/lib/phone';
 import { geoGateIndia } from '@/lib/geo';
+import { marketingFromForm } from '@/lib/marketing/formCapture';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -145,6 +146,13 @@ export async function POST(req: NextRequest) {
         ip: geo.ip,
         country: geo.country || undefined,
         countryCode: geo.countryCode || undefined,
+        // Attribution (UTMs / click ids) + the optional ad-measurement consent checkbox.
+        marketing: marketingFromForm(req, body, {
+          crmSource: 'Website Contact Form',
+          consentSource: 'website_contact_form',
+          clientIp: geo.ip || ip,
+          loanType,
+        }),
       });
     } catch (crmErr) {
       console.error('Lead capture failed (contact still saved):', crmErr);

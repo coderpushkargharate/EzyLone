@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/lib/models/User';
+import { audit } from '@/lib/audit';
 import { requireAuth } from '@/lib/auth';
 import { sanitizePermissions, passwordProblem } from '@/lib/adminTabs';
 
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
     role: 'employee',
     permissions,
   });
+  await audit(gate.auth, 'user_create', email, { role: 'employee', permissions }, req);
 
   return NextResponse.json({
     employee: {

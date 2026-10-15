@@ -2,6 +2,8 @@ import { connectDB } from '@/lib/db';
 import { Lead } from '@/lib/models/Lead';
 import { Activity } from '@/lib/models/Activity';
 import { sendAdminPush } from '@/lib/push';
+import { onLeadCaptured } from '@/lib/marketing/lifecycle';
+import type { AttributionInput } from '@/lib/marketing/attributionStore';
 
 export interface IngestResult {
   processed: number;
@@ -28,6 +30,9 @@ export interface WebhookLeadInput {
   ip?: string;
   country?: string;
   countryCode?: string;
+  // Marketing attribution + ad-measurement consent (website forms, Lead Ads).
+  // Recorded in the separate lead_attributions collection; never changes the lead.
+  marketing?: AttributionInput;
 }
 
 // Map an AI lead priority to a CRM group tag (used for filtering in the panel).
@@ -91,6 +96,7 @@ export async function createLeadFromWebhook(
       if (leadStage) update.$set.leadStage = leadStage;
       if (groups.length) update.$addToSet = { groups: { $each: groups } };
       await Lead.updateOne({ _id: dup._id }, update);
+      await onLeadCaptured(String(dup._id), false, { crmSource: input.source, ...input.marketing });
       return { created: false, leadId: String(dup._id) };
     }
   }
@@ -128,6 +134,9 @@ export async function createLeadFromWebhook(
     // Dedup on the source message id so a retried webhook doesn't double-count.
     dedupeId: input.sourceMessageId || undefined,
   });
+
+  // Attribution + "Lead" conversion (queued; never throws, never blocks the lead).
+  await onLeadCaptured(String(lead._id), true, { crmSource: input.source, ...input.marketing });
 
   return { created: true, leadId: String(lead._id) };
 }

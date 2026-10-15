@@ -34,6 +34,11 @@ const PROTECTED_GET = [
   '/api/admin/whatsapp-chats', '/api/admin/site-health', '/api/admin/push/debug',
   '/api/admin/knowledge', '/api/admin/chat-analytics', '/api/admin/whatsapp-status',
   '/api/auth/verify', `/api/leads/${ZERO_ID}`,
+  // Marketing integrations
+  '/api/marketing/status', '/api/marketing/dashboard', '/api/marketing/events', `/api/marketing/events/${ZERO_ID}`,
+  '/api/marketing/sync-logs', '/api/marketing/export', '/api/marketing/meta/connect', '/api/marketing/meta/callback',
+  '/api/marketing/google/connect', '/api/marketing/google/callback',
+  '/api/marketing/search?from=2026-01-01&to=2026-01-31', '/api/marketing/analytics?from=2026-01-01&to=2026-01-31', '/api/admin/audit-log',
 ];
 
 const PROTECTED_WRITES = [
@@ -43,6 +48,11 @@ const PROTECTED_WRITES = [
   ['POST', `/api/blogs/${ZERO_ID}/status`], ['POST', '/api/blogs/upload'],
   ['DELETE', `/api/leads/${ZERO_ID}`], ['DELETE', `/api/loans/${ZERO_ID}/documents?url=x`],
   ['PATCH', `/api/employees/${ZERO_ID}`], ['PATCH', '/api/me'],
+  ['PUT', '/api/marketing/settings'], ['POST', '/api/marketing/events'], ['POST', `/api/marketing/events/${ZERO_ID}`],
+  ['POST', '/api/marketing/meta/assets'], ['POST', '/api/marketing/meta/disconnect'], ['POST', '/api/marketing/meta/backfill'],
+  ['POST', '/api/marketing/meta/test-event'], ['POST', '/api/marketing/google/assets'], ['POST', '/api/marketing/google/disconnect'],
+  ['POST', '/api/marketing/worker'], ['POST', '/api/marketing/insights'], ['POST', '/api/marketing/sync-logs'],
+  ['POST', '/api/marketing/search'], ['POST', '/api/marketing/analytics'],
 ];
 
 async function main() {

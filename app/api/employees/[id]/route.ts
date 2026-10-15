@@ -3,6 +3,7 @@ import { isValidObjectId } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { User } from '@/lib/models/User';
 import { PushSubscription } from '@/lib/models/PushSubscription';
+import { audit } from '@/lib/audit';
 import { requireAuth, revokeUserSessions } from '@/lib/auth';
 import { sanitizePermissions, passwordProblem } from '@/lib/adminTabs';
 
@@ -44,6 +45,11 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
   }
 
   await employee.save();
+  await audit(gate.auth, 'user_update', String(employee.email || employee._id), {
+    permissions: Array.isArray(body.permissions) ? employee.permissions : undefined,
+    disabled: typeof body.disabled === 'boolean' ? employee.disabled : undefined,
+    passwordReset: body.password ? true : undefined,
+  }, req);
   if (accessChanged) {
     await revokeUserSessions(String(employee._id));
     if (employee.disabled) await PushSubscription.deleteMany({ userId: employee._id });
@@ -73,5 +79,6 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
 
   await revokeUserSessions(String(result._id));
   await PushSubscription.deleteMany({ userId: result._id });
+  await audit(gate.auth, 'user_delete', String(result.email || result._id), undefined, req);
   return NextResponse.json({ success: true });
 }

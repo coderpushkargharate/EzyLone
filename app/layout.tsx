@@ -6,7 +6,8 @@ import ConditionalFooter from '@/components/ConditionalFooter';
 import ScrollReveal from '@/components/ScrollReveal';
 import Script from 'next/script';
 import MetaPixel from '@/components/MetaPixel';
-import { GOOGLE_ADS_ID } from '@/lib/ads';
+import AttributionCapture from '@/components/AttributionCapture';
+import { GOOGLE_ADS_ID, GA4_MEASUREMENT_ID } from '@/lib/ads';
 
 // Inter, self-hosted: ONE 48 KB variable WOFF2 (Latin subset) covers every
 // weight 400–700, so there is no build-time Google Fonts fetch (next/font/google
@@ -273,6 +274,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* ✅ META (FACEBOOK) PIXEL - base code + PageView, site-wide.
             Inert until NEXT_PUBLIC_META_PIXEL_ID is set (see components/MetaPixel.tsx). */}
         <MetaPixel />
+        {/* UTM / click-id capture for CRM attribution (localStorage only; see lib/marketing/clientAttribution.ts). */}
+        <AttributionCapture />
 
         {/* ✅ GOOGLE ADS - loaded ONCE here for the whole site.
             The inline init runs `afterInteractive` so window.gtag + dataLayer
@@ -287,7 +290,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           id="google-ads-init"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
-            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}',{'send_page_view':true});`,
+            // GA4 (optional) shares the same gtag.js; non-production builds send
+            // debug_mode so test traffic shows in DebugView instead of reports.
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ADS_ID}',{'send_page_view':true});${GA4_MEASUREMENT_ID ? `gtag('config','${GA4_MEASUREMENT_ID}'${process.env.NODE_ENV === 'production' ? '' : ",{'debug_mode':true}"});` : ''}`,
           }}
         />
         <Script

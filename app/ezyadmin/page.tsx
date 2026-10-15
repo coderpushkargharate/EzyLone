@@ -42,7 +42,8 @@ import {
   Send,
   Archive,
   AlertTriangle,
-  Clock
+  Clock,
+  Megaphone
 } from 'lucide-react';
 import { runSeoChecklist, sanitizeSlug, type SeoCheckResult } from '@/lib/blog';
 import axios from 'axios';
@@ -58,6 +59,10 @@ import ActivitiesManager from '@/components/admin/ActivitiesManager';
 import AnalyticsManager from '@/components/admin/AnalyticsManager';
 import TeamManager from '@/components/admin/TeamManager';
 import AutomationsManager from '@/components/admin/AutomationsManager';
+import dynamic from 'next/dynamic';
+// Loaded on demand: the Marketing tab is large and most sessions never open it.
+const MarketingManager = dynamic(() => import('@/components/admin/MarketingManager'), { ssr: false });
+const AuditLogManager = dynamic(() => import('@/components/admin/AuditLogManager'), { ssr: false });
 import EmployeesManager from '@/components/admin/EmployeesManager';
 import BlockedIpsManager from '@/components/admin/BlockedIpsManager';
 import AccountManager from '@/components/admin/AccountManager';
@@ -422,6 +427,7 @@ function AdminDashboard({
     { id: 'team', name: 'Team', icon: Network, component: TeamManager, group: 'Leads & CRM' },
     { id: 'analytics', name: 'CRM Analytics', icon: BarChart3, component: AnalyticsManager, group: 'Leads & CRM' },
     { id: 'automations', name: 'Automations', icon: Zap, component: AutomationsManager, group: 'Growth & Automation' },
+    { id: 'marketing', name: 'Marketing & Ads', icon: Megaphone, component: MarketingManager, group: 'Growth & Automation' },
     { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager, group: 'Website Content' },
     { id: 'content', name: 'Content', icon: FolderOpen, component: ContentManager, group: 'Website Content' },
     { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager, group: 'Website Content' },
@@ -432,6 +438,7 @@ function AdminDashboard({
     { id: 'whatsappChats', name: 'WhatsApp Chats', icon: MessageSquareText, component: WhatsAppChatsManager, group: 'AI Assistants' },
     { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration' },
     { id: 'blockedIps', name: 'Blocked IPs', icon: ShieldAlert, component: BlockedIpsManager, adminOnly: true, group: 'Administration' },
+    { id: 'auditLog', name: 'Audit Log', icon: FileText, component: AuditLogManager, adminOnly: true, group: 'Administration' },
     // `hidden` = reachable from the top-bar profile menu, not shown in the sidebar.
     // Everyone (admins + employees) can view/edit their own account.
     { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true }

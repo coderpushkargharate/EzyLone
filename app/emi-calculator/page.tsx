@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { trackEvent } from '@/lib/analytics';
 import { Calculator, ArrowRight, Info, TrendingUp, PieChart, DollarSign, Clock, Zap, AlertCircle } from 'lucide-react';
 
 const EMICalculatorPage: React.FC = () => {
@@ -33,6 +34,15 @@ const EMICalculatorPage: React.FC = () => {
     };
 
     calculateEMI();
+  }, [loanAmount, interestRate, loanTenure]);
+
+  // GA4: one calculator_complete per visit, only after the user has changed an input
+  // and paused for 2 s (the calculator recalculates live, so there is no submit).
+  const interacted = useRef(false);
+  useEffect(() => {
+    if (!interacted.current) { interacted.current = true; return; }
+    const t = setTimeout(() => trackEvent('calculator_complete', { calculator: 'emi', tenure_months: loanTenure }, { once: 'calculator_complete_emi' }), 2000);
+    return () => clearTimeout(t);
   }, [loanAmount, interestRate, loanTenure]);
 
   const formatCurrency = (value: number): string => {

@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { connectDB } from '@/lib/db';
 import { Blog, BlogStatus, BLOG_STATUSES } from '@/lib/models/Blog';
 import { isValidObjectId } from 'mongoose';
+import { audit } from '@/lib/audit';
 import { requireAuth, forbidden } from '@/lib/auth';
 import { canTransition, runSeoChecklist, isPublicStatus } from '@/lib/blog';
 import { plainText } from '@/lib/blogHtml';
@@ -102,6 +103,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
       /* best-effort */
     }
 
+    await audit(gate.auth, 'blog_status', blog.slug, { from, to: status }, req);
     return NextResponse.json({ message: `Blog ${status}`, blog });
   } catch (error) {
     console.error('Blog status error:', error);

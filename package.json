@@ -13,6 +13,8 @@
     "test:unit": "node scripts/test-cloudinary-url.mjs && node scripts/test-webhook-auth.mjs",
     "test:security": "node scripts/test-security.mjs",
     "test:staging": "node scripts/test-staging.mjs",
+    "test:marketing": "node --import ./scripts/lib/register-ts.mjs scripts/test-marketing.mjs",
+    "test:marketing-runtime": "node scripts/test-marketing-runtime.mjs",
     "check:env": "node scripts/check-env.mjs"
   },
   "dependencies": {

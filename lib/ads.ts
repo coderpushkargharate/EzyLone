@@ -15,6 +15,14 @@ export const GOOGLE_ADS_ID =
 
 const CONVERSION_LABEL = process.env.NEXT_PUBLIC_GADS_CONVERSION_LABEL || '';
 
+/**
+ * GA4 measurement id (NEXT_PUBLIC_GA4_MEASUREMENT_ID, e.g. G-ABC123XYZ9). Optional:
+ * when unset only the Google Ads tag loads, exactly as before. Validated because
+ * it is interpolated into an inline script.
+ */
+const GA4_RAW = (process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || '').trim();
+export const GA4_MEASUREMENT_ID = /^G-[A-Z0-9]{4,20}$/.test(GA4_RAW) ? GA4_RAW : '';
+
 interface ConversionOpts {
   value?: number;
   currency?: string;

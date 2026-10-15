@@ -18,6 +18,7 @@ export const ASSIGNABLE_TABS: AdminTab[] = [
   { id: 'team', name: 'Team' },
   { id: 'analytics', name: 'CRM Analytics' },
   { id: 'automations', name: 'Automations' },
+  { id: 'marketing', name: 'Marketing & Ads' },
   { id: 'blogs', name: 'Blog Manager' },
   { id: 'testimonials', name: 'Testimonials' },
   { id: 'ezyBrain', name: 'Ezy AI Brain' },

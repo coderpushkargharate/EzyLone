@@ -1,26 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Integration } from '@/lib/models/Integration';
-import { createLeadFromWebhook } from '@/lib/ingest';
 import { sendSecurityAlert } from '@/lib/email';
 import { envFlag, safeEqual, verifyMetaSignature } from '@/lib/webhookAuth';
+import { recordLeadgen, processReceiptNow } from '@/lib/marketing/meta/leads';
+import type { LeadgenChange } from '@/lib/marketing/meta/leads';
+import { metaAppConfig } from '@/lib/marketing/config';
+import { mlog, syncLog } from '@/lib/marketing/log';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Facebook & Instagram Lead Ads webhook.
 //
-// Configure in the admin panel (Automations → Facebook Lead Ads → Configure):
-// the Callback URL is https://<domain>/api/webhook/facebook and the Verify Token
-// you enter there is stored in the DB and checked here. When someone submits a
-// Lead Ad, Meta POSTs a `leadgen` change containing a `leadgen_id`; we then call
-// the Graph API with the saved Page Access Token to read the actual field data
-// (name/email/phone) and create a lead.
+// Callback URL: https://<domain>/api/webhook/facebook. The Verify Token is the
+// one saved in Automations → Facebook Lead Ads (or FACEBOOK_VERIFY_TOKEN).
+// Pages are subscribed to the `leadgen` field from Admin → Marketing →
+// Integrations (OAuth), or manually in the Meta app dashboard.
 //
-// Meta setup: your App → Webhooks → Page subscription → subscribe to `leadgen`,
-// and make sure the Page is subscribed to your app.
+// Processing: each `leadgen` change is written to meta_lead_receipts (UNIQUE
+// leadgen_id), so a redelivered or replayed notification is acknowledged but
+// never processed twice. The lead's field data is then fetched with the Page
+// token — inline for low latency, and by the background worker with backoff
+// if Meta's API is unavailable — so a temporary outage no longer produces an
+// empty lead.
 
-const GRAPH_VERSION = process.env.META_GRAPH_VERSION || 'v21.0';
+const MAX_BODY_BYTES = 1_000_000;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getFacebookConfig(): Promise<Record<string, any> | null> {
@@ -50,37 +55,20 @@ export async function GET(req: NextRequest) {
 }
 
 // Signature policy (fail closed):
-//  - App Secret saved (Automations → Facebook → App Secret) or FACEBOOK_APP_SECRET
-//    set → every POST must carry a valid X-Hub-Signature-256, else 403.
+//  - App Secret saved (Automations → Facebook → App Secret) or META_APP_SECRET /
+//    FACEBOOK_APP_SECRET set → every POST must carry a valid X-Hub-Signature-256, else 403.
 //  - No App Secret → 403, because anyone could otherwise forge lead events.
 //    FACEBOOK_ALLOW_UNSIGNED=true is an explicit, temporary escape hatch: requests
 //    are accepted but logged, and a lead is only saved when its leadgen_id really
 //    resolves through the Graph API with your Page token (forged ids don't).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function appSecretFrom(cfg: Record<string, any> | null): string | undefined {
-  return cfg?.appSecret || process.env.FACEBOOK_APP_SECRET || undefined;
-}
-
-// Pull the full lead field data from the Graph API for one leadgen_id.
-async function fetchLeadFields(leadgenId: string, pageAccessToken: string): Promise<Record<string, string>> {
-  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${leadgenId}?access_token=${encodeURIComponent(pageAccessToken)}`;
-  const res = await fetch(url);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    console.error(`Facebook leadgen fetch failed (HTTP ${res.status}):`, data?.error?.message || '');
-    return {};
-  }
-  const fields: Record<string, string> = {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (data.field_data || []).forEach((f: any) => {
-    fields[f.name] = (f.values || [])[0] || '';
-  });
-  return fields;
+  return cfg?.appSecret || metaAppConfig().appSecret || undefined;
 }
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
+  if (raw.length > MAX_BODY_BYTES) return new NextResponse('Payload too large', { status: 413 });
   const cfg = await getFacebookConfig();
 
   const sig = verifyMetaSignature(raw, req.headers.get('x-hub-signature-256'), appSecretFrom(cfg));
@@ -93,7 +81,7 @@ export async function POST(req: NextRequest) {
     if (!envFlag('FACEBOOK_ALLOW_UNSIGNED')) {
       console.error(
         'Rejected Facebook webhook — no App Secret configured, so the request cannot be verified. ' +
-          'Save the App Secret in Automations → Facebook Lead Ads (or set FACEBOOK_APP_SECRET).'
+          'Save the App Secret in Automations → Facebook Lead Ads (or set META_APP_SECRET / FACEBOOK_APP_SECRET).'
       );
       sendSecurityAlert('fb-webhook-unconfigured', 'Facebook Lead Ads webhook is rejecting events', {
         Reason: 'No App Secret configured — leads are NOT being received until it is saved.',
@@ -111,54 +99,33 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ ok: true }); // ack & ignore malformed
   }
-
-  const pageAccessToken = cfg?.pageAccessToken as string | undefined;
+  if (payload?.object && payload.object !== 'page') return NextResponse.json({ ok: true });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const changes: any[] = (payload.entry || []).flatMap((e: any) => e.changes || []);
-  for (const ch of changes) {
-    if (ch.field !== 'leadgen') continue;
-    const leadgenId = ch.value?.leadgen_id;
-    if (!leadgenId) continue;
-
-    let fields: Record<string, string> = {};
-    if (pageAccessToken) {
-      try {
-        fields = await fetchLeadFields(String(leadgenId), pageAccessToken);
-      } catch (e) {
-        console.error('Facebook leadgen fetch error:', e);
-      }
-    } else {
-      console.warn('Facebook lead received but no Page Access Token saved — cannot fetch details.');
-    }
-
-    const name =
-      fields.full_name ||
-      fields.name ||
-      [fields.first_name, fields.last_name].filter(Boolean).join(' ').trim();
-    const email = fields.email || '';
-    const phone = fields.phone_number || fields.phone || '';
-
-    // Unverified request: only trust lead ids Meta actually resolved for us.
-    if (!verified && !name && !email && !phone) {
-      console.warn('Ignored unsigned Facebook leadgen event whose id did not resolve via the Graph API.');
-      continue;
-    }
-
+  const changes: any[] = (Array.isArray(payload.entry) ? payload.entry : []).flatMap((e: any) => (Array.isArray(e?.changes) ? e.changes : []));
+  const fresh: string[] = [];
+  let duplicates = 0;
+  for (const ch of changes.slice(0, 100)) {
+    if (ch?.field !== 'leadgen' || !ch.value) continue;
     try {
-      await createLeadFromWebhook({
-        name,
-        email,
-        phone,
-        message: 'Submitted via Facebook / Instagram Lead Ad',
-        source: 'Facebook Lead Ads',
-        sourceMessageId: `fb_${leadgenId}`,
-      });
+      const { isNew, receiptId } = await recordLeadgen(ch.value as LeadgenChange, 'webhook', verified);
+      if (isNew && receiptId) fresh.push(receiptId);
+      else duplicates++;
     } catch (e) {
-      console.error('Failed to save Facebook lead:', e);
+      // Could not even record the receipt (DB down): let Meta retry the delivery.
+      mlog('error', 'leadgen_receipt_failed', { error: e instanceof Error ? e.message : String(e) });
+      return NextResponse.json({ ok: false }, { status: 500 });
     }
   }
 
-  // Always 200 quickly so Meta doesn't retry / disable the webhook.
+  // Fetch + create inline (bounded); anything slow or failing is left to the worker.
+  const inline = Promise.allSettled(fresh.map((id) => processReceiptNow(id)));
+  await Promise.race([inline, new Promise((r) => setTimeout(r, 8_000))]);
+
+  if (fresh.length || duplicates) {
+    void syncLog('meta', 'webhook', 'ok', `Leadgen webhook: ${fresh.length} new, ${duplicates} duplicate/redelivered${verified ? '' : ' (UNSIGNED)'}`, {
+      counts: { new: fresh.length, duplicate: duplicates },
+    });
+  }
   return NextResponse.json({ ok: true });
 }

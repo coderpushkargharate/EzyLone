@@ -7,6 +7,9 @@ import axios from 'axios';
 import HeroSection from '@/components/HeroSection';
 import { isIndianMobile } from '@/lib/phone';
 import { useFormGuard } from '@/components/FormGuard';
+import AdConsentCheckbox from '@/components/AdConsentCheckbox';
+import { trackEvent } from '@/lib/analytics';
+import { getAttributionPayload } from '@/lib/marketing/clientAttribution';
 
 // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
 const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -24,6 +27,7 @@ const Contact = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   // Invisible spam guard (honeypot + signed form token).
   const { guardNode, getGuardPayload, resetGuard } = useFormGuard();
+  const [adConsent, setAdConsent] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -55,11 +59,12 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) { setSubmitMessage('❌ Please correct the errors above before submitting.'); return; }
+    if (!validateForm()) { trackEvent('form_error', { form_id: 'contact' }); setSubmitMessage('❌ Please correct the errors above before submitting.'); return; }
     setIsSubmitting(true); setSubmitMessage('');
     try {
       const guard = await getGuardPayload();
-      await axios.post('/api/contacts', { ...formData, ...guard }, { headers: { 'Content-Type': 'application/json' } });
+      await axios.post('/api/contacts', { ...formData, ...guard, adConsent, attribution: getAttributionPayload() }, { headers: { 'Content-Type': 'application/json' } });
+      trackEvent('generate_lead', { form_id: 'contact', loan_type: formData.loanType || undefined });
       setSubmitMessage('✅ Thank you! Your message has been sent successfully. We will get back to you within 24-48 business hours.');
       setFormData({ fullName: '', email: '', phoneNumber: '', loanType: '', loanAmount: '', message: '' });
       setFormErrors({});
@@ -146,7 +151,7 @@ const Contact = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">Send us a Message</h2>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              <form onSubmit={handleSubmit} onFocusCapture={() => trackEvent('form_start', { form_id: 'contact' }, { once: 'form_start_contact' })} className="space-y-6" noValidate>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
@@ -241,6 +246,8 @@ const Contact = () => {
                   />
                 </div>
                 
+                <AdConsentCheckbox checked={adConsent} onChange={setAdConsent} id="contactAdConsent" />
+
                 {/* Invisible spam guard (off-screen honeypot) */}
                 {guardNode}
 

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Integration } from '@/lib/models/Integration';
+import { audit } from '@/lib/audit';
 import { requireAuth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const d0 = (doc: any) => !!doc?.enabled;
 
 // Secret fields — we never send their value back to the browser, only whether set.
 const SECRET_FIELDS = ['pageAccessToken', 'accessToken', 'appSecret'];
@@ -91,6 +95,7 @@ export async function POST(req: NextRequest) {
     { new: true, upsert: true }
   ).lean();
 
+  await audit(gate.auth, 'config_change', `integration:${provider}`, { fields: Object.keys(config || {}), enabled: d0(doc) }, req);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const d = doc as any;
   return NextResponse.json({

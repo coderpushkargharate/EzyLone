@@ -5,6 +5,7 @@ import { Lead } from '@/lib/models/Lead';
 import { Activity } from '@/lib/models/Activity';
 import { requireAuth } from '@/lib/auth';
 import { pickLeadFields } from '@/lib/leadInput';
+import { onLeadStatusChanged } from '@/lib/marketing/lifecycle';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,6 +56,11 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       { ...fields, lastActivity: new Date() },
       { new: true, runValidators: true }
     ).lean();
+
+    // Report a real CRM status change (e.g. → qualified) to the conversion ledger. Never throws.
+    if (lead && fields.status && fields.status !== existing.status) {
+      await onLeadStatusChanged(params.id, existing.status, String(fields.status));
+    }
 
     return NextResponse.json({ lead });
   } catch (error) {

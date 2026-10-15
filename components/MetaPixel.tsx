@@ -13,11 +13,16 @@ import Script from 'next/script';
  */
 export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '';
 
-/** Fire a Meta "Lead" conversion event (safe no-op if the Pixel isn't loaded). */
-export function trackMetaLead(data?: Record<string, unknown>) {
-  if (typeof window !== 'undefined' && (window as any).fbq) {
-    (window as any).fbq('track', 'Lead', data);
-  }
+/**
+ * Fire a Meta "Lead" conversion event (safe no-op if the Pixel isn't loaded).
+ * Pass the same eventId that was sent to the server with the form, so Meta
+ * de-duplicates this browser event against the Conversions API copy.
+ */
+export function trackMetaLead(data?: Record<string, unknown>, eventId?: string) {
+  const fbq = typeof window !== 'undefined' ? (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq : undefined;
+  if (!fbq) return;
+  if (eventId) fbq('track', 'Lead', data, { eventID: eventId });
+  else fbq('track', 'Lead', data);
 }
 
 export default function MetaPixel() {
