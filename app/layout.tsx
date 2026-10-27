@@ -8,6 +8,7 @@ import Script from 'next/script';
 import MetaPixel from '@/components/MetaPixel';
 import AttributionCapture from '@/components/AttributionCapture';
 import SiteTags from '@/components/SiteTags';
+import SiteTracker from '@/components/SiteTracker';
 import { GOOGLE_ADS_ID, GA4_MEASUREMENT_ID } from '@/lib/ads';
 
 // Inter, self-hosted: ONE 48 KB variable WOFF2 (Latin subset) covers every
@@ -133,6 +134,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'FinancialService',
+    // Loan pages point their LoanOrCredit `provider` at this id (components/PageSchema.tsx).
+    '@id': `${BASE_URL}/#organization`,
     name: 'EzyLoan (Dibyansh Associates)',
     url: BASE_URL,
     // Google reads this for the Search/Knowledge-panel logo. It must be a real,
@@ -279,6 +282,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AttributionCapture />
         {/* Pixel / GA4 IDs saved in the admin panel (no rebuild needed). */}
         <SiteTags />
+        {/* Anonymous, cookieless first-party visitor analytics for the admin "SEO & Traffic" tab. */}
+        <SiteTracker />
 
         {/* ✅ GOOGLE ADS - loaded ONCE here for the whole site.
             The inline init runs `afterInteractive` so window.gtag + dataLayer

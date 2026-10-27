@@ -24,6 +24,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "clsx": "^2.1.1",
+    "fast-geoip": "^1.1.88",
     "framer-motion": "^12.42.2",
     "imapflow": "^1.5.0",
     "jose": "^5.9.6",

@@ -1,3 +1,4 @@
+import PageSchema from '@/components/PageSchema';
 import RelatedArticles from '@/components/RelatedArticles';
 import { pageMeta } from '@/lib/seo';
 
@@ -14,6 +15,7 @@ export const revalidate = 3600;
 export default function CarLoanRefinanceLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <PageSchema path="/car-loan-refinance" name="Car Loan Refinance" loan={{"name":"Car Loan Refinance (Loan Against Car)","loanType":"Loan against car","category":"Car loan","description":"Raise funds against a car you already own. Eligibility, documents and process for car refinance and loans against used cars in Odisha."}} />
       {children}
       <RelatedArticles topic="car" heading="Car refinance & car loan guides" />
     </>

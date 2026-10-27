@@ -1,3 +1,4 @@
+import PageSchema from '@/components/PageSchema';
 import RelatedArticles from '@/components/RelatedArticles';
 import { pageMeta } from '@/lib/seo';
 
@@ -14,6 +15,7 @@ export const revalidate = 3600;
 export default function EmiCalculatorLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <PageSchema path="/emi-calculator" name="EMI Calculator" />
       {children}
       <RelatedArticles heading="Guides to plan your EMI" />
     </>

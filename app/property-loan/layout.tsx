@@ -1,3 +1,4 @@
+import PageSchema from '@/components/PageSchema';
 import RelatedArticles from '@/components/RelatedArticles';
 import { pageMeta } from '@/lib/seo';
 
@@ -14,6 +15,7 @@ export const revalidate = 3600;
 export default function PropertyLoanLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <PageSchema path="/property-loan" name="Loan Against Property" loan={{"name":"Loan Against Property","loanType":"Loan against property","category":"Secured loan","description":"Loan against residential or commercial property through partner banks and NBFCs. Check eligibility, documents, tenure and indicative rates."}} />
       {children}
       <RelatedArticles topic="property" heading="Loan against property guides" />
     </>

@@ -99,7 +99,9 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
     .filter(Boolean) as string[];
 
   return {
-    title,
+    // The root template adds " | EzyLoan"; a title that already names the brand is used as-is
+    // so it doesn't read "… | EzyLoan | EzyLoan".
+    title: /ezy\s?loan/i.test(title) ? { absolute: title } : title,
     description,
     keywords: keywords.length ? keywords : undefined,
     authors: blog.author ? [{ name: blog.author }] : undefined,
@@ -160,6 +162,7 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
       : { '@type': 'Organization', name: ORG_NAME, url: SITE_URL },
     publisher: {
       '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
       name: 'EzyLoan',
       logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
     },
@@ -178,6 +181,10 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
       { '@type': 'ListItem', position: 3, name: blog.title, item: url },
     ],
   };
+
+  // ~200 words a minute, like the Mappingg blog.
+  const wordCount = String(blog.content || '').replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
+  const readMinutes = Math.max(1, Math.round(wordCount / 200));
 
   const fmt = (d?: string) =>
     d ? new Date(d).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
@@ -213,6 +220,7 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
           {modified && modified !== published && (
             <time dateTime={new Date(modified).toISOString()}>Updated {fmt(modified)}</time>
           )}
+          <span>{readMinutes} min read</span>
           {blog.category && <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs">{blog.category}</span>}
         </div>
       </header>

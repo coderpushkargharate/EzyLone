@@ -21,3 +21,6 @@ EzyLoanCrm/
 
 # Server-generated encryption key for saved API keys/tokens (never commit)
 /.data/
+
+# Local backups written by scripts/seed-blogs.mjs before it changes blog posts
+scripts/blog-backups/

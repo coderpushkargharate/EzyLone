@@ -1,3 +1,4 @@
+import PageSchema from '@/components/PageSchema';
 import { pageMeta } from '@/lib/seo';
 
 export const metadata = pageMeta({
@@ -8,5 +9,10 @@ export const metadata = pageMeta({
 });
 
 export default function AboutLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <PageSchema path="/about" name="About EzyLoan" />
+      {children}
+    </>
+  );
 }

@@ -1,0 +1,123 @@
+<p>Before you take any loan, the one number you should know is your <strong>EMI</strong>, the Equated Monthly Instalment you'll pay every month until the loan ends. Knowing how it is calculated helps you choose the right amount and tenure, compare lenders properly and decide whether prepaying is worth it.</p>
+
+<p>This guide explains the EMI formula in plain words, walks through a full example, shows how each EMI is split between interest and principal, and explains how tenure and prepayment change what you pay in total.</p>
+
+<h2>What is an EMI?</h2>
+
+<p>An EMI is a fixed monthly payment that covers two things:</p>
+<ul>
+<li><strong>Interest</strong> on the amount you still owe, and</li>
+<li><strong>Principal</strong>, the part that actually reduces your loan.</li>
+</ul>
+<p>With a fixed-rate loan, the EMI stays the same every month. What changes is the split: early EMIs are mostly interest, later EMIs are mostly principal.</p>
+
+<h2>The EMI formula</h2>
+
+<p>Banks and NBFCs use this standard formula:</p>
+
+<p><strong>EMI = P × r × (1 + r)<sup>n</sup> ÷ [(1 + r)<sup>n</sup> − 1]</strong></p>
+
+<ul>
+<li><strong>P</strong> = loan amount (principal)</li>
+<li><strong>r</strong> = monthly interest rate = annual rate ÷ 12 ÷ 100</li>
+<li><strong>n</strong> = tenure in months</li>
+</ul>
+
+<h2>Worked example</h2>
+
+<p>Loan of <strong>₹5,00,000</strong> at <strong>10% per year</strong> for <strong>5 years</strong> (an example rate):</p>
+<ul>
+<li>P = 5,00,000</li>
+<li>r = 10 ÷ 12 ÷ 100 = 0.008333</li>
+<li>n = 5 × 12 = 60</li>
+</ul>
+<p>Putting these into the formula gives an <strong>EMI of about ₹10,624</strong>. Over 60 months you pay ₹6,37,411 in total, of which <strong>₹1,37,411 is interest</strong>.</p>
+
+<h3>Calculate it in Excel or Google Sheets</h3>
+<p>Type <code>=PMT(10%/12, 60, -500000)</code> into a cell. The answer is the monthly EMI. Or simply use our <a href="/emi-calculator">EMI calculator</a>.</p>
+
+<h2>How each EMI is split: the amortisation schedule</h2>
+
+<p>In month 1, interest is charged on the full ₹5,00,000: 5,00,000 × 0.008333 = ₹4,167. The rest of the EMI, ₹6,457, reduces the principal. Next month, interest is charged on the smaller balance, so a little more goes to principal, and so on.</p>
+
+<table>
+<thead><tr><th>Month</th><th>Interest</th><th>Principal</th><th>Balance after EMI</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>₹4,167</td><td>₹6,457</td><td>₹4,93,543</td></tr>
+<tr><td>2</td><td>₹4,113</td><td>₹6,511</td><td>₹4,87,032</td></tr>
+<tr><td>3</td><td>₹4,059</td><td>₹6,565</td><td>₹4,80,468</td></tr>
+<tr><td>60</td><td>₹88</td><td>₹10,536</td><td>₹0</td></tr>
+</tbody>
+</table>
+
+<p>Year by year, the shift is clear:</p>
+
+<table>
+<thead><tr><th>Year</th><th>Interest paid</th><th>Principal repaid</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>₹46,348</td><td>₹81,134</td></tr>
+<tr><td>2</td><td>₹37,852</td><td>₹89,630</td></tr>
+<tr><td>3</td><td>₹28,467</td><td>₹99,015</td></tr>
+<tr><td>4</td><td>₹18,099</td><td>₹1,09,383</td></tr>
+<tr><td>5</td><td>₹6,645</td><td>₹1,20,837</td></tr>
+</tbody>
+</table>
+
+<p>About a third of all the interest is paid in the first year. That's why prepaying or doing a <a href="/blog/car-loan-balance-transfer-lower-emi">balance transfer</a> early in the loan saves much more than doing it near the end.</p>
+
+<h2>A quick way to estimate: EMI per ₹1 lakh</h2>
+
+<table>
+<thead><tr><th>Rate and tenure (examples)</th><th>EMI per ₹1,00,000</th></tr></thead>
+<tbody>
+<tr><td>10% for 3 years</td><td>₹3,227</td></tr>
+<tr><td>10% for 5 years</td><td>₹2,125</td></tr>
+<tr><td>12% for 5 years</td><td>₹2,224</td></tr>
+<tr><td>14% for 3 years</td><td>₹3,418</td></tr>
+</tbody>
+</table>
+<p>Multiply by the number of lakhs you want to borrow. For ₹4 lakh at 12% for 5 years, for example: 4 × ₹2,224 = about ₹8,900 a month.</p>
+
+<h2>Tenure: lower EMI, higher total cost</h2>
+<p>A longer tenure lowers the EMI but increases the total interest, because you owe money for longer. For a loan of ₹5,00,000 at 12% (example rate), a 3-year tenure means an EMI of ₹16,607 and interest of ₹97,858. A 5-year tenure brings the EMI down to ₹11,122 but raises the interest to ₹1,67,333. Choose the shortest tenure whose EMI you can comfortably afford.</p>
+
+<h2>How much EMI can you afford?</h2>
+<p>Lenders look at how much of your monthly income already goes to EMIs, and each lender sets its own limit. For your own budget, list your fixed monthly expenses, keep money aside for savings and emergencies, and make sure the new EMI fits in what's left, even in a month with unexpected expenses.</p>
+
+<h2>Prepayment: reduce the EMI or the tenure?</h2>
+
+<p>Say that in our ₹5,00,000 example you prepay <strong>₹50,000 after 12 EMIs</strong>, when about ₹4,18,866 is outstanding. Most lenders give you two choices:</p>
+
+<table>
+<thead><tr><th>Option</th><th>What changes</th><th>Interest saved</th></tr></thead>
+<tbody>
+<tr><td>Keep the EMI, reduce the tenure</td><td>Loan ends 6 months earlier (42 more EMIs instead of 48)</td><td>about ₹22,669</td></tr>
+<tr><td>Keep the tenure, reduce the EMI</td><td>EMI falls from ₹10,624 to about ₹9,355</td><td>about ₹10,870</td></tr>
+</tbody>
+</table>
+
+<p>Reducing the tenure saves more interest. Reducing the EMI gives you more breathing room each month. Before prepaying, check your loan's prepayment charges. Fixed-rate loans often have them, which reduces the saving.</p>
+
+<h2>Things the basic EMI formula doesn't show</h2>
+<ul>
+<li><strong>Processing fees and other charges.</strong> The annual percentage rate (APR) in the lender's Key Fact Statement includes them.</li>
+<li><strong>Floating rates.</strong> If the rate changes, the lender changes your EMI or your tenure.</li>
+<li><strong>Broken-period interest.</strong> If the loan is disbursed mid-month, there may be extra interest for the days before your first EMI cycle.</li>
+<li><strong>Flat-rate quotes.</strong> Some offers quote a "flat" rate calculated on the original amount for the whole tenure. Its real cost is much higher than the same number quoted as a reducing-balance rate, so always ask which one you are being quoted.</li>
+</ul>
+
+<h2>Frequently asked questions</h2>
+
+<h3>Is the EMI the same for every month?</h3>
+<p>For fixed-rate loans, yes. The first EMI may differ slightly if there is broken-period interest. For floating-rate loans, the EMI can change when the rate changes.</p>
+
+<h3>Why is so much of my early EMI going to interest?</h3>
+<p>Interest is charged on the outstanding balance, which is highest at the start. As you repay, the interest part falls and the principal part grows.</p>
+
+<h3>Does a lower EMI mean a cheaper loan?</h3>
+<p>Not necessarily. A lower EMI often comes from a longer tenure, which increases the total interest. Compare the total amount payable and the APR.</p>
+
+<h3>Where can I calculate my EMI?</h3>
+<p>Use the free <a href="/emi-calculator">EzyLoan EMI calculator</a> for car, personal and property loans. When you're ready, <a href="/apply-now">apply online</a> and we'll help you compare offers from partner lenders.</p>
+
+<p><em>All rates and EMIs in this article are illustrative and rounded to the nearest rupee. Actual terms are decided by the lender. EzyLoan is a loan facilitator (DSA), not a lender.</em></p>

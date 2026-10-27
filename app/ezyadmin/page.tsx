@@ -13,7 +13,6 @@ import {
   Eye,
   CheckCircle,
   XCircle,
-  Menu,
   X,
   Lock,
   User as UserIcon,
@@ -43,8 +42,11 @@ import {
   Archive,
   AlertTriangle,
   Clock,
-  Megaphone
+  Megaphone,
+  LineChart
 } from 'lucide-react';
+import './admin.css';
+import SeoTrafficPanel from '@/components/admin/SeoTrafficPanel';
 import { runSeoChecklist, sanitizeSlug, type SeoCheckResult } from '@/lib/blog';
 import axios from 'axios';
 import AdminLoginForm from '@/components/AdminLoginForm';
@@ -371,7 +373,6 @@ function AdminDashboard({
   waUnread?: number;
   markWaSeen?: () => void;
 }) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [accountTab, setAccountTab] = useState('profile');
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -420,6 +421,7 @@ function AdminDashboard({
   // of one long list. `hidden` items (Account) belong to no sidebar group.
   const menuItems = [
     { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview' },
+    { id: 'seoTraffic', name: 'SEO & Traffic', icon: LineChart, component: SeoTrafficPanel, group: 'Overview' },
     { id: 'siteHealth', name: 'Website Health', icon: ShieldCheck, component: SiteHealth, group: 'Overview' },
     { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager, group: 'Leads & CRM' },
     { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager, group: 'Leads & CRM' },
@@ -446,6 +448,10 @@ function AdminDashboard({
   ];
 
   // Order the section labels appear in the sidebar.
+  const GROUP_ICONS: Record<string, React.ElementType> = {
+    Overview: LayoutDashboard, 'Leads & CRM': Target, 'Growth & Automation': Megaphone,
+    'Website Content': FolderOpen, 'AI Assistants': Brain, Administration: ShieldCheck,
+  };
   const GROUP_ORDER = ['Overview', 'Leads & CRM', 'Growth & Automation', 'Website Content', 'AI Assistants', 'Administration'];
 
   // Role-based visibility: admins (anything not explicitly 'employee') see every
@@ -821,180 +827,88 @@ function AdminDashboard({
     setAccountTab(t);
     setCurrentPage('account');
     setProfileOpen(false);
-    setIsMobileMenuOpen(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50" id="admin-app">
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar — flex column so the nav scrolls between a fixed logo header
-          and a fixed user/logout footer (12+ tabs would otherwise overflow). */}
-      <div
-        className={`fixed top-0 left-0 z-50 h-screen w-64 bg-white shadow-xl flex flex-col transform transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
-      >
-        {/* Logo header (fixed) */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/ezy-logo.webp" alt="EzyLoan" className="h-9 w-auto" />
-            <span className="text-[11px] font-bold text-gray-400 tracking-widest uppercase">Admin</span>
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden text-gray-500 hover:text-gray-700">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
+  // Top tab row = sidebar groups; a group with several sections shows them as
+  // sub-tabs underneath (same pattern as the Mappingg super-admin).
+  const groupItemsOf = (g: string) => visibleMenuItems.filter((item) => (item as any).group === g);
+  const tabGroups = GROUP_ORDER.filter((g) => groupItemsOf(g).length > 0);
+  const activeGroup = (activeItem as any)?.group as string | undefined;
+  const subItems = activeGroup ? groupItemsOf(activeGroup) : [];
+  const go = (id: string) => {
+    setCurrentPage(id);
+    if (id === 'whatsappChats') markWaSeen?.();
+  };
+  const waBadge = (id: string) => (id === 'whatsappChats' && waUnread > 0 ? (waUnread > 99 ? '99+' : String(waUnread)) : '');
 
-        {/* Scrollable nav — tabs organised under labelled section headers. */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3">
-          {GROUP_ORDER.map((group) => {
-            const groupItems = visibleMenuItems.filter((item) => (item as any).group === group);
-            if (groupItems.length === 0) return null;
+  return (
+    <div className="adm2" id="admin-app">
+      <header className="adm2-top">
+        <a className="adm2-brand" href="/" target="_blank" rel="noopener" aria-label="EzyLoan home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/ezy-logo.webp" alt="EzyLoan" />
+          <span className="sep" aria-hidden="true" />
+          <span><small>{isAdminUser ? 'Super admin' : 'Team panel'}</small></span>
+        </a>
+        <div className="adm2-top-right" ref={profileMenuRef}>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <a className="adm-chip" href="/" title="Go to website home page">
+            <Home size={14} /> <span className="adm-hide-sm">View site</span>
+          </a>
+          <button className="adm-chip" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu" aria-expanded={profileOpen}>
+            <span className="who">{initials}</span>
+            <span className="who-meta"><b>{displayName}</b><small>{isAdminUser ? 'Administrator' : 'Employee'}</small></span>
+            <ChevronDown size={13} className="text-gray-400" />
+          </button>
+          {profileOpen && (
+            <div className="adm2-menu">
+              <div className="adm2-menu-head"><b>{displayName}</b><small>{company}</small></div>
+              <div className="adm2-menu-sep" />
+              <button onClick={() => openAccount('profile')}><UserIcon size={15} /> Profile</button>
+              <button onClick={() => openAccount('notifications')}><SettingsIcon size={15} /> Settings</button>
+              <button onClick={() => openAccount('subscription')}><CreditCard size={15} /> Subscription</button>
+              <button onClick={() => openAccount('profile')}><Smartphone size={15} /> Mobile App</button>
+              <a href="/faq" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)}><BookOpen size={15} /> User Guide</a>
+              <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)}><MessageCircle size={15} /> Live Chat Support</a>
+              <div className="adm2-menu-sep" />
+              <button className="danger" onClick={onLogout}><LogOut size={15} /> Log Out</button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <nav className="adm2-tabs" aria-label="Admin sections">
+        {tabGroups.map((g) => {
+          const members = groupItemsOf(g);
+          const active = g === activeGroup;
+          const Icon = GROUP_ICONS[g] || members[0].icon;
+          const badge = members.map((m) => waBadge(m.id)).find(Boolean);
+          return (
+            <button key={g} className={`adm2-tab${active ? ' active' : ''}`} onClick={() => { if (!active) go(members[0].id); }}>
+              <Icon size={15} /> {members.length === 1 ? members[0].name : g}
+              {badge && <span className="tab-badge">{badge}</span>}
+            </button>
+          );
+        })}
+      </nav>
+
+      {subItems.length > 1 && (
+        <div className="adm2-subtabs" role="tablist">
+          {subItems.map((item) => {
+            const Icon = item.icon;
+            const badge = waBadge(item.id);
             return (
-              <div key={group} className="mb-4">
-                <p className="px-4 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">{group}</p>
-                <div className="space-y-1">
-                  {groupItems.map((item) => {
-                    const Icon = item.icon;
-                    const showWaBadge = item.id === 'whatsappChats' && waUnread > 0;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setCurrentPage(item.id);
-                          setIsMobileMenuOpen(false);
-                          // Opening the chats tab clears the new-message badge.
-                          if (item.id === 'whatsappChats') markWaSeen?.();
-                        }}
-                        className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors
-                        ${currentPage === item.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"}`}
-                      >
-                        <Icon className="h-5 w-5 mr-3 flex-shrink-0" />
-                        <span className="truncate">{item.name}</span>
-                        {showWaBadge && (
-                          <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0">
-                            {waUnread > 99 ? '99+' : waUnread}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <button key={item.id} role="tab" aria-selected={currentPage === item.id} className={currentPage === item.id ? 'on' : ''} onClick={() => go(item.id)}>
+                <Icon size={13} /> {item.name}
+                {badge && <span className="tab-badge">{badge}</span>}
+              </button>
             );
           })}
-        </nav>
-
-        {/* User + logout (fixed) */}
-        <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-              <Users className="h-5 w-5 text-white" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-gray-800 truncate">{(user as any)?.name || user?.username || 'Admin'}</p>
-              <p className="text-xs text-gray-500">{isAdminUser ? 'Administrator' : 'Employee'}</p>
-            </div>
-          </div>
-          <button onClick={onLogout} className="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-md transition-colors">
-            <LogOut className="h-4 w-4 mr-2" />
-            <span>Logout</span>
-          </button>
         </div>
-      </div>
+      )}
 
-      {/* Main content */}
-      <div className="lg:ml-64">
-        <div className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
-          <div className="flex items-center gap-3 min-w-0">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden text-gray-500 hover:text-gray-700 flex-shrink-0">
-              <Menu className="h-6 w-6" />
-            </button>
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate">
-              {activeItem?.name || 'Dashboard'}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            {/* Back to the public website home page (the app opens straight into
-                admin, so this is the way out to the site). */}
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a
-              href="/"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-sm font-medium hover:bg-blue-100 transition"
-              title="Go to website home page"
-            >
-              <Home className="h-4 w-4" />
-              <span className="hidden sm:inline">Home</span>
-            </a>
-
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/ezy-logo.webp" alt="EzyLoan" className="h-8 w-auto lg:hidden" />
-
-            {/* Profile dropdown — same items as the EzyLoanCrm nav menu */}
-            <div className="relative" ref={profileMenuRef}>
-              <button
-                onClick={() => setProfileOpen((o) => !o)}
-                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 transition"
-                aria-label="Account menu"
-              >
-                <span className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 ring-2 ring-white shadow flex items-center justify-center text-white text-xs font-bold">
-                  {initials}
-                </span>
-                <span className="hidden sm:block text-sm font-semibold text-gray-700 max-w-[140px] truncate">{displayName}</span>
-                <ChevronDown size={15} className="text-gray-400 hidden sm:block" />
-              </button>
-
-              {profileOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
-                  <div className="flex flex-col items-center px-4 py-3 border-b border-gray-100">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-sm font-bold mb-2">
-                      {initials}
-                    </div>
-                    <p className="text-sm font-semibold text-gray-900 capitalize">{displayName}</p>
-                    <p className="text-xs text-gray-500 truncate max-w-full">{company}</p>
-                    <span className="mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 capitalize">
-                      {isAdminUser ? 'Administrator' : 'Employee'}
-                    </span>
-                  </div>
-                  <div className="py-1">
-                    <button onClick={() => openAccount('profile')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
-                      <UserIcon size={15} className="text-gray-400" /> Profile
-                    </button>
-                    <button onClick={() => openAccount('notifications')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
-                      <SettingsIcon size={15} className="text-gray-400" /> Settings
-                    </button>
-                    <button onClick={() => openAccount('subscription')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
-                      <CreditCard size={15} className="text-gray-400" /> Subscription
-                    </button>
-                    <button onClick={() => openAccount('profile')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
-                      <Smartphone size={15} className="text-gray-400" /> Mobile App
-                    </button>
-                    <a href="/faq" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
-                      <BookOpen size={15} className="text-gray-400" /> User Guide
-                    </a>
-                    <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" onClick={() => setProfileOpen(false)} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 transition">
-                      <MessageCircle size={15} className="text-gray-400" /> Live Chat Support
-                    </a>
-                  </div>
-                  <div className="border-t border-gray-100 pt-1">
-                    <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition font-medium">
-                      <LogOut size={15} /> Log Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 md:p-6">
+      <main className={`adm2-main${subItems.length > 1 ? ' has-subtabs' : ''}`}>
+        <div className="adm-content">
           {!CurrentComponent ? (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-16 text-center">
               <ShieldCheck size={36} className="text-blue-400 mx-auto mb-3" />
@@ -1052,7 +966,7 @@ function AdminDashboard({
           />
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
