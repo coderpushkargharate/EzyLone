@@ -79,7 +79,10 @@ export function useFormGuard() {
       <div
         ref={anchorRef}
         aria-hidden="true"
-        style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }}
+        style={{
+          position: 'absolute', left: '-9999px', top: 0, width: '1px', height: '1px', overflow: 'hidden',
+          clipPath: 'inset(50%)', opacity: 0, pointerEvents: 'none', whiteSpace: 'nowrap',
+        }}
       >
         <label htmlFor={HONEYPOT_FIELD}>Company website (leave this empty)</label>
         <input

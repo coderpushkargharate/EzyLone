@@ -1,8 +1,10 @@
 'use client';
 
-import { AD_CONSENT_TEXT } from '@/lib/marketing/consentText';
+import { useState } from 'react';
+import { AD_CONSENT_SHORT, AD_CONSENT_TEXT } from '@/lib/marketing/consentText';
 
 // Optional, unticked-by-default ad-measurement consent. Never required to submit a form.
+// Shows a one-line summary; "Read more" expands the full wording.
 export default function AdConsentCheckbox({
   checked,
   onChange,
@@ -14,17 +16,32 @@ export default function AdConsentCheckbox({
   tone?: 'light' | 'dark';
   id?: string;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const dark = tone === 'dark';
+
   return (
-    <label htmlFor={id} className="flex items-start gap-2 cursor-pointer">
+    <div className="flex items-start gap-2 text-left">
       <input
         id={id}
         type="checkbox"
         name="adConsent"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 w-4 h-4 shrink-0 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        className="mt-0.5 w-4 h-4 shrink-0 cursor-pointer text-blue-600 border-gray-300 rounded focus:ring-blue-500"
       />
-      <span className={`text-[11px] leading-snug ${tone === 'dark' ? 'text-blue-100' : 'text-gray-500'}`}>{AD_CONSENT_TEXT}</span>
-    </label>
+      <div className={`min-w-0 text-xs leading-relaxed break-words whitespace-normal ${dark ? 'text-white/90' : 'text-gray-600'}`}>
+        <label htmlFor={id} className="cursor-pointer">
+          {expanded ? AD_CONSENT_TEXT : AD_CONSENT_SHORT}
+        </label>{' '}
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className={`font-semibold underline underline-offset-2 ${dark ? 'text-white' : 'text-blue-600'}`}
+        >
+          {expanded ? 'Read less' : 'Read more'}
+        </button>
+      </div>
+    </div>
   );
 }
