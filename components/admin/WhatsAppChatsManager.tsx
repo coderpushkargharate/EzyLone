@@ -421,13 +421,11 @@ export default function WhatsAppChatsManager({ embedded = false }: { embedded?: 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         {!embedded && (
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 flex-shrink-0">
-              <MessageSquareText className="w-6 h-6 text-white" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900">WhatsApp Chats</h2>
-              <p className="hidden sm:block text-sm text-gray-500">Read real conversations users have with the Ezy AI WhatsApp bot.</p>
+          <div className="pg-head" style={{ margin: 0, flex: '1 1 auto', minWidth: 0 }}>
+            <span className="pg-head-ic" aria-hidden="true"><MessageSquareText size={26} /></span>
+            <div className="pg-head-t">
+              <h2>WhatsApp Chats</h2>
+              <p>Read real conversations users have with the Ezy AI WhatsApp bot.</p>
             </div>
           </div>
         )}

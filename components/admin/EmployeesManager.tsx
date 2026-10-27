@@ -6,6 +6,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash2, Edit2, X, Mail, ShieldCheck, Loader2, Check, Ban, CircleCheck } from 'lucide-react';
+import { PageHead } from './PageHead';
 import { ASSIGNABLE_TABS } from '@/lib/adminTabs';
 import { cn } from '@/lib/utils';
 
@@ -63,18 +64,11 @@ export default function EmployeesManager() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Create staff logins and control which sections each can access</p>
-        </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
-        >
+      <PageHead icon={ShieldCheck} title="Employees" sub="Create staff logins and control which sections each can access.">
+        <button type="button" className="pg-btn" onClick={openCreate}>
           <Plus size={16} /> Add Employee
         </button>
-      </div>
+      </PageHead>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">

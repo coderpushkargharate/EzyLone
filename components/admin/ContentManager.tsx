@@ -8,7 +8,9 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   Plus, Search, Folder, ChevronRight, Trash2, Zap, MessageSquare,
   Paperclip, FileText, Upload, Radio, Bot, X,
+  FolderOpen,
 } from 'lucide-react';
+import { PageHead } from './PageHead';
 import { cn } from '@/lib/utils';
 
 interface ContentItem {
@@ -81,15 +83,11 @@ export default function ContentManager() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Content</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
-        >
+      <PageHead icon={FolderOpen} title="Content" sub="Website content, documents and files.">
+        <button type="button" className="pg-btn" onClick={() => setShowModal(true)}>
           <Plus size={16} /> {actionButton.label}
         </button>
-      </div>
+      </PageHead>
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex items-center gap-6 px-6 pt-4 border-b border-gray-100">

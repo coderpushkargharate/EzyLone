@@ -25,7 +25,9 @@ import {
   Activity as ActivityIcon,
   CheckSquare,
   Square,
+  Target,
 } from 'lucide-react';
+import { PageHead } from './PageHead';
 import { GROUPS, groupStyle } from '@/lib/groups';
 import { cn } from '@/lib/utils';
 
@@ -208,19 +210,11 @@ function LeadsList({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Website enquiries &amp; CRM clients in one place</p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-sm"
-        >
-          <Plus size={16} />
-          Add New Client
+      <PageHead icon={Target} title="Lead Management" sub="Website enquiries & CRM clients in one place.">
+        <button type="button" className="pg-btn" onClick={() => setShowAddModal(true)}>
+          <Plus size={16} /> Add New Client
         </button>
-      </div>
+      </PageHead>
 
       {/* Main Card */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm">

@@ -5,6 +5,7 @@ import {
   ShieldCheck, Activity, RefreshCw, CheckCircle2, XCircle, AlertTriangle,
   Gauge, TrendingUp, Users, FileText, Search, Info,
 } from 'lucide-react';
+import { PageHead } from './PageHead';
 
 // Website Health — a single "is everything OK?" dashboard for the owner.
 //   • Live security + SEO self-checks (HTTPS, headers, robots, sitemap, response time)
@@ -93,18 +94,11 @@ export default function SiteHealth() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
-          <ShieldCheck className="h-7 w-7 text-blue-600" />
-          <div>
-            <h3 className="text-2xl font-bold text-gray-800">Website Health</h3>
-            <p className="text-gray-600 text-sm">Security, SEO, speed and daily leads — all in one place.</p>
-          </div>
-        </div>
-        <button onClick={fetchData} className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-sm flex items-center gap-1">
+      <PageHead icon={ShieldCheck} title="Website Health" sub="Security, SEO, speed and daily leads — all in one place.">
+        <button type="button" className="pg-btn ghost" onClick={fetchData}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
-      </div>
+      </PageHead>
 
       {loading && !data ? (
         <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" /></div>

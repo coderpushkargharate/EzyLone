@@ -6,7 +6,7 @@
 // contact / loan forms at all (403 before anything is saved or emailed).
 
 import { useEffect, useState, useCallback } from 'react';
-import { Ban, Trash2, Loader2, ShieldAlert, Plus } from 'lucide-react';
+import { Ban, Trash2, Loader2, Plus } from 'lucide-react';
 
 interface Blocked {
   _id: string;
@@ -64,15 +64,6 @@ export default function BlockedIpsManager() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <ShieldAlert className="w-6 h-6 text-red-600" /> Blocked IPs
-        </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Spammers are blocked automatically; you can also block or unblock an IP here.
-        </p>
-      </div>
-
       {/* Manual block */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
         <input

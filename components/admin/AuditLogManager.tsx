@@ -2,7 +2,6 @@
 
 // Admin-only history of sensitive actions (GET /api/admin/audit-log).
 import { useEffect, useState } from 'react';
-import { ScrollText } from 'lucide-react';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -23,8 +22,6 @@ export default function AuditLogManager() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-1"><ScrollText size={22} className="text-blue-500" /><h1 className="text-2xl font-bold text-gray-900">Audit Log</h1></div>
-      <p className="text-gray-500 text-sm mb-4">Configuration changes, integration connections, exports, user/permission changes, blog publication and manual conversion actions.</p>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
         <select aria-label="Action" className="border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3" value={action} onChange={(e) => { setPage(1); setAction(e.target.value); }}>
           {ACTIONS.map((a) => <option key={a} value={a}>{a ? a.replace(/_/g, ' ') : 'All actions'}</option>)}

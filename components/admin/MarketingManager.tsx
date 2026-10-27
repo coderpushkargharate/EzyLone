@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SearchConsoleView, AnalyticsView } from './SearchAnalyticsViews';
 import CredentialsPanel from './CredentialsPanel';
 import {
-  Megaphone, RefreshCw, CheckCircle2, AlertTriangle, XCircle, Link2, Unlink, Download, Play,
+  RefreshCw, CheckCircle2, AlertTriangle, XCircle, Link2, Unlink, Download, Play,
   Facebook, Search, Settings2, ListChecks, History, BarChart3, Copy, Check, Info,
 } from 'lucide-react';
 
@@ -192,12 +192,6 @@ export default function MarketingManager() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-1">
-        <Megaphone size={22} className="text-blue-500" />
-        <h1 className="text-2xl font-bold text-gray-900">Marketing &amp; Ads</h1>
-      </div>
-      <p className="text-gray-500 text-sm mb-4">Meta &amp; Google connections, CRM-confirmed results, and conversion delivery to ad platforms.</p>
-
       <div className="flex gap-1 overflow-x-auto pb-1 mb-4 -mx-1 px-1" role="tablist">
         {tabs.map((t) => (
           <button

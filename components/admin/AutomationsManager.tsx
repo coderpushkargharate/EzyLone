@@ -125,10 +125,6 @@ export default function AutomationsManager() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Automations</h1>
-      </div>
-
       {/* Email-to-Lead */}
       <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
         <div className="flex items-start gap-3">

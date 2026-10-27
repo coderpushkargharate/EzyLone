@@ -114,8 +114,6 @@ export default function AccountManager({ accountInitialTab }: { accountInitialTa
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Account</h1>
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="grid md:grid-cols-[220px_1fr]">
           {/* Sub-nav */}

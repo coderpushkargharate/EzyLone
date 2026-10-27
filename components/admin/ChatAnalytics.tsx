@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
-  BarChart3, RefreshCw, MessageSquare, Mic, CheckCircle2, HelpCircle,
+  RefreshCw, MessageSquare, Mic, CheckCircle2, HelpCircle,
   TrendingUp, Award, Globe, MessageCircle,
 } from 'lucide-react';
 
@@ -78,14 +78,6 @@ export default function ChatAnalytics() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center gap-3">
-        <BarChart3 className="h-7 w-7 text-blue-600" />
-        <div>
-          <h3 className="text-2xl font-bold text-gray-800">Ezy AI Insights</h3>
-          <p className="text-gray-600 text-sm">How visitors use the chatbot — volume, answer rate, and voice usage.</p>
-        </div>
-      </div>
-
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="flex rounded-md overflow-hidden border border-gray-200">

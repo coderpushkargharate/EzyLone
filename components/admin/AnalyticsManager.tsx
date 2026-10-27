@@ -4,7 +4,8 @@
 // is rendered with plain CSS bars (EzyLone has no recharts dependency).
 
 import { useEffect, useState } from 'react';
-import { Users, TrendingUp, UserCheck, Target, Activity as ActivityIcon, LayoutGrid } from 'lucide-react';
+import { Users, TrendingUp, UserCheck, Target, Activity as ActivityIcon, BarChart3 } from 'lucide-react';
+import { PageHead } from './PageHead';
 
 interface AnalyticsData {
   stats: {
@@ -66,7 +67,7 @@ export default function AnalyticsManager() {
   if (loading || !data) {
     return (
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Advanced Analytics</h1>
+        <PageHead icon={BarChart3} title="CRM Analytics" sub="Real-time insights into your leads, sales funnel, and activity." />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 bg-white rounded-2xl border border-gray-200 animate-pulse" />)}
         </div>
@@ -100,11 +101,7 @@ export default function AnalyticsManager() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-1">
-        <LayoutGrid size={22} className="text-blue-500" />
-        <h1 className="text-2xl font-bold text-gray-900">Advanced Analytics</h1>
-      </div>
-      <p className="text-gray-500 text-sm mb-6">Real-time insights into your leads, sales funnel, and activity — {conversionRate}% conversion rate.</p>
+      <PageHead icon={BarChart3} title="CRM Analytics" sub={`Real-time insights into your leads, sales funnel, and activity — ${conversionRate}% conversion rate.`} />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

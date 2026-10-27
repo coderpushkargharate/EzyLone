@@ -55,8 +55,6 @@ export default function TeamManager() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Team</h1>
-
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex items-center gap-6 px-6 pt-4 border-b border-gray-100 overflow-x-auto">
           {TABS.map((t) => (

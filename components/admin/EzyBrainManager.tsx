@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
-  Brain, Plus, Trash2, Edit, Save, X, GraduationCap, RefreshCw, Check, MessageCircle,
+  Brain, Plus, Trash2, Edit, Save, X, GraduationCap, RefreshCw, Check,
   Upload, Send, FlaskConical,
 } from 'lucide-react';
 
@@ -272,18 +272,6 @@ export default function EzyBrainManager({ scope = 'web' }: { scope?: Scope }) {
 
   return (
     <div>
-      <div className="mb-6 flex items-center gap-3">
-        {isWa ? <MessageCircle className="h-7 w-7 text-green-600" /> : <Brain className="h-7 w-7 text-blue-600" />}
-        <div>
-          <h3 className="text-2xl font-bold text-gray-800">{isWa ? 'WhatsApp AI Brain' : 'Ezy AI Brain'}</h3>
-          <p className="text-gray-600 text-sm">
-            {isWa
-              ? 'Train what your WhatsApp bot auto-replies — from your own database, no external AI API.'
-              : 'Train the chatbot from your own database — no external AI API.'}
-          </p>
-        </div>
-      </div>
-
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button

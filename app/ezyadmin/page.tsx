@@ -43,9 +43,16 @@ import {
   AlertTriangle,
   Clock,
   Megaphone,
-  LineChart
+  LineChart,
+  Search,
+  Calendar,
+  ExternalLink,
+  ArrowRight,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import './admin.css';
+import { PageHead } from '@/components/admin/PageHead';
 import SeoTrafficPanel from '@/components/admin/SeoTrafficPanel';
 import { runSeoChecklist, sanitizeSlug, type SeoCheckResult } from '@/lib/blog';
 import axios from 'axios';
@@ -386,6 +393,47 @@ function AdminDashboard({
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
+
+  // Header search + grouped nav dropdown (same behaviour as the Mappingg admin).
+  const [q, setQ] = useState('');
+  const [searchFocus, setSearchFocus] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const [navOpen, setNavOpen] = useState<string | null>(null);
+  const [navPos, setNavPos] = useState({ left: 0, top: 0 });
+  const navRef = useRef<HTMLElement>(null);
+  const ddRef = useRef<HTMLDivElement>(null);
+  // Close the nav dropdown on an outside tap, Escape, resize or nav scroll.
+  useEffect(() => {
+    if (!navOpen) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (ddRef.current?.contains(t) || navRef.current?.contains(t)) return;
+      setNavOpen(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setNavOpen(null); };
+    const close = () => setNavOpen(null);
+    const nav = navRef.current;
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', close);
+    window.addEventListener('scroll', close, true);
+    nav?.addEventListener('scroll', close);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('scroll', close, true);
+      nav?.removeEventListener('scroll', close);
+    };
+  }, [navOpen]);
+  // Date pill — set on the client so it always shows the viewer's local date.
+  const [today, setToday] = useState('');
+  useEffect(() => {
+    setToday(new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }));
+  }, []);
+
   const [dashboardStats, setDashboardStats] = useState({
     totalContacts: 0,
     totalLoanApplications: 0,
@@ -419,32 +467,35 @@ function AdminDashboard({
   // Menu items configuration. `group` sorts each tab under a labelled section
   // in the sidebar so the 15+ tabs read as an organised, advanced panel instead
   // of one long list. `hidden` items (Account) belong to no sidebar group.
-  const menuItems = [
-    { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview' },
-    { id: 'seoTraffic', name: 'SEO & Traffic', icon: LineChart, component: SeoTrafficPanel, group: 'Overview' },
-    { id: 'siteHealth', name: 'Website Health', icon: ShieldCheck, component: SiteHealth, group: 'Overview' },
-    { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager, group: 'Leads & CRM' },
-    { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager, group: 'Leads & CRM' },
-    { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager, group: 'Leads & CRM' },
-    { id: 'activities', name: 'Activities', icon: ActivityIcon, component: ActivitiesManager, group: 'Leads & CRM' },
-    { id: 'team', name: 'Team', icon: Network, component: TeamManager, group: 'Leads & CRM' },
-    { id: 'analytics', name: 'CRM Analytics', icon: BarChart3, component: AnalyticsManager, group: 'Leads & CRM' },
-    { id: 'automations', name: 'Automations', icon: Zap, component: AutomationsManager, group: 'Growth & Automation' },
-    { id: 'marketing', name: 'Marketing & Ads', icon: Megaphone, component: MarketingManager, group: 'Growth & Automation' },
-    { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager, group: 'Website Content' },
-    { id: 'content', name: 'Content', icon: FolderOpen, component: ContentManager, group: 'Website Content' },
-    { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager, group: 'Website Content' },
-    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager, group: 'Website Content' },
-    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager, group: 'AI Assistants' },
-    { id: 'ezyInsights', name: 'Ezy AI Insights', icon: BarChart3, component: ChatAnalytics, group: 'AI Assistants' },
-    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager, group: 'AI Assistants' },
-    { id: 'whatsappChats', name: 'WhatsApp Chats', icon: MessageSquareText, component: WhatsAppChatsManager, group: 'AI Assistants' },
-    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration' },
-    { id: 'blockedIps', name: 'Blocked IPs', icon: ShieldAlert, component: BlockedIpsManager, adminOnly: true, group: 'Administration' },
-    { id: 'auditLog', name: 'Audit Log', icon: FileText, component: AuditLogManager, adminOnly: true, group: 'Administration' },
-    // `hidden` = reachable from the top-bar profile menu, not shown in the sidebar.
+  // `desc` = one line in the nav dropdown / search; `sub` = the line under the
+  // page title. `ownHead` = the component draws its own page title card
+  // (because it has buttons or live numbers in it); otherwise the shell does.
+  const menuItems: any[] = [
+    { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview', desc: 'Today at a glance', ownHead: true },
+    { id: 'seoTraffic', name: 'SEO & Traffic', icon: LineChart, component: SeoTrafficPanel, group: 'Overview', desc: 'Visitors, Analytics & Search Console', sub: 'Website traffic, Google Analytics 4 and Google Search Console.' },
+    { id: 'siteHealth', name: 'Website Health', icon: ShieldCheck, component: SiteHealth, group: 'Overview', desc: 'Security, SEO, speed & daily leads', ownHead: true },
+    { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager, group: 'Leads & CRM', desc: 'Website enquiries & CRM clients', ownHead: true },
+    { id: 'contacts', name: 'Contacts', icon: MessageSquare, component: ContactsManager, group: 'Leads & CRM', desc: 'Contact-form enquiries', sub: 'Customer enquiries and messages from the website contact form.' },
+    { id: 'loans', name: 'Loan Applications', icon: FileText, component: LoansManager, group: 'Leads & CRM', desc: 'Review & approve applications', sub: 'Review, approve or reject loan applications.' },
+    { id: 'activities', name: 'Activities', icon: ActivityIcon, component: ActivitiesManager, group: 'Leads & CRM', desc: 'Calls, notes & follow-ups', ownHead: true },
+    { id: 'team', name: 'Team', icon: Network, component: TeamManager, group: 'Leads & CRM', desc: 'Team structure & roles', sub: 'Who is on the team and what each person handles.' },
+    { id: 'analytics', name: 'CRM Analytics', icon: BarChart3, component: AnalyticsManager, group: 'Leads & CRM', desc: 'Funnel, sources & conversion', ownHead: true },
+    { id: 'automations', name: 'Automations', icon: Zap, component: AutomationsManager, group: 'Growth & Automation', desc: 'Lead sources, rules, import & export', sub: 'Lead sources, automatic rules, email-to-lead, import and export.' },
+    { id: 'marketing', name: 'Marketing & Ads', icon: Megaphone, component: MarketingManager, group: 'Growth & Automation', desc: 'Meta & Google ads, conversions', sub: 'Meta & Google connections, CRM-confirmed results, and conversion delivery to ad platforms.' },
+    { id: 'banners', name: 'Banners', icon: ImageIcon, component: BannersManager, group: 'Website Content', desc: 'Page banners & logo images', sub: 'Banners, partner logos and card images for each page of the website.' },
+    { id: 'content', name: 'Content', icon: FolderOpen, component: ContentManager, group: 'Website Content', desc: 'Website content & files', ownHead: true },
+    { id: 'blogs', name: 'Blog Manager', icon: FileText, component: BlogsManager, group: 'Website Content', desc: 'Write, review & publish posts', sub: 'Create, review and publish blog posts. A blog goes live only after it is Published.' },
+    { id: 'testimonials', name: 'Testimonials', icon: Users, component: TestimonialsManager, group: 'Website Content', desc: 'Customer reviews on the site', sub: 'Customer reviews shown on the website hero section.' },
+    { id: 'ezyBrain', name: 'Ezy AI Brain', icon: Brain, component: EzyBrainManager, group: 'AI Assistants', desc: 'Train the website chatbot', sub: 'Train the chatbot from your own database — no external AI API.' },
+    { id: 'ezyInsights', name: 'Ezy AI Insights', icon: BarChart3, component: ChatAnalytics, group: 'AI Assistants', desc: 'How visitors use the chatbot', sub: 'How visitors use the chatbot — volume, answer rate, and voice usage.' },
+    { id: 'whatsappBrain', name: 'WhatsApp AI Brain', icon: MessageCircle, component: WhatsAppBrainManager, group: 'AI Assistants', desc: 'Train WhatsApp auto-replies', sub: 'Train what your WhatsApp bot auto-replies — from your own database, no external AI API.' },
+    { id: 'whatsappChats', name: 'WhatsApp Chats', icon: MessageSquareText, component: WhatsAppChatsManager, group: 'AI Assistants', desc: 'Conversations with the bot', ownHead: true },
+    { id: 'employees', name: 'Employees', icon: ShieldCheck, component: EmployeesManager, adminOnly: true, group: 'Administration', desc: 'Staff logins & their access', ownHead: true },
+    { id: 'blockedIps', name: 'Blocked IPs', icon: ShieldAlert, component: BlockedIpsManager, adminOnly: true, group: 'Administration', desc: 'Block or unblock spam IPs', sub: 'Spammers are blocked automatically; you can also block or unblock an IP here.' },
+    { id: 'auditLog', name: 'Audit Log', icon: FileText, component: AuditLogManager, adminOnly: true, group: 'Administration', desc: 'Settings, export & access changes', sub: 'Configuration changes, integration connections, exports, user/permission changes, blog publication and manual conversion actions.' },
+    // `hidden` = reachable from the top-bar profile menu, not shown in the nav.
     // Everyone (admins + employees) can view/edit their own account.
-    { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true }
+    { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true, desc: 'Profile, settings & subscription', sub: 'Your profile, notifications, subscription and password.' }
   ];
 
   // Order the section labels appear in the sidebar.
@@ -829,17 +880,25 @@ function AdminDashboard({
     setProfileOpen(false);
   };
 
-  // Top tab row = sidebar groups; a group with several sections shows them as
-  // sub-tabs underneath (same pattern as the Mappingg super-admin).
-  const groupItemsOf = (g: string) => visibleMenuItems.filter((item) => (item as any).group === g);
+  // Top nav row = groups (same pattern as the Mappingg super-admin): a group with
+  // one section opens it directly; a group with several opens a dropdown menu.
+  const groupItemsOf = (g: string) => visibleMenuItems.filter((item) => item.group === g);
   const tabGroups = GROUP_ORDER.filter((g) => groupItemsOf(g).length > 0);
-  const activeGroup = (activeItem as any)?.group as string | undefined;
-  const subItems = activeGroup ? groupItemsOf(activeGroup) : [];
+  const activeGroup = activeItem?.group as string | undefined;
   const go = (id: string) => {
     setCurrentPage(id);
+    setNavOpen(null);
+    setQ('');
+    setSearchOpen(false);
     if (id === 'whatsappChats') markWaSeen?.();
   };
   const waBadge = (id: string) => (id === 'whatsappChats' && waUnread > 0 ? (waUnread > 99 ? '99+' : String(waUnread)) : '');
+
+  // Header search: jumps to any section the user may open.
+  const query = q.trim().toLowerCase();
+  const searchHits = query
+    ? reachableItems.filter((i) => `${i.name} ${i.desc || ''} ${i.group || ''}`.toLowerCase().includes(query)).slice(0, 8)
+    : [];
 
   return (
     <div className="adm2" id="admin-app">
@@ -850,15 +909,51 @@ function AdminDashboard({
           <span className="sep" aria-hidden="true" />
           <span><small>{isAdminUser ? 'Super admin' : 'Team panel'}</small></span>
         </a>
+
+        <div className={`adm2-search${searchOpen ? ' open' : ''}`} ref={searchRef}>
+          <Search size={16} />
+          <input
+            ref={searchInput}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onFocus={() => setSearchFocus(true)}
+            onBlur={() => setSearchFocus(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') { setQ(''); setSearchOpen(false); (e.target as HTMLInputElement).blur(); }
+              if (e.key === 'Enter' && searchHits[0]) go(searchHits[0].id);
+            }}
+            placeholder="Search sections — leads, loans, blogs, WhatsApp…"
+            aria-label="Search sections"
+          />
+          {searchOpen && <button type="button" className="adm2-search-x" onClick={() => { setQ(''); setSearchOpen(false); }} aria-label="Close search"><X size={16} /></button>}
+          {searchFocus && query && (
+            <div className="adm2-search-pop">
+              {searchHits.length ? searchHits.map((h) => {
+                const Icon = h.icon;
+                return (
+                  <button type="button" key={h.id} onMouseDown={(e) => e.preventDefault()} onClick={() => go(h.id)}>
+                    <span className="ic"><Icon size={15} /></span>
+                    <span><b>{h.name}</b><small>{h.group ? `${h.group} · ` : ''}{h.desc}</small></span>
+                  </button>
+                );
+              }) : <p className="muted">No matches for “{q.trim()}”.</p>}
+            </div>
+          )}
+        </div>
+
         <div className="adm2-top-right" ref={profileMenuRef}>
+          <button type="button" className="adm2-pill adm2-search-btn" onClick={() => { setSearchOpen(true); setTimeout(() => searchInput.current?.focus(), 30); }} aria-label="Search">
+            <Search size={16} />
+          </button>
+          {today && <span className="adm2-pill adm2-date"><Calendar size={15} /> {today}</span>}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a className="adm-chip" href="/" title="Go to website home page">
-            <Home size={14} /> <span className="adm-hide-sm">View site</span>
+          <a className="adm2-pill adm2-viewsite" href="/" target="_blank" rel="noopener" title="Open the website">
+            <ExternalLink size={15} /> <span className="adm-hide-sm">View site</span>
           </a>
-          <button className="adm-chip" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu" aria-expanded={profileOpen}>
+          <button className="adm2-user" onClick={() => setProfileOpen((o) => !o)} aria-label="Account menu" aria-expanded={profileOpen}>
             <span className="who">{initials}</span>
-            <span className="who-meta"><b>{displayName}</b><small>{isAdminUser ? 'Administrator' : 'Employee'}</small></span>
-            <ChevronDown size={13} className="text-gray-400" />
+            <span className="who-meta"><b>{displayName}</b><small>{isAdminUser ? 'Super Admin' : 'Employee'}</small></span>
+            <ChevronDown size={14} />
           </button>
           {profileOpen && (
             <div className="adm2-menu">
@@ -877,29 +972,43 @@ function AdminDashboard({
         </div>
       </header>
 
-      <nav className="adm2-tabs" aria-label="Admin sections">
+      <nav className="adm2-tabs" aria-label="Admin sections" ref={navRef}>
         {tabGroups.map((g) => {
           const members = groupItemsOf(g);
           const active = g === activeGroup;
-          const Icon = GROUP_ICONS[g] || members[0].icon;
+          const single = members.length === 1;
+          const Icon = single ? members[0].icon : (GROUP_ICONS[g] || members[0].icon);
           const badge = members.map((m) => waBadge(m.id)).find(Boolean);
           return (
-            <button key={g} className={`adm2-tab${active ? ' active' : ''}`} onClick={() => { if (!active) go(members[0].id); }}>
-              <Icon size={15} /> {members.length === 1 ? members[0].name : g}
+            <button
+              key={g}
+              className={`adm2-tab${active ? ' active' : ''}${navOpen === g ? ' open' : ''}`}
+              aria-haspopup={single ? undefined : 'menu'}
+              aria-expanded={single ? undefined : navOpen === g}
+              onClick={(e) => {
+                if (single) { go(members[0].id); return; }
+                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                setNavPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - 278)), top: r.bottom + 6 });
+                setNavOpen((o) => (o === g ? null : g));
+              }}
+            >
+              <Icon size={16} /> {single ? members[0].name : g}
               {badge && <span className="tab-badge">{badge}</span>}
+              {!single && <ChevronDown size={12} className="caret" />}
             </button>
           );
         })}
       </nav>
 
-      {subItems.length > 1 && (
-        <div className="adm2-subtabs" role="tablist">
-          {subItems.map((item) => {
+      {navOpen && (
+        <div className="adm2-dd" role="menu" ref={ddRef} style={{ left: navPos.left, top: navPos.top }}>
+          {groupItemsOf(navOpen).map((item) => {
             const Icon = item.icon;
             const badge = waBadge(item.id);
             return (
-              <button key={item.id} role="tab" aria-selected={currentPage === item.id} className={currentPage === item.id ? 'on' : ''} onClick={() => go(item.id)}>
-                <Icon size={13} /> {item.name}
+              <button key={item.id} role="menuitem" className={currentPage === item.id ? 'on' : ''} onClick={() => go(item.id)}>
+                <Icon size={17} />
+                <span><b>{item.name}</b><small>{item.desc}</small></span>
                 {badge && <span className="tab-badge">{badge}</span>}
               </button>
             );
@@ -907,8 +1016,11 @@ function AdminDashboard({
         </div>
       )}
 
-      <main className={`adm2-main${subItems.length > 1 ? ' has-subtabs' : ''}`}>
+      <main className="adm2-main">
         <div className="adm-content">
+          {CurrentComponent && !activeItem?.ownHead && (
+            <PageHead icon={activeItem.icon} title={activeItem.name} sub={activeItem.sub} />
+          )}
           {!CurrentComponent ? (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-16 text-center">
               <ShieldCheck size={36} className="text-blue-400 mx-auto mb-3" />
@@ -924,7 +1036,9 @@ function AdminDashboard({
             // Dashboard props
             stats={dashboardStats}
             analytics={analyticsData}
-            setCurrentPage={setCurrentPage}
+            setCurrentPage={go}
+            userName={displayName}
+            canOpen={(id: string) => reachableItems.some((i) => i.id === id)}
             // Banners props
             banners={banners}
             selectedPage={selectedPage}
@@ -971,175 +1085,261 @@ function AdminDashboard({
   );
 }
 
-// Lightweight dependency-free horizontal bar chart.
-function MiniBarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
-  const max = Math.max(1, ...data.map((d) => d.value));
-  if (data.length === 0) return <p className="text-sm text-gray-400">No data yet</p>;
+// ---------- Overview (same design as the Mappingg super-admin dashboard) ----------
+
+function timeAgo(at: string): string {
+  const s = Math.max(0, (Date.now() - new Date(at).getTime()) / 1000);
+  if (!Number.isFinite(s)) return '';
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  if (s < 86400 * 30) return `${Math.floor(s / 86400)}d ago`;
+  return new Date(at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
+/** % change of items created this calendar month vs last month (null = nothing to compare). */
+function monthGrowth(items: { createdAt?: string }[]): number | null {
+  const now = new Date();
+  const thisKey = `${now.getFullYear()}-${now.getMonth()}`;
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevKey = `${prev.getFullYear()}-${prev.getMonth()}`;
+  let cur = 0, last = 0;
+  for (const it of items) {
+    if (!it.createdAt) continue;
+    const d = new Date(it.createdAt);
+    const k = `${d.getFullYear()}-${d.getMonth()}`;
+    if (k === thisKey) cur++;
+    else if (k === prevKey) last++;
+  }
+  if (!last) return null;
+  return Math.round(((cur - last) / last) * 100);
+}
+
+function KpiCard({ icon: Icon, tone, value, label, growth, onClick }: { icon: React.ElementType; tone: string; value: number; label: string; growth?: number | null; onClick?: () => void }) {
   return (
-    <div className="space-y-3">
-      {data.map((d) => (
-        <div key={d.label}>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-700">{d.label}</span>
-            <span className="font-semibold text-gray-900">{d.value}</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2.5">
-            <div className={`${d.color} h-2.5 rounded-full transition-all`} style={{ width: `${(d.value / max) * 100}%` }} />
-          </div>
-        </div>
-      ))}
+    <button type="button" className={`ov-kpi ${tone}`} onClick={onClick}>
+      <span className={`ov-kpi-ic ${tone}`}><Icon size={24} /></span>
+      <span className="ov-kpi-row">
+        <span className="ov-kpi-main"><b>{(value || 0).toLocaleString('en-IN')}</b><span>{label}</span></span>
+        <span className="ov-kpi-delta">
+          {growth == null || growth === 0
+            ? <em className="flat">—</em>
+            : growth > 0
+              ? <em className="up"><TrendingUp size={14} /> {growth}%</em>
+              : <em className="down"><TrendingDown size={14} /> {Math.abs(growth)}%</em>}
+          <small>vs last month</small>
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function OvDonut({ slices, total, label }: { slices: { label: string; count: number; color: string }[]; total: number; label: string }) {
+  const R = 52, C = 2 * Math.PI * R;
+  let off = 0;
+  return (
+    <div className="ov-donut">
+      <svg viewBox="0 0 140 140" role="img" aria-label={`${total} ${label}`}>
+        <circle cx="70" cy="70" r={R} fill="none" stroke="#eef1f5" strokeWidth="20" />
+        {slices.map((s) => {
+          const len = total ? (s.count / total) * C : 0;
+          const el = <circle key={s.label} cx="70" cy="70" r={R} fill="none" stroke={s.color} strokeWidth="20"
+            strokeDasharray={`${len} ${C - len}`} strokeDashoffset={-off} transform="rotate(-90 70 70)"><title>{`${s.label}: ${s.count}`}</title></circle>;
+          off += len;
+          return el;
+        })}
+        <text x="70" y="70" textAnchor="middle" className="ov-donut-v">{total.toLocaleString('en-IN')}</text>
+        <text x="70" y="88" textAnchor="middle" className="ov-donut-l">{label}</text>
+      </svg>
+      <table className="ov-donut-legend">
+        <tbody>
+          {slices.map((s) => (
+            <tr key={s.label}>
+              <td><span className="dot" style={{ background: s.color }} />{s.label}</td>
+              <td className="n">{s.count.toLocaleString('en-IN')}</td>
+              <td className="p">{total ? Math.round((s.count / total) * 100) : 0}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
+function LeadsTrend({ days }: { days: { date: string; count: number }[] }) {
+  const W = 520, H = 120, P = { l: 26, r: 10, t: 10, b: 22 };
+  const max = Math.max(4, ...days.map((d) => d.count));
+  const step = Math.ceil(max / 4);
+  const top = step * 4;
+  const x = (i: number) => P.l + (i * (W - P.l - P.r)) / Math.max(1, days.length - 1);
+  const y = (v: number) => P.t + (1 - v / top) * (H - P.t - P.b);
+  const line = days.map((d, i) => `${x(i)},${y(d.count)}`).join(' ');
+  const label = (d: string) => new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  const ticks = days.length ? [0, 7, 14, 21, days.length - 1].filter((i) => i < days.length) : [];
+  return (
+    <svg className="ov-trend" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Enquiries per day, last 30 days">
+      {[0, 1, 2, 3, 4].map((k) => (
+        <g key={k}>
+          <line x1={P.l} x2={W - P.r} y1={y(k * step)} y2={y(k * step)} className="grid" />
+          <text x={P.l - 6} y={y(k * step) + 3} textAnchor="end">{k * step}</text>
+        </g>
+      ))}
+      {days.length > 1 && <polygon points={`${x(0)},${y(0)} ${line} ${x(days.length - 1)},${y(0)}`} className="area" />}
+      <polyline points={line} className="line" />
+      {days.map((d, i) => (
+        <circle key={d.date} cx={x(i)} cy={y(d.count)} r={d.count ? 3 : 2} className="pt"><title>{`${label(d.date)}: ${d.count} enquir${d.count === 1 ? 'y' : 'ies'}`}</title></circle>
+      ))}
+      {ticks.map((i) => <text key={i} x={x(i)} y={H - 4} textAnchor="middle">{label(days[i].date)}</text>)}
+    </svg>
+  );
+}
+
+const LOAN_STATUS: { key: string; label: string; color: string }[] = [
+  { key: 'approved', label: 'Approved', color: '#16a34a' },
+  { key: 'pending', label: 'Pending', color: '#e0a526' },
+  { key: 'rejected', label: 'Rejected', color: '#dc2626' },
+];
+
 // Dashboard Overview Component
-function DashboardOverview({ stats, analytics, setCurrentPage }: { stats: any; analytics?: { loans: any[]; contacts: any[] }; setCurrentPage?: (page: string) => void }) {
+function DashboardOverview({ stats, analytics, setCurrentPage, userName, canOpen }: {
+  stats: any; analytics?: { loans: any[]; contacts: any[] }; setCurrentPage?: (page: string) => void;
+  userName?: string; canOpen?: (id: string) => boolean;
+}) {
+  const [hour, setHour] = useState<number | null>(null);
+  useEffect(() => { setHour(new Date().getHours()); }, []);
   const loans = analytics?.loans || [];
   const contacts = analytics?.contacts || [];
+  const can = (id: string) => (canOpen ? canOpen(id) : true);
+  const open = (id: string) => { if (can(id)) setCurrentPage?.(id); };
 
-  // Loan applications by status
-  const statusData = [
-    { label: 'Approved', value: loans.filter((l) => l.status === 'approved').length, color: 'bg-green-500' },
-    { label: 'Pending', value: loans.filter((l) => l.status === 'pending').length, color: 'bg-yellow-500' },
-    { label: 'Rejected', value: loans.filter((l) => l.status === 'rejected').length, color: 'bg-red-500' },
-  ];
+  const greeting = hour == null ? 'Welcome' : hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const firstName = (userName || '').split(/\s+/)[0];
 
-  // Loan applications by type (top entries)
+  // Applications by status (donut)
+  const statusSlices = LOAN_STATUS.map((s) => ({ label: s.label, color: s.color, count: loans.filter((l) => l.status === s.key).length }));
+  const decided = statusSlices[0].count + statusSlices[2].count;
+  const approvalRate = decided > 0 ? Math.round((statusSlices[0].count / decided) * 100) : 0;
+
+  // Top loan types (bars) — applications + contact enquiries
   const typeCounts: Record<string, number> = {};
-  loans.forEach((l) => { const k = l.loanType || 'Other'; typeCounts[k] = (typeCounts[k] || 0) + 1; });
-  const typeData = Object.entries(typeCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([label, value]) => ({ label, value, color: 'bg-blue-500' }));
+  [...loans, ...contacts].forEach((l) => { const k = l.loanType || 'Other'; typeCounts[k] = (typeCounts[k] || 0) + 1; });
+  const byType = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const typeMax = Math.max(1, ...byType.map(([, v]) => v));
 
-  // Leads (contacts + loans) per month — last 6 months
+  // Enquiries (applications + contacts) per day — last 30 days
+  const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const perDay: Record<string, number> = {};
+  [...loans, ...contacts].forEach((x) => { if (x.createdAt) { const k = dayKey(new Date(x.createdAt)); perDay[k] = (perDay[k] || 0) + 1; } });
+  const days: { date: string; count: number }[] = [];
   const now = new Date();
-  const months: { key: string; label: string }[] = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    months.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleString('en-US', { month: 'short' }) });
+  for (let i = 29; i >= 0; i--) {
+    const k = dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i));
+    days.push({ date: k, count: perDay[k] || 0 });
   }
-  const monthIndex = (dateStr: string) => { const d = new Date(dateStr); return `${d.getFullYear()}-${d.getMonth()}`; };
-  const monthlyData = months.map((m) => ({
-    label: m.label,
-    value:
-      loans.filter((l) => l.createdAt && monthIndex(l.createdAt) === m.key).length +
-      contacts.filter((c) => c.createdAt && monthIndex(c.createdAt) === m.key).length,
-    color: 'bg-indigo-500',
-  }));
+  const leads30 = days.reduce((a, d) => a + d.count, 0);
 
-  // Approval rate (of decided applications)
-  const decided = statusData[0].value + statusData[2].value;
-  const approvalRate = decided > 0 ? Math.round((statusData[0].value / decided) * 100) : 0;
+  // Recent activity — newest applications and contact messages
+  const recent = [
+    ...loans.map((l) => ({ kind: 'loan', at: l.createdAt, title: `${l.fullName || 'Someone'} applied for a loan`, detail: [l.loanType, l.city, l.status].filter(Boolean).join(' · ') })),
+    ...contacts.map((c) => ({ kind: 'contact', at: c.createdAt, title: `${c.fullName || 'Someone'} sent an enquiry`, detail: [c.loanType, c.message].filter(Boolean).join(' · ') })),
+  ].filter((r) => r.at).sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime()).slice(0, 6);
 
-  const statCards = [
-    { title: 'Total Leads (CRM)', value: stats.totalLeads, color: 'bg-blue-600', icon: <Target className="h-8 w-8" /> },
-    { title: 'Converted Leads', value: stats.convertedLeads, color: 'bg-emerald-500', icon: <CheckCircle className="h-8 w-8" /> },
-    { title: 'Total Contacts', value: stats.totalContacts, color: 'bg-blue-500', icon: <MessageSquare className="h-8 w-8" /> },
-    { title: 'Loan Applications', value: stats.totalLoanApplications, color: 'bg-green-500', icon: <FileText className="h-8 w-8" /> },
-    { title: 'Pending Applications', value: stats.pendingApplications, color: 'bg-yellow-500', icon: <FileText className="h-8 w-8" /> },
-    { title: 'Total Banners', value: stats.totalBanners, color: 'bg-purple-500', icon: <ImageIcon className="h-8 w-8" /> },
-    { title: 'Total Blogs', value: stats.totalBlogs, color: 'bg-indigo-500', icon: <FileText className="h-8 w-8" /> }
-  ];
+  const actions = [
+    { k: 'leads', icon: Target, tone: 'blue', b: 'Manage Leads', s: 'Follow up on enquiries' },
+    { k: 'loans', icon: FileText, tone: 'green', b: 'Loan Applications', s: 'Review & approve' },
+    { k: 'contacts', icon: MessageSquare, tone: 'amber', b: 'Contacts', s: 'New contact messages' },
+    { k: 'blogs', icon: Edit, tone: 'violet', b: 'Create Blog', s: 'Publish new content' },
+    { k: 'banners', icon: ImageIcon, tone: 'teal', b: 'Banners', s: 'Update page banners' },
+    { k: 'whatsappChats', icon: MessageCircle, tone: 'wa', b: 'WhatsApp', s: 'Chats with customers' },
+  ].filter((a) => can(a.k));
 
   return (
-    <div>
-      <div className="mb-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">Dashboard Overview</h3>
-        <p className="text-gray-600">Welcome to EzyLoan Admin Panel</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
-        {statCards.map((card, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-sm p-4 md:p-6 border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{card.title}</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
-              </div>
-              <div className={`${card.color} p-3 rounded-lg text-white`}>
-                {card.icon}
-              </div>
-            </div>
+    <div className="ov">
+      <div className="ov-top">
+        <section className="ov-hero">
+          <div className="ov-hero-text">
+            <small>Welcome back{firstName ? `, ${firstName}` : ''}</small>
+            <h2>{greeting}{firstName ? <>,<br /><span className="ov-hero-name">{firstName}</span></> : ''}</h2>
+            <p>Here&apos;s what&apos;s happening on EzyLoan today.</p>
           </div>
-        ))}
+          <div className="ov-hero-img" aria-hidden="true" />
+        </section>
+        <div className="ov-kpis">
+          <KpiCard icon={Target} tone="blue" value={stats.totalLeads} label="Total Leads (CRM)" onClick={() => open('leads')} />
+          <KpiCard icon={FileText} tone="green" value={stats.totalLoanApplications} label="Loan Applications" growth={monthGrowth(loans)} onClick={() => open('loans')} />
+          <KpiCard icon={MessageSquare} tone="amber" value={stats.totalContacts} label="Contact Enquiries" growth={monthGrowth(contacts)} onClick={() => open('contacts')} />
+          <KpiCard icon={CheckCircle} tone="violet" value={stats.convertedLeads} label="Converted Leads" onClick={() => open('analytics')} />
+        </div>
       </div>
 
+      {stats.pendingApplications > 0 && (
+        <button type="button" className="ov-alert" onClick={() => open('loans')}>
+          <Clock size={20} />
+          <span><b>{stats.pendingApplications} loan application{stats.pendingApplications === 1 ? '' : 's'} waiting for review</b> — approve or reject them so customers get an answer.</span>
+          <span className="ov-alert-go">Review <ArrowRight size={14} /></span>
+        </button>
+      )}
+
+      <div className="ov-mid">
+        <section className="ov-card">
+          <div className="ov-card-head"><h3><Zap size={17} className="ov-bolt" /> Quick Actions</h3></div>
+          <div className="ov-actions">
+            {actions.map((a) => {
+              const Icon = a.icon;
+              return (
+                <button type="button" key={a.k} className={`ov-action ${a.tone}`} onClick={() => open(a.k)}>
+                  <span className="ic"><Icon size={15} /></span>
+                  <ArrowRight size={14} className="go" />
+                  <b>{a.b}</b><small>{a.s}</small>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <section className="ov-card">
+          <div className="ov-card-head"><h3><ActivityIcon size={17} /> Recent Activity</h3></div>
+          {recent.length ? (
+            <ul className="ov-activity">
+              {recent.map((r, i) => (
+                <li key={i} className={r.kind === 'loan' ? 'green' : 'violet'}>
+                  <span className="ic">{r.kind === 'loan' ? <FileText size={14} /> : <MessageSquare size={14} />}</span>
+                  <span className="t"><b>{r.title}</b><small>{r.detail || '—'}</small></span>
+                  <time dateTime={r.at}>{timeAgo(r.at)}</time>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="ov-none">Nothing new yet.</p>}
+        </section>
+      </div>
+
+      <div className="ov-bottom">
+        <section className="ov-card">
+          <div className="ov-card-head"><h3>Applications by Status</h3><span className="ov-chip">Approval rate {approvalRate}%</span></div>
+          {loans.length ? <OvDonut slices={statusSlices} total={loans.length} label="Applications" /> : <p className="ov-none">No applications yet.</p>}
+        </section>
+        <section className="ov-card">
+          <div className="ov-card-head"><h3>Top Loan Types</h3><span className="ov-chip">All enquiries</span></div>
+          {byType.length ? (
+            <div className="ov-bars">
+              {byType.map(([k, v], i) => (
+                <div className="ov-bar" key={k}>
+                  <span className="n" title={k}>{k}</span>
+                  <span className="track"><span style={{ width: `${(v / typeMax) * 100}%`, opacity: 1 - i * 0.12 }} /></span>
+                  <span className="v">{v.toLocaleString('en-IN')}</span>
+                </div>
+              ))}
+            </div>
+          ) : <p className="ov-none">No enquiries yet.</p>}
+        </section>
+        <section className="ov-card">
+          <div className="ov-card-head"><h3>Leads Trend</h3><span className="ov-chip">Last 30 days · {leads30}</span></div>
+          <LeadsTrend days={days} />
+        </section>
+      </div>
+
+      <h3 className="ov-more">More insights</h3>
       {/* Search Console clicks, GA4 cities, conversions sent (Marketing permission only) */}
-      <MarketingSnapshot onOpen={setCurrentPage ? () => setCurrentPage('marketing') : undefined} />
-
-      {/* Analytics charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">Applications by Status</h4>
-          <MiniBarChart data={statusData} />
-          <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-sm text-gray-600">Approval rate</span>
-            <span className="text-lg font-bold text-green-600">{approvalRate}%</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">Applications by Loan Type</h4>
-          <MiniBarChart data={typeData} />
-        </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">Leads — Last 6 Months</h4>
-          <MiniBarChart data={monthlyData} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h4>
-          <div className="space-y-3">
-            <button onClick={() => setCurrentPage?.('leads')} className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors w-full text-left">
-              <Target className="h-5 w-5 text-blue-600 mr-3" />
-              <span className="font-medium text-blue-600">Manage Leads</span>
-            </button>
-            <button onClick={() => setCurrentPage?.('contacts')} className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors w-full text-left">
-              <MessageSquare className="h-5 w-5 text-green-600 mr-3" />
-              <span className="font-medium text-green-600">View Contacts</span>
-            </button>
-            <button onClick={() => setCurrentPage?.('loans')} className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors w-full text-left">
-              <FileText className="h-5 w-5 text-purple-600 mr-3" />
-              <span className="font-medium text-purple-600">Review Loan Applications</span>
-            </button>
-            <button onClick={() => setCurrentPage?.('banners')} className="flex items-center p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors w-full text-left">
-              <ImageIcon className="h-5 w-5 text-indigo-600 mr-3" />
-              <span className="font-medium text-indigo-600">Manage Banners</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-          <h4 className="text-lg font-semibold text-gray-800 mb-4">System Status</h4>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium text-gray-700">API Status</span>
-                <span className="text-sm font-medium text-green-600">Operational</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '100%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium text-gray-700">Database</span>
-                <span className="text-sm font-medium text-green-600">Healthy</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-green-600 h-2.5 rounded-full" style={{ width: '100%' }}></div>
-              </div>
-            </div>
-            <div className="mt-2 pt-4 border-t border-gray-100">
-              <p className="text-sm text-gray-600">
-                All systems operational. Last updated: {new Date().toLocaleTimeString()}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MarketingSnapshot onOpen={can('marketing') ? () => open('marketing') : undefined} />
     </div>
   );
 }
@@ -1167,10 +1367,6 @@ function BannersManager({
 
   return (
     <div>
-      <div className="mb-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">Banner Management</h3>
-        <p className="text-gray-600">Manage banners for different pages</p>
-      </div>
       <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6 border border-gray-100">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="w-full sm:w-auto">
@@ -1305,7 +1501,6 @@ function ContactsManager({ contacts, selectedContact, setSelectedContact, onDele
 
   return (
     <div>
-      <div className="mb-6"><h3 className="text-2xl font-bold text-gray-800 mb-2">Contact Messages</h3><p className="text-gray-600">Manage customer inquiries and contact messages</p></div>
       <ListFilters
         search={search} setSearch={setSearch}
         fromDate={fromDate} setFromDate={setFromDate} toDate={toDate} setToDate={setToDate}
@@ -1381,7 +1576,6 @@ function LoansManager({ loans, selectedLoan, setSelectedLoan, onStatusUpdate, on
 
   return (
     <div>
-      <div className="mb-6"><h3 className="text-2xl font-bold text-gray-800 mb-2">Loan Applications</h3><p className="text-gray-600">Manage and review loan applications</p></div>
       <ListFilters
         search={search} setSearch={setSearch}
         fromDate={fromDate} setFromDate={setFromDate} toDate={toDate} setToDate={setToDate}
@@ -1642,11 +1836,6 @@ function BlogsManager({
 
   return (
     <div>
-      <div className="mb-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">Blog Management</h3>
-        <p className="text-gray-600">Create, review and publish blog posts. A blog goes live only after it is <strong>Published</strong>.</p>
-      </div>
-
       {/* Blog Form */}
       <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6 border border-gray-100">
         <h4 className="text-lg font-semibold text-gray-800 mb-4">{isEditing ? '✏️ Edit Blog' : '➕ Create New Blog'}</h4>
@@ -1993,11 +2182,6 @@ function TestimonialsManager({
 
   return (
     <div>
-      <div className="mb-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-2">Testimonials</h3>
-        <p className="text-gray-600">Customer reviews shown on the website hero section</p>
-      </div>
-
       {/* Form */}
       <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 mb-6 border border-gray-100">
         <h4 className="text-lg font-semibold text-gray-800 mb-4">{isEditing ? '✏️ Edit Testimonial' : '➕ Add Testimonial'}</h4>

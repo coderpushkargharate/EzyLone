@@ -4,7 +4,8 @@
 // Reads the shared activity log via GET /api/activities.
 
 import { useEffect, useMemo, useState } from 'react';
-import { Phone, Mail, MessageSquare, RefreshCw, Star, Calendar, Plus, Filter } from 'lucide-react';
+import { Phone, Mail, MessageSquare, RefreshCw, Star, Calendar, Plus, Filter, Activity as ActivityIcon } from 'lucide-react';
+import { PageHead } from './PageHead';
 import { cn } from '@/lib/utils';
 
 interface Activity {
@@ -70,10 +71,7 @@ export default function ActivitiesManager() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Activities</h1>
-        <p className="text-gray-500 text-sm mt-1">{total} total activities logged across all clients</p>
-      </div>
+      <PageHead icon={ActivityIcon} title="Activities" sub={`${total} total activities logged across all clients.`} />
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm">
         <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100 overflow-x-auto">
