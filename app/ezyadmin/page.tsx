@@ -400,34 +400,22 @@ function AdminDashboard({
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
-  const [navOpen, setNavOpen] = useState<string | null>(null);
-  const [navPos, setNavPos] = useState({ left: 0, top: 0 });
+  // Horizontal two-row nav: groups on top, the active group's pages below.
   const navRef = useRef<HTMLElement>(null);
-  const ddRef = useRef<HTMLDivElement>(null);
-  // Close the nav dropdown on an outside tap, Escape, resize or nav scroll.
+  const subNavRef = useRef<HTMLElement>(null);
+  // Last page opened in each group, so clicking a group returns you there.
+  const lastInGroup = useRef<Record<string, string>>({});
+  // On narrow screens the rows scroll sideways — keep the active tab in view.
   useEffect(() => {
-    if (!navOpen) return;
-    const onDown = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (ddRef.current?.contains(t) || navRef.current?.contains(t)) return;
-      setNavOpen(null);
+    const centre = (row: HTMLElement | null, sel: string) => {
+      const el = row?.querySelector<HTMLElement>(sel);
+      if (!row || !el) return;
+      const left = el.offsetLeft - (row.clientWidth - el.offsetWidth) / 2;
+      row.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setNavOpen(null); };
-    const close = () => setNavOpen(null);
-    const nav = navRef.current;
-    document.addEventListener('pointerdown', onDown);
-    document.addEventListener('keydown', onKey);
-    window.addEventListener('resize', close);
-    window.addEventListener('scroll', close, true);
-    nav?.addEventListener('scroll', close);
-    return () => {
-      document.removeEventListener('pointerdown', onDown);
-      document.removeEventListener('keydown', onKey);
-      window.removeEventListener('resize', close);
-      window.removeEventListener('scroll', close, true);
-      nav?.removeEventListener('scroll', close);
-    };
-  }, [navOpen]);
+    centre(navRef.current, '.adm2-tab.active');
+    centre(subNavRef.current, '.adm2-sub.on');
+  }, [currentPage]);
   // Date pill — set on the client so it always shows the viewer's local date.
   const [today, setToday] = useState('');
   useEffect(() => {
@@ -880,14 +868,20 @@ function AdminDashboard({
     setProfileOpen(false);
   };
 
-  // Top nav row = groups (same pattern as the Mappingg super-admin): a group with
-  // one section opens it directly; a group with several opens a dropdown menu.
+  // Top nav row = groups. A group with one section opens it directly; a group
+  // with several shows its sections as a second horizontal row of chips.
   const groupItemsOf = (g: string) => visibleMenuItems.filter((item) => item.group === g);
   const tabGroups = GROUP_ORDER.filter((g) => groupItemsOf(g).length > 0);
   const activeGroup = activeItem?.group as string | undefined;
+  const subItems = activeGroup ? groupItemsOf(activeGroup) : [];
+  if (activeGroup && activeItem) lastInGroup.current[activeGroup] = activeItem.id;
+  const openGroup = (g: string) => {
+    const members = groupItemsOf(g);
+    const last = lastInGroup.current[g];
+    go(members.some((m) => m.id === last) ? last : members[0].id);
+  };
   const go = (id: string) => {
     setCurrentPage(id);
-    setNavOpen(null);
     setQ('');
     setSearchOpen(false);
     if (id === 'whatsappChats') markWaSeen?.();
@@ -972,49 +966,53 @@ function AdminDashboard({
         </div>
       </header>
 
-      <nav className="adm2-tabs" aria-label="Admin sections" ref={navRef}>
-        {tabGroups.map((g) => {
-          const members = groupItemsOf(g);
-          const active = g === activeGroup;
-          const single = members.length === 1;
-          const Icon = single ? members[0].icon : (GROUP_ICONS[g] || members[0].icon);
-          const badge = members.map((m) => waBadge(m.id)).find(Boolean);
-          return (
-            <button
-              key={g}
-              className={`adm2-tab${active ? ' active' : ''}${navOpen === g ? ' open' : ''}`}
-              aria-haspopup={single ? undefined : 'menu'}
-              aria-expanded={single ? undefined : navOpen === g}
-              onClick={(e) => {
-                if (single) { go(members[0].id); return; }
-                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                setNavPos({ left: Math.max(8, Math.min(r.left, window.innerWidth - 278)), top: r.bottom + 6 });
-                setNavOpen((o) => (o === g ? null : g));
-              }}
-            >
-              <Icon size={16} /> {single ? members[0].name : g}
-              {badge && <span className="tab-badge">{badge}</span>}
-              {!single && <ChevronDown size={12} className="caret" />}
-            </button>
-          );
-        })}
-      </nav>
-
-      {navOpen && (
-        <div className="adm2-dd" role="menu" ref={ddRef} style={{ left: navPos.left, top: navPos.top }}>
-          {groupItemsOf(navOpen).map((item) => {
-            const Icon = item.icon;
-            const badge = waBadge(item.id);
+      <div className="adm2-navwrap">
+        <nav className="adm2-tabs" aria-label="Admin sections" ref={navRef}>
+          {tabGroups.map((g) => {
+            const members = groupItemsOf(g);
+            const active = g === activeGroup;
+            const single = members.length === 1;
+            const Icon = single ? members[0].icon : (GROUP_ICONS[g] || members[0].icon);
+            const badge = members.map((m) => waBadge(m.id)).find(Boolean);
             return (
-              <button key={item.id} role="menuitem" className={currentPage === item.id ? 'on' : ''} onClick={() => go(item.id)}>
-                <Icon size={17} />
-                <span><b>{item.name}</b><small>{item.desc}</small></span>
+              <button
+                key={g}
+                type="button"
+                className={`adm2-tab${active ? ' active' : ''}`}
+                aria-current={active ? 'true' : undefined}
+                onClick={() => openGroup(g)}
+              >
+                <Icon size={16} /> <span>{single ? members[0].name : g}</span>
+                {!single && <span className="tab-count">{members.length}</span>}
                 {badge && <span className="tab-badge">{badge}</span>}
               </button>
             );
           })}
-        </div>
-      )}
+        </nav>
+
+        {subItems.length > 1 && (
+          <nav className="adm2-subnav" aria-label={`${activeGroup} pages`} ref={subNavRef}>
+            {subItems.map((item) => {
+              const Icon = item.icon;
+              const badge = waBadge(item.id);
+              const on = activeItem?.id === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`adm2-sub${on ? ' on' : ''}`}
+                  aria-current={on ? 'page' : undefined}
+                  title={item.desc}
+                  onClick={() => go(item.id)}
+                >
+                  <Icon size={15} /> <span>{item.name}</span>
+                  {badge && <span className="tab-badge">{badge}</span>}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+      </div>
 
       <main className="adm2-main">
         <div className="adm-content">
