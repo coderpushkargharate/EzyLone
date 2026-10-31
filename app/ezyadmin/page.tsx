@@ -49,7 +49,10 @@ import {
   ExternalLink,
   ArrowRight,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Menu,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import './admin.css';
 import { PageHead } from '@/components/admin/PageHead';
@@ -400,22 +403,28 @@ function AdminDashboard({
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
-  // Horizontal two-row nav: groups on top, the active group's pages below.
-  const navRef = useRef<HTMLElement>(null);
-  const subNavRef = useRef<HTMLElement>(null);
-  // Last page opened in each group, so clicking a group returns you there.
-  const lastInGroup = useRef<Record<string, string>>({});
-  // On narrow screens the rows scroll sideways — keep the active tab in view.
+  // Vertical sidebar. Desktop: can collapse to icons only (remembered per
+  // browser). Tablet/phone: slides in as a drawer from the menu button.
+  const [sideOpen, setSideOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
-    const centre = (row: HTMLElement | null, sel: string) => {
-      const el = row?.querySelector<HTMLElement>(sel);
-      if (!row || !el) return;
-      const left = el.offsetLeft - (row.clientWidth - el.offsetWidth) / 2;
-      row.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
-    };
-    centre(navRef.current, '.adm2-tab.active');
-    centre(subNavRef.current, '.adm2-sub.on');
-  }, [currentPage]);
+    try { setCollapsed(localStorage.getItem('adm2-side-collapsed') === '1'); } catch { /* storage blocked */ }
+  }, []);
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      try { localStorage.setItem('adm2-side-collapsed', c ? '0' : '1'); } catch { /* storage blocked */ }
+      return !c;
+    });
+  };
+  // Drawer: Escape closes it, and the page behind doesn't scroll while open.
+  useEffect(() => {
+    if (!sideOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSideOpen(false); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; document.removeEventListener('keydown', onKey); };
+  }, [sideOpen]);
   // Date pill — set on the client so it always shows the viewer's local date.
   const [today, setToday] = useState('');
   useEffect(() => {
@@ -868,22 +877,14 @@ function AdminDashboard({
     setProfileOpen(false);
   };
 
-  // Top nav row = groups. A group with one section opens it directly; a group
-  // with several shows its sections as a second horizontal row of chips.
+  // Sidebar = labelled groups, each listing its sections.
   const groupItemsOf = (g: string) => visibleMenuItems.filter((item) => item.group === g);
   const tabGroups = GROUP_ORDER.filter((g) => groupItemsOf(g).length > 0);
-  const activeGroup = activeItem?.group as string | undefined;
-  const subItems = activeGroup ? groupItemsOf(activeGroup) : [];
-  if (activeGroup && activeItem) lastInGroup.current[activeGroup] = activeItem.id;
-  const openGroup = (g: string) => {
-    const members = groupItemsOf(g);
-    const last = lastInGroup.current[g];
-    go(members.some((m) => m.id === last) ? last : members[0].id);
-  };
   const go = (id: string) => {
     setCurrentPage(id);
     setQ('');
     setSearchOpen(false);
+    setSideOpen(false);
     if (id === 'whatsappChats') markWaSeen?.();
   };
   const waBadge = (id: string) => (id === 'whatsappChats' && waUnread > 0 ? (waUnread > 99 ? '99+' : String(waUnread)) : '');
@@ -895,8 +896,18 @@ function AdminDashboard({
     : [];
 
   return (
-    <div className="adm2" id="admin-app">
+    <div className={`adm2${collapsed ? ' side-collapsed' : ''}`} id="admin-app">
       <header className="adm2-top">
+        <button
+          type="button"
+          className="adm2-burger"
+          onClick={() => setSideOpen(true)}
+          aria-label="Open menu"
+          aria-expanded={sideOpen}
+          aria-controls="adm2-side"
+        >
+          <Menu size={20} />
+        </button>
         <a className="adm2-brand" href="/" target="_blank" rel="noopener" aria-label="EzyLoan home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/ezy-logo.webp" alt="EzyLoan" />
@@ -966,53 +977,47 @@ function AdminDashboard({
         </div>
       </header>
 
-      <div className="adm2-navwrap">
-        <nav className="adm2-tabs" aria-label="Admin sections" ref={navRef}>
+      <div className="adm2-body">
+      {sideOpen && <div className="adm2-scrim" onClick={() => setSideOpen(false)} aria-hidden="true" />}
+      <aside id="adm2-side" className={`adm2-side${sideOpen ? ' open' : ''}`} aria-label="Admin sections">
+        <div className="adm2-side-head">
+          <span className="adm2-side-title">Menu</span>
+          <button type="button" className="adm2-side-x" onClick={() => setSideOpen(false)} aria-label="Close menu"><X size={18} /></button>
+        </div>
+        <nav className="adm2-side-nav">
           {tabGroups.map((g) => {
-            const members = groupItemsOf(g);
-            const active = g === activeGroup;
-            const single = members.length === 1;
-            const Icon = single ? members[0].icon : (GROUP_ICONS[g] || members[0].icon);
-            const badge = members.map((m) => waBadge(m.id)).find(Boolean);
+            const GIcon = GROUP_ICONS[g];
             return (
-              <button
-                key={g}
-                type="button"
-                className={`adm2-tab${active ? ' active' : ''}`}
-                aria-current={active ? 'true' : undefined}
-                onClick={() => openGroup(g)}
-              >
-                <Icon size={16} /> <span>{single ? members[0].name : g}</span>
-                {!single && <span className="tab-count">{members.length}</span>}
-                {badge && <span className="tab-badge">{badge}</span>}
-              </button>
+              <div className="adm2-side-group" key={g}>
+                <p className="adm2-side-label">{GIcon && <GIcon size={12} />}<span>{g}</span></p>
+                {groupItemsOf(g).map((item) => {
+                  const Icon = item.icon;
+                  const badge = waBadge(item.id);
+                  const on = activeItem?.id === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`adm2-side-item${on ? ' on' : ''}`}
+                      aria-current={on ? 'page' : undefined}
+                      title={collapsed ? item.name : item.desc}
+                      onClick={() => go(item.id)}
+                    >
+                      <span className="ic"><Icon size={17} /></span>
+                      <span className="txt">{item.name}</span>
+                      {badge && <span className="tab-badge">{badge}</span>}
+                    </button>
+                  );
+                })}
+              </div>
             );
           })}
         </nav>
-
-        {subItems.length > 1 && (
-          <nav className="adm2-subnav" aria-label={`${activeGroup} pages`} ref={subNavRef}>
-            {subItems.map((item) => {
-              const Icon = item.icon;
-              const badge = waBadge(item.id);
-              const on = activeItem?.id === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  className={`adm2-sub${on ? ' on' : ''}`}
-                  aria-current={on ? 'page' : undefined}
-                  title={item.desc}
-                  onClick={() => go(item.id)}
-                >
-                  <Icon size={15} /> <span>{item.name}</span>
-                  {badge && <span className="tab-badge">{badge}</span>}
-                </button>
-              );
-            })}
-          </nav>
-        )}
-      </div>
+        <button type="button" className="adm2-side-collapse" onClick={toggleCollapsed} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+          {collapsed ? <ChevronsRight size={17} /> : <ChevronsLeft size={17} />}
+          <span className="txt">Collapse</span>
+        </button>
+      </aside>
 
       <main className="adm2-main">
         <div className="adm-content">
@@ -1079,6 +1084,7 @@ function AdminDashboard({
           )}
         </div>
       </main>
+      </div>
     </div>
   );
 }
