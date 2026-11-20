@@ -6,11 +6,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 
-import HeroSection from "@/components/HeroSection";
-import Footer from "@/components/Footer";
 import { trackMetaLead } from "@/components/MetaPixel";
-import {   Truck, ArrowRight, Percent, Clock, Shield, DollarSign, FileText, AlertCircle,
-  User, TrendingUp, CheckCircle, Building, Zap, Award, Bus, Car , Info, Phone, Mail, MapPin } from "lucide-react";
+import { Truck, ArrowRight, ArrowLeft, Clock, FileText, AlertCircle, User, TrendingUp, CheckCircle,
+  Building, Zap, Car, Info, Phone, Mail, MapPin, Lock, Handshake, ShieldCheck, Coins, ArrowLeftRight } from "lucide-react";
 
 import { isIndianMobile } from "@/lib/phone";
 import { useFormGuard } from "@/components/FormGuard";
@@ -42,11 +40,24 @@ const ApplyNowPage: React.FC = () => {
   // Optional ad-measurement consent (separate from the required data-processing consent).
   const [adConsent, setAdConsent] = useState(false);
 
-  // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
-  const handleRedirect = (e: React.MouseEvent, url: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.location.href = url;
+  // 3-step wizard: 1 Personal, 2 Loan, 3 Credit Profile.
+  const [step, setStep] = useState(1);
+
+  const goNext = () => {
+    const errs = validateForm(STEP_FIELDS[step - 1]);
+    if (Object.keys(errs).length) {
+      trackEvent('form_error', { form_id: 'apply_now', step });
+      return;
+    }
+    setSubmitMessage('');
+    setStep((s) => Math.min(3, s + 1));
+  };
+  const goBack = () => setStep((s) => Math.max(1, s - 1));
+
+  // "Our Loan Solutions" tile → preselect loan type and bring the form into view.
+  const pickLoanSolution = (value: string) => {
+    setFormData((f) => ({ ...f, loanType: value }));
+    document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Handle Input Change
@@ -80,10 +91,11 @@ const ApplyNowPage: React.FC = () => {
     }
   };
 
-  // Client-side validation
-  const validateForm = () => {
+  // Client-side validation. With `only`, validates just those fields (one wizard step)
+  // and keeps errors on other fields untouched.
+  const validateForm = (only?: string[]) => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.fullName.trim()) errors.fullName = 'Full name is required';
     if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = 'Valid email is required';
@@ -99,19 +111,40 @@ const ApplyNowPage: React.FC = () => {
     if (!formData.pincode.trim() || !/^[0-9]{6}$/.test(formData.pincode)) {
       errors.pincode = 'Valid 6-digit pincode is required';
     }
+    if (!formData.cibilScore) errors.cibilScore = 'Please select your CIBIL range (or "Not Sure")';
     if (!formData.consent) errors.consent = 'You must consent to data processing';
-    
+
+    if (only) {
+      const scoped: Record<string, string> = {};
+      for (const k of only) if (errors[k]) scoped[k] = errors[k];
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        for (const k of only) delete next[k];
+        return { ...next, ...scoped };
+      });
+      return scoped;
+    }
     setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    return errors;
   };
 
   // Submit Form Data to API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    // Enter on steps 1-2 advances instead of submitting.
+    if (step < 3) {
+      goNext();
+      return;
+    }
+
+    const errs = validateForm();
+    if (Object.keys(errs).length) {
       trackEvent('form_error', { form_id: 'apply_now' });
-      setSubmitMessage('❌ Please correct the errors above before submitting.');
+      // Jump back to the first step that has a problem.
+      const bad = STEP_FIELDS.findIndex((fields) => fields.some((f) => errs[f]));
+      if (bad >= 0) setStep(bad + 1);
+      setSubmitMessage('❌ Please correct the highlighted fields before submitting.');
       return;
     }
 
@@ -324,428 +357,281 @@ const ApplyNowPage: React.FC = () => {
         </div>
         */}
 
-        {/* Form + Benefits Section - Fully Responsive Layout */}
-        {/* Top padding clears the fixed header now that the banner above is hidden, so the form sits near the top without blank space. */}
-        <div className="pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-10 lg:pb-12">
-          <div className="max-w-[85rem] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 xl:gap-12">
-              
-              {/* Loan Application Form - Responsive Styling */}
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 text-white mb-6 sm:mb-8 lg:mb-10">
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 leading-tight">Apply for Your Loan Online*</h1>
-                <p className="text-blue-100 text-sm mb-6">*Submission does not guarantee approval. Final terms determined by partner lender.</p>
+        {/* ===== HERO + 3-STEP APPLICATION (mockup design) ===== */}
+        <section className="relative pt-[84px] sm:pt-24 lg:pt-28 pb-8 sm:pb-12 bg-gradient-to-b from-[#e6f0ff] via-[#f3f8ff] to-white overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,500px)] gap-5 lg:gap-12 items-start">
 
-                <form onSubmit={handleSubmit} onFocusCapture={() => trackEvent("form_start", { form_id: "apply_now" }, { once: "form_start_apply" })} className="space-y-6" noValidate aria-label="Loan application form">
-                  {/* Personal Details */}
+              {/* Left: headline, car, trust badges */}
+              <div className="lg:pt-4">
+                {/* Banner: text on the left, car on the right (overlapping on mobile like the mockup) */}
+                <div className="relative min-h-[178px] sm:min-h-[250px] lg:min-h-0">
+                  <div className="relative z-10 w-[56%] sm:w-[55%] lg:w-full pt-3 sm:pt-6 lg:pt-0">
+                    <h1 className="text-[27px] leading-[1.08] sm:text-[42px] lg:text-[46px] xl:text-[52px] font-extrabold text-[#0b1b3f] tracking-tight">
+                      Get the Right Car Finance with{' '}
+                      <span className="bg-gradient-to-r from-[#1d5bf0] to-[#f7941d] bg-clip-text text-transparent italic pr-1">EzyLoan</span>
+                    </h1>
+                    <ul className="mt-2.5 sm:mt-4 space-y-0.5 sm:space-y-1 text-[12px] sm:text-[15px] lg:text-base text-[#1e3a8a] font-medium lg:flex lg:flex-wrap lg:gap-x-4 lg:space-y-0">
+                      {['Simple Application', 'Quick Response*', 'Trusted Lending Partners'].map((t) => (
+                        <li key={t} className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f7941d] shrink-0" aria-hidden="true" />{t}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <img
+                    src="/apply-hero-car.webp"
+                    alt="Blue SUV — car finance with EzyLoan"
+                    width={466}
+                    height={253}
+                    className="absolute top-2 -right-4 sm:right-0 w-[60%] sm:w-[55%] h-auto lg:static lg:w-full lg:mt-6 lg:rounded-2xl"
+                    style={{
+                      WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 28%)',
+                      maskImage: 'linear-gradient(to right, transparent 0%, #000 28%)',
+                    }}
+                  />
+                </div>
+
+                {/* Trust badges: 2x2 on phones/laptops, 4 across on tablet & wide screens */}
+                <div className="mt-3 sm:mt-5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2 sm:gap-3">
+                  {[
+                    { icon: <Zap className="w-6 h-6 text-amber-500 fill-amber-400" />, text: <>Top-Up up to<br />200% of Car Value*</> },
+                    { icon: <Clock className="w-6 h-6 text-blue-600" />, text: <>Quick &amp;<br />Digital Process</> },
+                    { icon: <Handshake className="w-6 h-6 text-blue-600" />, text: <>Trusted<br />Partners</> },
+                    { icon: <ShieldCheck className="w-6 h-6 text-white fill-green-600" />, text: <>Secure &amp;<br />Private</> },
+                  ].map((b, i) => (
+                    <div key={i} className="flex items-center gap-2.5 bg-white rounded-xl shadow-[0_4px_14px_rgba(30,64,175,0.10)] border border-blue-50 px-3 py-2.5 lg:px-4 lg:py-3">
+                      <span className="shrink-0" aria-hidden="true">{b.icon}</span>
+                      <span className="text-[12px] sm:text-[12.5px] lg:text-sm font-semibold text-[#0b1b3f] leading-tight">{b.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Right: Apply Now card */}
+              <div id="apply-form" className="scroll-mt-28 bg-white rounded-2xl shadow-[0_10px_40px_rgba(30,64,175,0.12)] border border-blue-50 p-4 sm:p-6 lg:p-7">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0" aria-hidden="true">
+                    <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold mb-4 text-blue-100">Personal Details</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="fullName" className="sr-only">Full Name</label>
-                        <input
-                          id="fullName"
-                          type="text"
-                          name="fullName"
-                          value={formData.fullName}
-                          onChange={handleChange}
-                          required
-                          aria-required="true"
-                          aria-invalid={!!formErrors.fullName}
-                          aria-describedby={formErrors.fullName ? "fullNameError" : undefined}
-                          placeholder="Enter your full name *"
-                          className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                            formErrors.fullName ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        />
-                        {formErrors.fullName && (
-                          <p id="fullNameError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.fullName}</p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="email" className="sr-only">Email Address</label>
-                        <input
-                          id="email"
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          aria-required="true"
-                          aria-invalid={!!formErrors.email}
-                          aria-describedby={formErrors.email ? "emailError" : undefined}
-                          placeholder="Enter your email address *"
-                          className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                            formErrors.email ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        />
-                        {formErrors.email && (
-                          <p id="emailError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.email}</p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="phoneNumber" className="sr-only">Phone Number</label>
-                        <div className={`flex w-full rounded-lg overflow-hidden bg-white ${
-                          formErrors.phoneNumber ? 'ring-2 ring-red-400' : ''
-                        }`}>
-                          <span className="inline-flex items-center px-3 bg-gray-100 text-gray-700 font-medium border-r border-gray-200 select-none">
-                            🇮🇳 +91
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0b1b3f] leading-tight">Apply Now</h2>
+                    <p className="text-sm sm:text-base text-gray-600">A simple 3-step application to get started</p>
+                  </div>
+                </div>
+
+                {/* Stepper */}
+                <ol className="mt-5 flex items-start justify-between" aria-label="Application steps">
+                  {STEPS.map((label, i) => {
+                    const n = i + 1;
+                    const active = n === step;
+                    const done = n < step;
+                    return (
+                      <React.Fragment key={label}>
+                        <li className="flex flex-col items-center w-20 shrink-0" aria-current={active ? 'step' : undefined}>
+                          <span className={`w-9 h-9 rounded-full flex items-center justify-center text-base font-bold border-2 ${
+                            active ? 'bg-blue-600 border-blue-600 text-white shadow-[0_0_0_4px_rgba(37,99,235,0.15)]'
+                              : done ? 'bg-blue-600 border-blue-600 text-white'
+                              : 'bg-gray-100 border-gray-300 text-gray-700'
+                          }`}>
+                            {done ? <CheckCircle className="w-5 h-5" /> : n}
                           </span>
-                          <input
-                            id="phoneNumber"
-                            type="tel"
-                            name="phoneNumber"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            required
-                            inputMode="numeric"
-                            maxLength={10}
-                            pattern="[6-9][0-9]{9}"
-                            aria-required="true"
-                            aria-invalid={!!formErrors.phoneNumber}
-                            aria-describedby={formErrors.phoneNumber ? "phoneError" : undefined}
-                            placeholder="10-digit mobile number *"
-                            className="flex-1 px-4 py-3 border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900"
-                          />
-                        </div>
-                        {formErrors.phoneNumber && (
-                          <p id="phoneError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.phoneNumber}</p>
+                          <span className={`mt-1 text-xs sm:text-sm text-center leading-tight ${active || done ? 'text-blue-700 font-semibold' : 'text-gray-600'}`}>
+                            {label.split(' ')[0]}<br />{label.split(' ').slice(1).join(' ')}
+                          </span>
+                        </li>
+                        {n < STEPS.length && (
+                          <span className={`flex-1 h-0.5 mt-[18px] mx-1 rounded ${n < step ? 'bg-blue-600' : 'bg-gray-300'}`} aria-hidden="true" />
                         )}
-                      </div>
+                      </React.Fragment>
+                    );
+                  })}
+                </ol>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-base sm:text-lg font-bold text-blue-600">Step {step} of 3: {STEPS[step - 1]}</p>
+                  <p className="text-base font-bold text-[#0b1b3f]">{Math.round((step / 3) * 100)}%</p>
+                </div>
+                <div className="mt-2 h-2.5 rounded-full bg-blue-100 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((step / 3) * 100)}>
+                  <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }} />
+                </div>
+
+                <form
+                  onSubmit={handleSubmit}
+                  onFocusCapture={() => trackEvent("form_start", { form_id: "apply_now" }, { once: "form_start_apply" })}
+                  className="mt-4 space-y-3"
+                  noValidate
+                  aria-label="Loan application form"
+                >
+                  {/* STEP 1 — Personal Details */}
+                  <div className={step === 1 ? 'space-y-3' : 'hidden'}>
+                    <Field label="Full Name" htmlFor="fullName" error={formErrors.fullName}>
+                      <InputShell icon={<User className="w-5 h-5 text-gray-500" />} error={!!formErrors.fullName}>
+                        <input id="fullName" type="text" name="fullName" autoComplete="name" value={formData.fullName} onChange={handleChange}
+                          aria-required="true" aria-invalid={!!formErrors.fullName} placeholder="Enter your full name" className={INPUT_CLS} />
+                      </InputShell>
+                    </Field>
+                    <Field label="Mobile Number" htmlFor="phoneNumber" error={formErrors.phoneNumber}>
+                      <InputShell icon={<Phone className="w-5 h-5 text-gray-500" />} error={!!formErrors.phoneNumber}>
+                        <span className="font-semibold text-gray-800 pr-3 select-none">+91</span>
+                        <input id="phoneNumber" type="tel" name="phoneNumber" autoComplete="tel-national" value={formData.phoneNumber} onChange={handleChange}
+                          inputMode="numeric" maxLength={10} pattern="[6-9][0-9]{9}" aria-required="true" aria-invalid={!!formErrors.phoneNumber}
+                          placeholder="Enter 10-digit mobile number" className={INPUT_CLS} />
+                      </InputShell>
+                    </Field>
+                    <Field label="Email Address" htmlFor="email" error={formErrors.email}>
+                      <InputShell icon={<Mail className="w-5 h-5 text-gray-500" />} error={!!formErrors.email}>
+                        <input id="email" type="email" name="email" autoComplete="email" value={formData.email} onChange={handleChange}
+                          aria-required="true" aria-invalid={!!formErrors.email} placeholder="Enter your email address" className={INPUT_CLS} />
+                      </InputShell>
+                    </Field>
+                  </div>
+
+                  {/* STEP 2 — Loan Details */}
+                  <div className={step === 2 ? 'space-y-3' : 'hidden'}>
+                    <Field label="Loan Type" htmlFor="loanType" error={formErrors.loanType}>
+                      <InputShell icon={<Car className="w-5 h-5 text-gray-500" />} error={!!formErrors.loanType}>
+                        <select id="loanType" name="loanType" value={formData.loanType} onChange={handleChange}
+                          aria-required="true" aria-invalid={!!formErrors.loanType} className={`${INPUT_CLS} bg-transparent`}>
+                          <option value="">Select loan type</option>
+                          {LOAN_TYPE_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      </InputShell>
+                    </Field>
+                    <Field label="Employment Type" htmlFor="employmentType" error={formErrors.employmentType}>
+                      <InputShell icon={<Building className="w-5 h-5 text-gray-500" />} error={!!formErrors.employmentType}>
+                        <select id="employmentType" name="employmentType" value={formData.employmentType} onChange={handleChange}
+                          aria-required="true" aria-invalid={!!formErrors.employmentType} className={`${INPUT_CLS} bg-transparent`}>
+                          <option value="">Select employment type</option>
+                          <option value="salaried">Salaried</option>
+                          <option value="self-employed">Self Employed</option>
+                          <option value="business">Business Owner</option>
+                          <option value="professional">Professional</option>
+                          <option value="retired">Retired</option>
+                        </select>
+                      </InputShell>
+                    </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="City" htmlFor="city" error={formErrors.city}>
+                        <InputShell icon={<MapPin className="w-5 h-5 text-gray-500" />} error={!!formErrors.city}>
+                          <input id="city" type="text" name="city" autoComplete="address-level2" value={formData.city} onChange={handleChange}
+                            aria-required="true" aria-invalid={!!formErrors.city} placeholder="Your city" className={INPUT_CLS} />
+                        </InputShell>
+                      </Field>
+                      <Field label="Pincode" htmlFor="pincode" error={formErrors.pincode}>
+                        <InputShell error={!!formErrors.pincode}>
+                          <input id="pincode" type="text" name="pincode" autoComplete="postal-code" inputMode="numeric" maxLength={6} value={formData.pincode} onChange={handleChange}
+                            aria-required="true" aria-invalid={!!formErrors.pincode} placeholder="6-digit pincode" className={INPUT_CLS} />
+                        </InputShell>
+                      </Field>
                     </div>
                   </div>
 
-                  {/* Loan Type */}
-                  <div>
-                    <h3 className="font-semibold mb-4 text-blue-100">Loan Details</h3>
-                    <label htmlFor="loanType" className="sr-only">Select Loan Type</label>
-                    <select
-                      id="loanType"
-                      name="loanType"
-                      value={formData.loanType}
-                      onChange={handleChange}
-                      required
-                      aria-required="true"
-                      aria-invalid={!!formErrors.loanType}
-                      aria-describedby={formErrors.loanType ? "loanTypeError" : undefined}
-                      className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                        formErrors.loanType ? 'ring-2 ring-red-400' : ''
-                      }`}
-                    >
-                      <option value="">Select Loan Type *</option>
-                      <option value="personal">Personal Loan</option>
-                      <option value="car">Car Loan</option>
-                      <option value="home">Home Loan</option>
-                      <option value="business">Business Loan</option>
-                      <option value="property">Property Loan</option>
-                      <option value="commercial-vehicle">Commercial Vehicle Loan</option>
-                    </select>
-                    {formErrors.loanType && (
-                      <p id="loanTypeError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.loanType}</p>
-                    )}
-                  </div>
-
-                  {/* Employment */}
-                  <div>
-                    <h3 className="font-semibold mb-4 text-blue-100">Employment Details</h3>
-                    <label htmlFor="employmentType" className="sr-only">Select Employment Type</label>
-                    <select
-                      id="employmentType"
-                      name="employmentType"
-                      value={formData.employmentType}
-                      onChange={handleChange}
-                      required
-                      aria-required="true"
-                      aria-invalid={!!formErrors.employmentType}
-                      aria-describedby={formErrors.employmentType ? "employmentError" : undefined}
-                      className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                        formErrors.employmentType ? 'ring-2 ring-red-400' : ''
-                      }`}
-                    >
-                      <option value="">Employment Type *</option>
-                      <option value="salaried">Salaried</option>
-                      <option value="self-employed">Self Employed</option>
-                      <option value="business">Business Owner</option>
-                      <option value="professional">Professional</option>
-                      <option value="retired">Retired</option>
-                    </select>
-                    {formErrors.employmentType && (
-                      <p id="employmentError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.employmentType}</p>
-                    )}
-                  </div>
-
-                  {/* Address */}
-                  <div>
-                    <h3 className="font-semibold mb-4 text-blue-100">Address Details</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="city" className="sr-only">City</label>
-                        <input
-                          id="city"
-                          type="text"
-                          name="city"
-                          value={formData.city}
-                          onChange={handleChange}
-                          required
-                          aria-required="true"
-                          aria-invalid={!!formErrors.city}
-                          aria-describedby={formErrors.city ? "cityError" : undefined}
-                          placeholder="City *"
-                          className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                            formErrors.city ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        />
-                        {formErrors.city && (
-                          <p id="cityError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.city}</p>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="pincode" className="sr-only">Pincode</label>
-                        <input
-                          id="pincode"
-                          type="text"
-                          name="pincode"
-                          value={formData.pincode}
-                          onChange={handleChange}
-                          required
-                          pattern="[0-9]{6}"
-                          aria-required="true"
-                          aria-invalid={!!formErrors.pincode}
-                          aria-describedby={formErrors.pincode ? "pincodeError" : undefined}
-                          placeholder="Pincode (6 digits) *"
-                          className={`w-full px-4 bg-white py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900 ${
-                            formErrors.pincode ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        />
-                        {formErrors.pincode && (
-                          <p id="pincodeError" className="mt-1 text-xs text-red-200" role="alert">{formErrors.pincode}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* CIBIL - With compliance disclaimer */}
-                  <div>
-                    <h3 className="font-semibold mb-4 text-blue-100">Credit Information</h3>
-                    <label htmlFor="cibilScore" className="sr-only">CIBIL Score Range</label>
-                    <select
-                      id="cibilScore"
-                      name="cibilScore"
-                      value={formData.cibilScore}
-                      onChange={handleChange}
-                      required
-                      aria-required="true"
-                      className="w-full bg-white px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-300 outline-none text-gray-900"
-                    >
-                      <option value="">CIBIL Score Range (Optional)</option>
-                      <option value="300-549">300-549 (Poor)</option>
-                      <option value="550-649">550-649 (Fair)</option>
-                      <option value="650-749">650-749 (Good)</option>
-                      <option value="750-900">750-900 (Excellent)</option>
-                      <option value="not-sure">Not Sure</option>
-                    </select>
-                    <p className="mt-2 text-xs text-blue-100/80">
-                      <Info className="w-3 h-3 inline mr-1" aria-hidden="true" />
-                      Providing CIBIL info helps match you with suitable lenders. Final credit check performed by lender*.
+                  {/* STEP 3 — Credit Profile */}
+                  <div className={step === 3 ? 'space-y-3' : 'hidden'}>
+                    <Field label="CIBIL Score Range" htmlFor="cibilScore" error={formErrors.cibilScore}>
+                      <InputShell icon={<TrendingUp className="w-5 h-5 text-gray-500" />} error={!!formErrors.cibilScore}>
+                        <select id="cibilScore" name="cibilScore" value={formData.cibilScore} onChange={handleChange}
+                          aria-required="true" aria-invalid={!!formErrors.cibilScore} className={`${INPUT_CLS} bg-transparent`}>
+                          <option value="">Select your CIBIL range</option>
+                          <option value="300-549">300-549 (Poor)</option>
+                          <option value="550-649">550-649 (Fair)</option>
+                          <option value="650-749">650-749 (Good)</option>
+                          <option value="750-900">750-900 (Excellent)</option>
+                          <option value="not-sure">Not Sure</option>
+                        </select>
+                      </InputShell>
+                    </Field>
+                    <p className="text-xs text-gray-500 flex items-start gap-1">
+                      <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                      Helps match you with suitable lenders. Final credit check is performed by the lender*.
                     </p>
-                  </div>
 
-                  {/* ✅ COMPLIANCE: Privacy Consent Checkbox */}
-                  <div className="pt-2">
-                    <label className="flex items-start space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="consent"
-                        checked={formData.consent}
-                        onChange={handleChange}
-                        required
-                        aria-required="true"
-                        aria-invalid={!!formErrors.consent}
-                        className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-xs text-blue-100 leading-tight">
-                        I consent to EzyLoan processing my personal data for loan facilitation purposes and sharing it with partner lenders for assessment. 
-                        I have read and agree to the <Link href="/privacy-policy" className="underline hover:text-white">Privacy Policy</Link> and <Link href="/terms-and-conditions" className="underline hover:text-white">Terms</Link>. *
+                    <label className="flex items-start gap-2 cursor-pointer pt-1">
+                      <input type="checkbox" name="consent" checked={formData.consent} onChange={handleChange}
+                        aria-required="true" aria-invalid={!!formErrors.consent}
+                        className="mt-0.5 w-4 h-4 shrink-0 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                      <span className="text-xs text-gray-600 leading-snug">
+                        I consent to EzyLoan processing my personal data for loan facilitation and sharing it with partner lenders for assessment.
+                        I agree to the <Link href="/privacy-policy" className="text-blue-600 underline">Privacy Policy</Link> and{' '}
+                        <Link href="/terms-and-conditions" className="text-blue-600 underline">Terms</Link>. <span className="text-red-500">*</span>
                       </span>
                     </label>
-                    {formErrors.consent && (
-                      <p className="mt-1 text-xs text-red-200" role="alert">{formErrors.consent}</p>
-                    )}
-                  </div>
+                    {formErrors.consent && <p className="text-xs text-red-600" role="alert">{formErrors.consent}</p>}
 
-                  <AdConsentCheckbox checked={adConsent} onChange={setAdConsent} tone="dark" />
+                    <AdConsentCheckbox checked={adConsent} onChange={setAdConsent} tone="light" />
+                  </div>
 
                   {/* Invisible spam guard (off-screen honeypot) */}
                   {guardNode}
 
-                  {/* ✅ GLASS PRISM SUBMIT BUTTON - Working with Redirect */}
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !formData.consent}
-                    className="relative w-full inline-flex items-center justify-center gap-2 overflow-hidden font-semibold py-3 px-6 rounded-lg transition-all duration-500 group/btn cursor-pointer shadow-[0_4px_20px_rgba(255,255,255,0.25)] hover:shadow-[0_8px_30px_rgba(255,255,255,0.4)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_4px_20px_rgba(255,255,255,0.25)]"
-                    aria-busy={isSubmitting}
-                    aria-label={isSubmitting ? "Submitting application" : "Submit loan application"}
-                  >
-                    {/* Base Glass Prism Gradient - White/Blue for form */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-white/95 via-blue-50/90 to-cyan-50/95 backdrop-blur-md" />
-                    
-                    {/* Animated Prism Shine Layer */}
-                    <span className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 disabled:opacity-0">
-                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent" 
-                            style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
-                    </span>
-                    
-                    {/* Prismatic Edge Glow */}
-                    <span className="absolute inset-0 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 disabled:opacity-0"
-                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.5), inset 0 0 45px rgba(37,99,235,0.3)' }} />
-                    
-                    {/* Animated Border Glow */}
-                    <span className="absolute -inset-px rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500 disabled:opacity-0"
-                          style={{
-                            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)',
-                            animation: 'borderGlow 3s infinite linear',
-                            mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                            maskComposite: 'xor',
-                            WebkitMaskComposite: 'xor',
-                            padding: '1px'
-                          }} />
-                    
-                    {/* Button Text & Icon - Above all layers */}
-                    <span className="relative z-10 flex items-center gap-2 text-blue-700 font-semibold">
-                      {isSubmitting ? (
-                        <>
-                          <svg className="animate-spin -ml-1 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          Submit Application
-                          <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1 group-hover/btn:rotate-6" />
-                        </>
-                      )}
-                    </span>
-                    
-                    {/* Subtle Particle Sparkles on Hover */}
-                    <span className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 pointer-events-none disabled:opacity-0">
-                      <span className="absolute top-1/2 left-1/4 w-1 h-1 bg-white/90 rounded-full animate-ping" style={{ animationDelay: '0ms', animationDuration: '1.5s' }} />
-                      <span className="absolute top-1/3 right-1/4 w-1 h-1 bg-white/70 rounded-full animate-ping" style={{ animationDelay: '200ms', animationDuration: '1.8s' }} />
-                      <span className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-white/80 rounded-full animate-ping" style={{ animationDelay: '400ms', animationDuration: '2s' }} />
-                    </span>
-                  </button>
+                  {/* Actions */}
+                  <div className="flex gap-3 pt-2">
+                    {step > 1 && (
+                      <button type="button" onClick={goBack}
+                        className="inline-flex items-center justify-center gap-1 px-4 py-3.5 rounded-xl border border-blue-200 text-blue-700 font-semibold hover:bg-blue-50 transition">
+                        <ArrowLeft className="w-5 h-5" /> Back
+                      </button>
+                    )}
+                    {step < 3 ? (
+                      <button type="button" onClick={goNext}
+                        className="flex-1 inline-flex items-center justify-center gap-3 py-3.5 rounded-xl bg-gradient-to-b from-[#2f74ff] to-[#1446c9] text-white text-lg sm:text-xl font-bold shadow-[0_8px_20px_rgba(29,78,216,0.35)] hover:brightness-110 active:translate-y-px transition">
+                        Continue <ArrowRight className="w-6 h-6" />
+                      </button>
+                    ) : (
+                      <button type="submit" disabled={isSubmitting || !formData.consent} aria-busy={isSubmitting}
+                        className="flex-1 inline-flex items-center justify-center gap-3 py-3.5 rounded-xl bg-gradient-to-b from-[#2f74ff] to-[#1446c9] text-white text-lg sm:text-xl font-bold shadow-[0_8px_20px_rgba(29,78,216,0.35)] hover:brightness-110 active:translate-y-px transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isSubmitting ? 'Submitting…' : <>Submit Application <ArrowRight className="w-6 h-6" /></>}
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Error/Success Message */}
                   {submitMessage && (
-                    <div 
-                      className={`p-4 rounded-lg ${
-                        submitMessage.includes('❌') 
-                          ? 'bg-red-100 text-red-800 border border-red-300' 
-                          : 'bg-green-100 text-green-800 border border-green-300'
-                      }`}
-                      role={submitMessage.includes('❌') ? "alert" : "status"}
-                      aria-live="polite"
-                    >
+                    <div className="p-3 rounded-lg bg-red-50 text-red-800 border border-red-200 text-sm" role="alert" aria-live="polite">
                       {submitMessage}
                     </div>
                   )}
 
-                  {/* Form-level disclaimer */}
-                  <p className="text-xs text-blue-100/70 text-center pt-4 border-t border-blue-400/30">
-                    By submitting, you confirm information is accurate. Approval*, rates*, and terms* vary by lender. 
-                    <Link href="/loan-disclosure" className="underline hover:text-white ml-1">Full disclosures</Link>.
+                  <p className="text-xs sm:text-sm text-[#1e3a8a] pt-1 text-center leading-snug">
+                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline-block -mt-0.5 mr-1.5" aria-hidden="true" />
+                    Your information is safe, secure and used only for loan processing.
+                  </p>
+                  <p className="text-[11px] text-gray-500 text-center">
+                    *Submission does not guarantee approval. Approval, rates and terms vary by lender.{' '}
+                    <Link href="/loan-disclosure" className="underline">Full disclosures</Link>.
                   </p>
                 </form>
               </div>
-              
+            </div>
 
-              {/* Right Side - Benefits - Responsive */}
-              <div className="space-y-5 sm:space-y-6 lg:space-y-8">
-                <div className="text-center">
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-2 sm:mb-3 lg:mb-4 leading-tight">
-                    Why Choose EzyLoan?*
-                  </h2>
-                  <p className="text-gray-600 text-xs sm:text-sm lg:text-base">
-                    *Benefits subject to lender policy and applicant profile
-                  </p>
-                </div>
-
-                <div className="space-y-4 sm:space-y-5">
-                  <BenefitCard
-                    iconColor="blue"
-                    title="Swift Process*"
-                    desc="Quick preliminary response*. Final approval subject to lender verification."
-                  />
-                  <BenefitCard
-                    iconColor="green"
-                    title="Competitive Rates*"
-                    desc="Rates tailored to your profile*. Determined by partner lender."
-                  />
-                  <BenefitCard
-                    iconColor="purple"
-                    title="Minimal Documentation"
-                    desc="Essential documents only. Requirements vary by lender and loan type."
-                  />
-                  <BenefitCard
-                    iconColor="orange"
-                    title="Transparent Terms*"
-                    desc="All fees disclosed before acceptance. *Subject to lender policy."
-                  />
-                </div>
-
-                {/* ✅ WORKING CONTACT SECTION - Glass Cards with Clickable Links */}
-                <div className="relative bg-white/40 backdrop-blur-2xl rounded-2xl p-5 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-cyan-50/40 pointer-events-none" />
-                  <div className="relative z-10">
-                    <h3 className="text-lg font-bold mb-4 text-center">
-                      <span className="bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-transparent">Need Help?</span>
-                    </h3>
-                    <div className="space-y-4">
-                      {/* Phone - Clickable */}
-                      <a href="tel:+916372977626" className="flex items-center space-x-3 group cursor-pointer">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-105">
-                          <Phone className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-800">Call Us</p>
-                          <p className="text-[#2563eb] text-sm font-medium hover:underline">+91 63729 77626</p>
-                          <p className="text-[#2563eb] text-sm font-medium hover:underline">+91 96924 29674</p>
-                        </div>
-                      </a>
-                      {/* Email - Clickable */}
-                      <a href="mailto:care@ezyloan.co.in" className="flex items-center space-x-3 group cursor-pointer">
-                        <div className="w-10 h-10 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-105">
-                          <Mail className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-800">Email Us</p>
-                          <p className="text-[#2563eb] text-sm font-medium hover:underline">care@ezyloan.co.in</p>
-                        </div>
-                      </a>
-                    </div>
-                    <p className="text-[10px] xs:text-xs mt-3 text-center text-slate-500/80">Response time: 24-48 business hours*</p>
-                  </div>
-                </div>
-
-                {/* ✅ Added: Security/Fraud Warning */}
-                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div className="flex items-start">
-                    <AlertCircle className="w-5 h-5 text-red-600 mr-2 mt-0.5 flex-shrink-0" aria-hidden="true" />
-                    <div>
-                      <p className="text-sm font-medium text-red-800">⚠️ Fraud Alert</p>
-                      <p className="text-xs text-red-700 mt-1">
-                        EzyLoan does NOT charge upfront fees. If anyone asks for advance payment for "processing" or "guaranteed approval", it's a scam. Report to care@ezyloan.co.in.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+            {/* Our Loan Solutions */}
+            <div className="mt-8 sm:mt-12">
+              <h2 className="text-[22px] sm:text-3xl font-extrabold text-[#0b1b3f]">Our Loan Solutions</h2>
+              <span className="block mt-1 h-1 w-16 rounded-full bg-gradient-to-r from-[#f7941d] to-[#ffb347]" aria-hidden="true" />
+              <div className="mt-4 grid grid-cols-5 gap-1.5 sm:gap-4">
+                {LOAN_SOLUTIONS.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => pickLoanSolution(s.value)}
+                    className="group flex flex-col items-center justify-start gap-1.5 sm:gap-2 bg-white rounded-xl sm:rounded-2xl border border-blue-50 shadow-[0_4px_14px_rgba(30,64,175,0.10)] px-1 sm:px-2 py-3 sm:py-5 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_rgba(30,64,175,0.16)] transition"
+                  >
+                    <span className="h-8 sm:h-10 flex items-center [&_svg]:w-7 [&_svg]:h-7 sm:[&_svg]:w-10 sm:[&_svg]:h-10" aria-hidden="true">{s.icon}</span>
+                    <span className="text-[10px] sm:text-sm font-semibold text-[#0b1b3f] text-center leading-tight">{s.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Fraud alert */}
+            <div className="mt-8 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-600 mr-2 mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <p className="text-xs sm:text-sm text-red-700">
+                <strong className="text-red-800">Fraud Alert:</strong> EzyLoan does NOT charge upfront fees. If anyone asks for advance payment for &quot;processing&quot; or &quot;guaranteed approval&quot;, it&apos;s a scam. Report to{' '}
+                <a href="mailto:care@ezyloan.co.in" className="underline">care@ezyloan.co.in</a>.
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
         
         {/* ✅ EMI EXAMPLE - Near Form (Google Ads Requirement) */}
         <div className="px-3 sm:px-4 lg:px-6 xl:px-8">
@@ -918,42 +804,62 @@ const ApplyNowPage: React.FC = () => {
   );
 };
 
-// Reusable Benefit Card Component - Fully Responsive + Compliance + Glass Hover
-// Full, literal Tailwind class strings per color. Tailwind's JIT only emits CSS
-// for class names it can find as complete strings in the source — a dynamic
-// `bg-${iconColor}-100` is never generated, so those icon backgrounds rendered
-// blank in every environment. Mapping to static strings guarantees the CSS ships.
-const BENEFIT_ICON_STYLES: Record<string, { bg: string; text: string }> = {
-  blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
-  green: { bg: 'bg-green-100', text: 'text-green-600' },
-  purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
-  orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
-};
+const STEPS = ['Personal Details', 'Loan Details', 'Credit Profile'];
+const STEP_FIELDS: string[][] = [
+  ['fullName', 'phoneNumber', 'email'],
+  ['loanType', 'employmentType', 'city', 'pincode'],
+  ['cibilScore', 'consent'],
+];
 
-const BenefitCard = ({
-  iconColor,
-  title,
-  desc,
-}: {
-  iconColor: string;
-  title: string;
-  desc: string;
-}) => {
-  const iconStyle = BENEFIT_ICON_STYLES[iconColor] ?? BENEFIT_ICON_STYLES.blue;
-  return (
-    <div className="flex items-start space-x-3 sm:space-x-4 p-4 sm:p-5 lg:p-6 bg-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200/50 transition-all duration-300 group">
-      <div
-        className={`w-10 h-10 sm:w-12 sm:h-12 ${iconStyle.bg} rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300`}
-        aria-hidden="true"
-      >
-        <CheckCircle className={`w-5 h-5 sm:w-6 sm:h-6 ${iconStyle.text}`} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-800 mb-1 sm:mb-2 leading-tight group-hover:text-blue-700 transition-colors">{title}</h3>
-        <p className="text-gray-600 text-[10px] xs:text-xs sm:text-sm leading-relaxed">{desc}</p>
-      </div>
-    </div>
-  );
-};
+const LOAN_TYPE_OPTIONS = [
+  { value: 'used-car', label: 'Used Car Loan' },
+  { value: 'new-car', label: 'New Car Loan' },
+  { value: 'car-loan-topup', label: 'Car Loan Top-Up' },
+  { value: 'car-loan-balance-transfer', label: 'Car Loan Balance Transfer' },
+  { value: 'commercial-vehicle', label: 'Commercial Vehicle Loan' },
+  { value: 'personal', label: 'Personal Loan' },
+  { value: 'property', label: 'Property Loan' },
+  { value: 'business', label: 'Business Loan' },
+  { value: 'home', label: 'Home Loan' },
+];
+
+const LOAN_SOLUTIONS: { value: string; label: React.ReactNode; icon: React.ReactNode }[] = [
+  { value: 'used-car', label: <>Used<br />Car Loan</>, icon: <Car className="w-10 h-10 text-blue-600 fill-blue-600" strokeWidth={1.5} /> },
+  {
+    value: 'car-loan-topup', label: <>Car Loan<br />Top-Up</>,
+    icon: (
+      <span className="relative">
+        <Coins className="w-10 h-10 text-amber-500" strokeWidth={1.8} />
+        <span className="absolute -right-2 -bottom-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-600 text-white flex items-center justify-center">
+          <ArrowRight className="!w-2.5 !h-2.5 sm:!w-3 sm:!h-3 -rotate-90" strokeWidth={3} />
+        </span>
+      </span>
+    ),
+  },
+  { value: 'car-loan-balance-transfer', label: <>Car Loan<br />Balance Transfer</>, icon: <ArrowLeftRight className="w-10 h-10 text-blue-600" strokeWidth={2.5} /> },
+  { value: 'new-car', label: <>New<br />Car Loan</>, icon: <Car className="w-10 h-10 text-orange-500 fill-orange-400" strokeWidth={1.5} /> },
+  { value: 'commercial-vehicle', label: <>Commercial<br />Vehicle Loan</>, icon: <Truck className="w-10 h-10 text-blue-600 fill-blue-600" strokeWidth={1.5} /> },
+];
+
+const INPUT_CLS = 'flex-1 min-w-0 py-3 outline-none text-gray-900 placeholder:text-gray-500 text-[15px]';
+
+const Field = ({ label, htmlFor, error, children }: { label: string; htmlFor: string; error?: string; children: React.ReactNode }) => (
+  <div>
+    <label htmlFor={htmlFor} className="block mb-1 text-[15px] font-bold text-[#0b1b3f]">
+      {label} <span className="text-red-500">*</span>
+    </label>
+    {children}
+    {error && <p id={`${htmlFor}Error`} className="mt-1 text-xs text-red-600" role="alert">{error}</p>}
+  </div>
+);
+
+const InputShell = ({ icon, error, children }: { icon?: React.ReactNode; error?: boolean; children: React.ReactNode }) => (
+  <div className={`flex items-center gap-3 px-4 rounded-xl border bg-white transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 ${
+    error ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-300'
+  }`}>
+    {icon && <span className="shrink-0" aria-hidden="true">{icon}</span>}
+    {children}
+  </div>
+);
 
 export default ApplyNowPage;
