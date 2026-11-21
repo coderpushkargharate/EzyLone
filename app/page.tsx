@@ -1,5 +1,7 @@
 import HeroSection from '@/components/HeroSection';
 import Services from '@/components/Services';
+import WhyChoose from '@/components/home/WhyChoose';
+import Commitment from '@/components/home/Commitment';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
 import { pageMeta } from '@/lib/seo';
@@ -70,6 +72,8 @@ export default function Home() {
       <div className="min-h-screen bg-white">
         <HeroSection page="home" title="Get Loan Assistance*" />
         <Services />
+        <WhyChoose />
+        <Commitment />
 
         <section
           className="py-8 bg-white"
