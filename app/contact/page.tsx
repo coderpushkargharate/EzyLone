@@ -100,12 +100,12 @@ const Contact = () => {
         </div>
 
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mt-8">
-          <div className="relative mb-16 max-w-7xl mx-auto overflow-hidden rounded-2xl shadow-xl">
+          <div className="relative mb-16 w-full overflow-hidden rounded-2xl shadow-xl">
             <HeroSection page="contact" title="Contact EzyLoan" subtitle="Your trusted financial partner for all loan needs" />
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
          
 
           {/* Header */}
@@ -419,7 +419,7 @@ const Contact = () => {
 
         {/* Footer Disclaimer - GLASS EFFECT */}
         <div className="mt-16 pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, rates*, fees*, and terms* are determined by partner lenders.
             </p>

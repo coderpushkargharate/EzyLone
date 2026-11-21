@@ -4,9 +4,10 @@ import { pageMeta } from '@/lib/seo';
 
 export const metadata = pageMeta({
   path: '/car-loan',
-  title: "New Car Loan – Interest Rates & Eligibility",
+  title: "Car Loan in Odisha – New Car Finance in Bhubaneswar & Cuttack",
   description:
-    "Finance a new car through EzyLoan’s partner banks and NBFCs. Check eligibility, documents, tenure and indicative rates, then apply online.",
+    "Get a new car loan in Odisha through EzyLoan’s partner banks and NBFCs. Compare interest rates, check eligibility and documents, and apply online from Bhubaneswar, Cuttack, Puri or Rourkela.",
+  keywords: ["car loan Odisha", "new car loan Bhubaneswar", "car loan Cuttack", "car finance Odisha", "auto loan Odisha", "car loan interest rate", "car loan eligibility", "car loan documents", "car loan EMI", "on-road price car loan"],
 });
 
 // Static page; the related-articles list refreshes hourly (and on blog publish).

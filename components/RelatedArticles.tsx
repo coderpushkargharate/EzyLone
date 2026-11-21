@@ -38,7 +38,7 @@ export default async function RelatedArticles({ topic, heading }: { topic?: stri
 
   return (
     <section aria-labelledby="related-articles-heading" className="bg-gray-50 border-t border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h2 id="related-articles-heading" className="text-2xl font-bold text-gray-900 mb-6">{heading}</h2>
         <ul className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {posts.map((p) => (

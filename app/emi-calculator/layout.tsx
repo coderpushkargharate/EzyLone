@@ -7,6 +7,7 @@ export const metadata = pageMeta({
   title: "EMI Calculator – Car, Personal & Property Loans",
   description:
     "Free EMI calculator: estimate the monthly instalment, total interest and repayment for car, personal and property loans by amount, rate and tenure.",
+  keywords: ["EMI calculator", "car loan EMI calculator", "personal loan EMI calculator", "loan against property EMI calculator", "loan EMI calculator India"],
 });
 
 // Static page; the related-articles list refreshes hourly (and on blog publish).

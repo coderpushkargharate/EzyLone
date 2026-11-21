@@ -95,7 +95,7 @@ export default function FAQSection({
 
         {/* Header */}
         <div className="relative z-10 bg-white/70 backdrop-blur-sm border-b border-blue-100">
-          <div className="max-w-4xl mx-auto px-4 py-14 text-center">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
             <div className="flex items-center justify-center gap-4 mb-4">
               <div className="h-[2px] w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
               <h1 id="faq-section-title" className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">{title}</h1>
@@ -107,7 +107,7 @@ export default function FAQSection({
 
         {/* Compliance Banner */}
         {showComplianceBanner && (
-          <div className="relative z-10 max-w-4xl mx-auto px-4 py-4">
+          <div className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note">
               <p className="text-sm text-amber-800">
                 <strong>Important:</strong> Answers provided are for general guidance only. Loan eligibility, approval timelines, interest rates, fees, and terms vary by lender and applicant profile. Final decisions are made solely by partner banks/NBFCs. <Link href="/loan-disclosure" className="underline hover:text-amber-900">View full disclosures</Link>.
@@ -117,7 +117,7 @@ export default function FAQSection({
         )}
 
         {/* FAQ List - NO microdata attributes */}
-        <div className="relative z-10 max-w-3xl mx-auto px-4 py-12">
+        <div className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <article key={index} className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -160,7 +160,7 @@ export default function FAQSection({
 
         {/* Footer */}
         <div className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto px-4 text-center space-y-3">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan (Dibyansh Associates) is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, interest rates, fees, tenure, and terms are solely determined by partner lenders.
             </p>

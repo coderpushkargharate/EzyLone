@@ -1283,7 +1283,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           <div className="absolute top-40 -right-40 w-96 h-96 bg-cyan-400/10 rounded-full" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Mobile view */}
           <div className="lg:hidden mobile-view-block">
             <div
@@ -1409,7 +1409,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
               <div className="grid grid-cols-3  gap-4">
                 {[
                   { icon: Clock, label: "Quick Approval" },
-                  { icon: Percent, label: "Lowest Interest Rates" },
+                  { icon: Percent, label: "Competitive Interest Rates" },
                   { icon: Shield, label: "100% Secure Process" },
                 ].map(({ icon: Icon, label }) => (
                   <div

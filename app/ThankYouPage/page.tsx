@@ -13,6 +13,10 @@ const ThankYouPage = () => {
   const router = useRouter();
   const [countdown, setCountdown] = useState(30);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  // Set on the client only: rendering new Date() during SSR made the server and
+  // browser disagree on the timestamp (hydration mismatch).
+  const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
+  useEffect(() => { setSubmittedAt(new Date()); }, []);
 
   // ✅ Generate/retrieve application ID from URL params or session
   useEffect(() => {
@@ -166,16 +170,18 @@ const ThankYouPage = () => {
           <div className="mt-3 pt-3 border-t border-gray-100">
             <span className="text-gray-600 font-medium">Submitted:</span>
             <time 
-              dateTime={new Date().toISOString()}
+              dateTime={submittedAt ? submittedAt.toISOString() : undefined}
               className="ml-2 font-medium text-sm sm:text-base"
             >
-              {new Date().toLocaleDateString('en-IN', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
+              {submittedAt
+                ? submittedAt.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : '—'}
             </time>
           </div>
           <p className="text-xs text-gray-500 mt-3">

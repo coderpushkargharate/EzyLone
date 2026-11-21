@@ -151,7 +151,7 @@ const EMICalculatorPage: React.FC = () => {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Compliance Banner */}
           <div className="mb-6 md:mb-8 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Important calculator disclosures">
@@ -496,7 +496,7 @@ const EMICalculatorPage: React.FC = () => {
               <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-purple-600 to-pink-600 bg-clip-text text-transparent">Frequently Asked Questions</h2>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {[
                 { q: "What factors affect my EMI?", a: "Your EMI is affected by three main factors: the loan amount, interest rate, and loan tenure. A higher loan amount or interest rate increases your EMI, while a longer tenure reduces monthly payments but increases total interest paid. Actual rates vary by lender and applicant profile." },
                 { q: "Can I pay more than my EMI amount?", a: "Yes, you can make partial prepayments on most loans. However, some lenders may have prepayment penalties or lock-in periods. Check your specific loan agreement for details. Prepayment policies vary by lender." },
@@ -522,7 +522,7 @@ const EMICalculatorPage: React.FC = () => {
 
         {/* Global Footer Disclaimer */}
         <div className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-3">
               <p className="text-xs text-gray-600 leading-relaxed">
                 <strong>Calculator Disclaimer:</strong> This EMI calculator is a free educational tool for illustrative purposes only. All calculations are estimates based on the reducing balance method and do not constitute a loan offer, guarantee, or financial advice. Actual loan terms, interest rates, fees, EMIs, and eligibility are determined solely by partner banks/NBFCs based on credit assessment, income verification, documentation, and underwriting policy.

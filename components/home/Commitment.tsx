@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function Commitment() {
   return (
     <section className="py-8 lg:py-10 bg-white" aria-labelledby="commitment-heading">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#eef5ff] via-[#f5f9ff] to-[#eef7ee] border border-blue-100 grid grid-cols-1 md:grid-cols-[1.4fr_0.6fr_0.9fr] items-center gap-6 p-6 sm:p-8 lg:p-10">
           <div>
             <p className="flex items-center gap-2 text-sm font-bold text-[#0f7a4a]">

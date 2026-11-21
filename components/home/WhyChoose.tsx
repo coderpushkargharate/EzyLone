@@ -11,7 +11,7 @@ const FEATURES = [
 export default function WhyChoose() {
   return (
     <section id="why-ezyloan" className="py-8 lg:py-10 bg-white scroll-mt-24" aria-labelledby="why-heading">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         <div className="relative w-full rounded-3xl overflow-hidden shadow-xl" style={{ aspectRatio: "425 / 186" }}>
           <Image
             src="/home/office.webp"

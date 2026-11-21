@@ -100,6 +100,7 @@ export function pageMeta(opts: {
   description: string;
   image?: string;
   noindex?: boolean;
+  keywords?: string[];
 }): import('next').Metadata {
   const url = `${SITE_URL}${opts.path === '/' ? '' : opts.path}`;
   const image = opts.image || `${SITE_URL}/og-image.jpg`;
@@ -107,6 +108,7 @@ export function pageMeta(opts: {
   return {
     title: opts.title,
     description: opts.description,
+    ...(opts.keywords?.length ? { keywords: opts.keywords } : {}),
     alternates: { canonical: url },
     openGraph: {
       type: 'website',

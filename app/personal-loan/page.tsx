@@ -8,6 +8,7 @@ import {
   Award, Star, Phone, Mail, MapPin
 } from 'lucide-react';
 import HeroSection from '@/components/HeroSection';
+import LoanDisclosure from '@/components/LoanDisclosure';
 
 // ✅ Helper function for button clicks with redirect (Glass Prism compatible)
 const handleRedirect = (e: React.MouseEvent, url: string) => {
@@ -516,147 +517,16 @@ const PersonalLoanPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ✅ LOAN DETAILS BANNER - Google Ads Required */}
-        <div className="px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="max-w-[85rem] mx-auto">
-            <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 mb-6 sm:mb-8 text-white" role="region" aria-label="Loan terms and conditions">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm md:text-base opacity-90 font-medium leading-tight">Interest Rate</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-tight">{loanDetails.interestRate}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm md:text-base opacity-90 font-medium leading-tight">Processing Fee</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-tight">{loanDetails.processingFee}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm md:text-base opacity-90 font-medium leading-tight">Loan Tenure</p>
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold tracking-tight leading-tight">{loanDetails.tenure}</p>
-                </div>
-              </div>
-              {/* ✅ COMPLIANCE: Enhanced disclaimer */}
-              <p className="text-xs sm:text-sm text-center mt-2 sm:mt-3 opacity-80 font-medium">
-                *Terms and conditions apply. Interest rates &amp; fees subject to credit assessment, income verification, and lender approval. Representative example only.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
 
-        {/* ✅ EMI EXAMPLE - Near Form (Google Ads Requirement) */}
-        <div className="px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="max-w-[85rem] mx-auto">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 mb-6 sm:mb-8 border border-blue-100/50 shadow-md sm:shadow-lg hover:shadow-xl transition-shadow duration-300" role="region" aria-label="Representative EMI example">
-              <h3 className="font-bold text-gray-800 mb-3 flex items-center text-base sm:text-lg">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 flex-shrink-0" aria-hidden="true"></span>
-                <span className="font-semibold">Representative EMI Example (Illustrative)</span>
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Loan Amount</p>
-                  <p className="font-semibold text-sm sm:text-base md:text-lg">₹{emiExample.principal.toLocaleString('en-IN')}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Interest Rate</p>
-                  <p className="font-semibold text-sm sm:text-base md:text-lg">{emiExample.rate}% p.a.*</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Tenure</p>
-                  <p className="font-semibold text-sm sm:text-base md:text-lg">{emiExample.tenureMonths} months</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Monthly EMI</p>
-                  <p className="font-bold text-blue-600 text-sm sm:text-base md:text-lg">₹{emiExample.emi.toLocaleString('en-IN')}*</p>
-                </div>
-              </div>
-              {/* ✅ COMPLIANCE: Full repayment disclosure + variation disclaimer */}
-              <p className="text-xs sm:text-sm text-gray-500 mt-2 sm:mt-3 text-center font-medium">
-                Total Repayment: ₹{emiExample.totalAmount.toLocaleString('en-IN')} (Principal + Interest) | 
-                <span className="block sm:inline sm:ml-1">*Actual EMI may vary based on credit profile, lender terms, processing fees, and applicable charges. This is a representative example for illustration purposes only.</span>
-              </p>
-            </div>
-          </div>
-        </div>
 
-        {/* ✅ ELIGIBILITY SECTION - Google Ads Requirement */}
-        <div className="px-3 sm:px-4 lg:px-6 xl:px-8">
-          <div className="max-w-[85rem] mx-auto">
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 mb-6 sm:mb-8 border border-green-200/50 backdrop-blur-sm hover:border-green-300/50 transition-colors duration-300" role="region" aria-label="Eligibility criteria">
-              <h3 className="font-bold text-gray-800 mb-3 text-base sm:text-lg">✅ Eligibility Criteria</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                <div className="flex items-center py-1">
-                  <span className="text-green-600 mr-2 text-sm sm:text-base flex-shrink-0" aria-hidden="true">✓</span>
-                  <span className="text-xs sm:text-sm md:text-base font-medium">Age: {eligibility.age}</span>
-                </div>
-                <div className="flex items-center py-1">
-                  <span className="text-green-600 mr-2 text-sm sm:text-base flex-shrink-0" aria-hidden="true">✓</span>
-                  <span className="text-xs sm:text-sm md:text-base font-medium">Income: {eligibility.income}</span>
-                </div>
-                <div className="flex items-center py-1">
-                  <span className="text-green-600 mr-2 text-sm sm:text-base flex-shrink-0" aria-hidden="true">✓</span>
-                  <span className="text-xs sm:text-sm md:text-base font-medium">Employment: {eligibility.employment}</span>
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-3 text-center">
-                *Eligibility subject to income verification, credit assessment, and lender's underwriting policy.
-              </p>
-            </div>
-          </div>
-        </div>
 
-        {/* 🔴 G2RS COMPLIANCE FIX: Footer Declarations (Added at page bottom as requested) */}
-        <div className="px-3 sm:px-4 lg:px-6 xl:px-8 mb-8">
-          <div className="max-w-[85rem] mx-auto space-y-2">
-            {/* FIX #1: NO INVESTMENT DECLARATION */}
-            <div className="bg-amber-50 border-l-4 border-amber-400 rounded-r-lg p-3">
-              <p className="text-xs sm:text-sm text-amber-900 font-medium">
-                <strong>⚠️ Important:</strong> We do not provide investment advisory services and do not deal in stocks, mutual funds, securities, or trading products.
-              </p>
-            </div>
-            {/* FIX #2: NOT A LENDER STATEMENT */}
-            <div className="bg-blue-50 border-l-4 border-blue-400 rounded-r-lg p-3">
-              <p className="text-xs sm:text-sm text-blue-900 font-medium">
-                <strong>Note:</strong> EzyLoan is not a lender. We are a loan service provider facilitating loans through Banks and NBFCs.
-              </p>
-            </div>
-            {/* FIX #3: FINAL COMPLIANCE LINE */}
-            <div className="bg-gray-50 border-l-4 border-gray-400 rounded-r-lg p-3">
-              <p className="text-xs sm:text-sm text-gray-900 font-medium">
-                We are a loan facilitation service and not engaged in any financial advisory or investment services.
-              </p>
-            </div>
-          </div>
-        </div>
 
-        {/* 🔴 G2RS COMPLIANCE: Enhanced Disclaimer Section (Before Footer CTA) */}
-        <div className="px-3 sm:px-4 lg:px-6 xl:px-8 mb-8">
-          <div className="max-w-[85rem] mx-auto">
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start space-x-4">
-              <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="font-bold text-amber-800 mb-2">Important Disclaimer</h4>
-                {/* FIX #1: NO INVESTMENT */}
-                <p className="text-amber-900 text-sm leading-relaxed mb-2">
-                  We do not provide investment advisory services and do not deal in stocks, mutual funds, securities, or trading products.
-                </p>
-                {/* FIX #2: NOT A LENDER */}
-                <p className="text-amber-900 text-sm leading-relaxed mb-2">
-                  <strong>EzyLoan is not a lender.</strong> We are a loan service provider facilitating loans through Banks and NBFCs.
-                </p>
-                {/* FIX #3: FINAL COMPLIANCE LINE */}
-                <p className="text-amber-900 text-sm leading-relaxed">
-                  We are a loan facilitation service and not engaged in any financial advisory or investment services.
-                </p>
-                <p className="text-amber-800 text-xs mt-3 pt-2 border-t border-amber-200">
-                  All loans are subject to bank/NBFC approval and terms. EzyLoan acts as a facilitator only.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Footer CTA - GLASS PRISM BUTTON */}
         <div className="bg-gray-50/70 backdrop-blur-sm border-t border-gray-100/50 py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p className="text-gray-600 mb-4">Have questions? Our personal loan experts are ready to help!</p>
             {/* ✅ GLASS PRISM CONSULTATION BUTTON */}
             <Link 
@@ -705,7 +575,7 @@ const PersonalLoanPage: React.FC = () => {
         </div>
 
         {/* Personal loan FAQs (same list as the FAQPage schema above) */}
-        <section aria-labelledby="pl-faq-heading" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <section aria-labelledby="pl-faq-heading" className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <h2 id="pl-faq-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
             Personal Loan FAQs
           </h2>

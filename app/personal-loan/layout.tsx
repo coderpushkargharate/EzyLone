@@ -4,9 +4,10 @@ import { pageMeta } from '@/lib/seo';
 
 export const metadata = pageMeta({
   path: '/personal-loan',
-  title: "Personal Loan – Eligibility, Documents & Rates",
+  title: "Personal Loan in Odisha – Bhubaneswar, Cuttack & More",
   description:
-    "Personal loans for salaried and self-employed applicants through EzyLoan’s partner lenders. Check eligibility, documents, tenure and fees before applying.",
+    "Apply for a personal loan in Odisha through EzyLoan’s partner banks and NBFCs. Salaried and self-employed applicants can check eligibility, documents, rates and EMI online.",
+  keywords: ["personal loan Odisha", "personal loan Bhubaneswar", "personal loan Cuttack", "personal loan for salaried", "personal loan for self employed", "personal loan interest rate", "personal loan eligibility", "personal loan documents"],
 });
 
 // Static page; the related-articles list refreshes hourly (and on blog publish).

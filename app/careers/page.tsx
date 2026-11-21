@@ -238,7 +238,7 @@ export default function CareersPage() {
 
         {/* HERO SECTION - GLASS EFFECTS */}
         <section className="relative z-10 bg-white/70 backdrop-blur-sm border-b border-blue-100/50">
-          <div className="max-w-6xl mx-auto px-4 py-16 md:py-20 text-center">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 text-center">
             <div className="flex items-center justify-center gap-4 mb-6">
               <div className="h-[2px] w-16 md:w-20 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
               <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -269,7 +269,7 @@ export default function CareersPage() {
         </section>
 
         {/* COMPLIANCE BANNER - GLASS EFFECT */}
-        <div className="max-w-6xl mx-auto px-4 py-3">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="p-3 md:p-4 bg-amber-50/80 backdrop-blur-sm border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Employment disclosures">
             <p className="text-xs md:text-sm text-amber-800">
               <strong>Important:</strong> EzyLoan (Dibyansh Associates) is an Equal Opportunity Employer. All employment decisions are based on qualifications, merit, and business needs. We do not discriminate based on race, religion, color, national origin, gender, sexual orientation, age, marital status, veteran status, or disability status.{" "}
@@ -279,7 +279,7 @@ export default function CareersPage() {
         </div>
 
         {/* OPEN ROLES SECTION - GLASS EFFECTS */}
-        <section className="relative z-10 max-w-6xl mx-auto px-4 py-6 md:py-8">
+        <section className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="text-center mb-10 md:mb-12">
             <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Current Openings</h2>
             <p className="mt-2 text-gray-600 text-sm md:text-base">Explore opportunities to make an impact</p>
@@ -687,7 +687,7 @@ export default function CareersPage() {
 
         {/* FOOTER - GLASS EFFECT */}
         <div className="relative z-10 mt-12 md:mt-16 pt-6 md:pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto px-4 text-center space-y-2 md:space-y-3">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2 md:space-y-3">
             <p className="text-xs text-gray-600 leading-relaxed">
               <strong>Recruitment Disclaimer:</strong> EzyLoan (Dibyansh Associates) is an Equal Opportunity Employer. All hiring decisions are based on qualifications, skills, and business requirements. We do not charge any fees from candidates at any stage of the recruitment process. Beware of fraudulent job offers.
             </p>

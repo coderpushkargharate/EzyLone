@@ -4,9 +4,10 @@ import { pageMeta } from '@/lib/seo';
 
 export const metadata = pageMeta({
   path: '/car-loan-topup',
-  title: "Car Loan Top-Up – Extra Funds on Your Car Loan",
+  title: "Car Loan Top-Up in Odisha – Extra Funds on Your Car Loan",
   description:
-    "Get additional funds on your running car loan with a top-up. Check eligibility, typical top-up amounts and the documents you need.",
+    "Get extra funds on your running car loan with a top-up through EzyLoan’s partner lenders. Check top-up eligibility, typical amounts and documents in Bhubaneswar, Cuttack and across Odisha.",
+  keywords: ["car loan top up", "car loan top up Odisha", "top up on existing car loan", "extra loan on car", "car top up loan Bhubaneswar", "car top up loan Cuttack"],
 });
 
 // Static page; the related-articles list refreshes hourly (and on blog publish).
