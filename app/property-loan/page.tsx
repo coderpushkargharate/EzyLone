@@ -252,7 +252,7 @@ const PropertyLoanPage: React.FC = () => {
               Eligibility Criteria
             </h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 md:gap-6">
               {[
                 { 
                   icon: User, 
@@ -295,14 +295,14 @@ const PropertyLoanPage: React.FC = () => {
                 return (
                   <div 
                     key={index} 
-                    className={`group text-center p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-gray-100/50 hover:border-indigo-200/50 hover:-translate-y-1 bg-gradient-to-br ${item.bgCard} backdrop-blur-sm`}
+                    className={`group text-center p-4 sm:p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-gray-100/50 hover:border-indigo-200/50 hover:-translate-y-1 bg-gradient-to-br ${item.bgCard} backdrop-blur-sm`}
                   >
-                    <div className={`w-16 h-16 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                      <Icon className={`w-8 h-8 text-white ${item.iconShadow}`} aria-hidden="true" />
+                    <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <Icon className={`w-6 h-6 sm:w-8 sm:h-8 text-white ${item.iconShadow}`} aria-hidden="true" />
                     </div>
-                    <h3 className="font-bold text-gray-800 mb-2 text-xl group-hover:text-indigo-700 transition-colors">{item.title}</h3>
-                    <p className="text-gray-700 text-xl font-medium">{item.value}</p>
-                    <p className="text-gray-600 mt-1">{item.desc}</p>
+                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-xl group-hover:text-indigo-700 transition-colors">{item.title}</h3>
+                    <p className="text-gray-700 text-sm sm:text-xl font-medium">{item.value}</p>
+                    <p className="text-xs sm:text-base text-gray-600 mt-1">{item.desc}</p>
                   </div>
                 );
               })}
@@ -336,7 +336,7 @@ const PropertyLoanPage: React.FC = () => {
               </div>
               
               {/* ✅ COMPLIANCE: Changed "Instant Approval" to "Check Eligibility" */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center sm:items-stretch max-w-2xl mx-auto [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
                 {/* ✅ GLASS PRISM APPLY BUTTON */}
                 <Link 
                   href="/apply-now" 

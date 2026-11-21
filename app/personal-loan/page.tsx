@@ -366,7 +366,7 @@ const PersonalLoanPage: React.FC = () => {
               </span>
             </h2>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
               {[
                 { icon: User, title: "Age Criteria", value: "21 - 65 years", desc: "At the time of loan maturity", bg: "from-blue-600 to-indigo-700" },
                 { icon: DollarSign, title: "Monthly Income", value: "₹25,000+*", desc: "Net monthly income*", bg: "from-green-600 to-emerald-700" },
@@ -377,16 +377,16 @@ const PersonalLoanPage: React.FC = () => {
                 return (
                   <div 
                     key={index}
-                    className="group text-center p-8 bg-gradient-to-br from-gray-50/70 to-white/70 backdrop-blur-sm rounded-2xl hover:shadow-lg transition-all duration-300 border border-gray-100/50 hover:border-blue-200/50 hover:-translate-y-1"
+                    className="group text-center p-4 sm:p-8 bg-gradient-to-br from-gray-50/70 to-white/70 backdrop-blur-sm rounded-2xl hover:shadow-lg transition-all duration-300 border border-gray-100/50 hover:border-blue-200/50 hover:-translate-y-1"
                     itemScope
                     itemType="https://schema.org/QuantitativeValue"
                   >
-                    <div className={`w-20 h-20 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                      <Icon className={`w-10 h-10 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]`} aria-hidden="true" />
+                    <div className={`w-12 h-12 sm:w-20 sm:h-20 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <Icon className={`w-6 h-6 sm:w-10 sm:h-10 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]`} aria-hidden="true" />
                     </div>
-                    <h3 className="font-bold text-gray-800 mb-3 text-lg group-hover:text-blue-700 transition-colors">{item.title}</h3>
-                    <p className="text-gray-600 text-lg font-medium">{item.value}</p>
-                    <p className="text-sm text-gray-500 mt-2">{item.desc}</p>
+                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-3 text-sm sm:text-lg group-hover:text-blue-700 transition-colors">{item.title}</h3>
+                    <p className="text-gray-600 text-sm sm:text-lg font-medium">{item.value}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">{item.desc}</p>
                   </div>
                 );
               })}

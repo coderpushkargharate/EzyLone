@@ -252,16 +252,21 @@ const CarLoanTopUp: React.FC = () => {
                   </div>
                   
                   {/* Right Side - Image */}
-                  <div className="flex justify-center lg:justify-end">
-                    <div className="relative">
-                      <div className="absolute -inset-4 bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl blur opacity-20"></div>
-                      <div className="relative w-full h-64 sm:h-80 md:h-96 bg-gradient-to-r from-gray-200/70 to-gray-300/70 backdrop-blur-sm rounded-2xl shadow-2xl flex items-center justify-center border border-gray-100/50">
-                        <span className="text-gray-400 text-3xl sm:text-4xl group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">🚗</span>
-                        <span className="absolute -bottom-4 -right-4 bg-green-600 text-white p-2 sm:p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform duration-300">
-                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
-                        </span>
-                      </div>
+                  <div className="relative w-full">
+                    <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-gray-50" style={{ aspectRatio: "1280 / 897" }}>
+                      <img
+                        src="/car-blue-elementor-io-optimized.webp"
+                        alt="Car loan top-up eligibility — quick and easy process"
+                        width={1280}
+                        height={897}
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
                     </div>
+                    <span className="absolute -bottom-3 -right-3 bg-green-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg">
+                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </span>
                   </div>
                 </div>
               </div>

@@ -363,16 +363,20 @@ const CarLoanBalanceTransfer: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl"></div>
-                  <div 
-                    className="relative w-full h-64 sm:h-80 md:h-96 bg-gradient-to-r from-gray-200/70 to-gray-300/70 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-gray-100/50"
-                    aria-label="Car loan eligibility illustration"
-                  >
-                    <span className="text-gray-400 text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]">🚗</span>
-                    <div className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
-                    </div>
+                <div className="relative w-full">
+                  <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-gray-50" style={{ aspectRatio: "1280 / 897" }}>
+                    <img
+                      src="/car-blue-elementor-io-optimized.webp"
+                      alt="Car loan balance transfer eligibility — quick and easy process"
+                      width={1280}
+                      height={897}
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute -bottom-3 -right-3 bg-blue-600 text-white p-2.5 sm:p-3 rounded-full shadow-lg">
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                 </div>
               </div>
@@ -447,7 +451,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                 <p className="text-lg md:text-xl mb-8 opacity-95 max-w-3xl mx-auto px-2">
                   Join thousands who have saved money by transferring their car loan to EzyLoan
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center sm:items-stretch max-w-2xl mx-auto [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
                   {/* ✅ GLASS PRISM APPLY NOW BUTTON - CTA */}
                   <Link 
                     href="/apply-now?loan=car-loan-bt"

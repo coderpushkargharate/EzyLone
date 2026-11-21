@@ -243,12 +243,13 @@ const NewCarLoanPage: React.FC = () => {
             
             <div className="order-1 lg:order-2 relative">
               <div className="rounded-2xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-500 group">
-                <div className="aspect-w-16 aspect-h-9">
+                <div className="relative w-full" style={{ aspectRatio: "3 / 2" }}>
                   <img 
                     src="/pic/car112.webp" 
                     alt="New Car Loan - Drive your dream car" 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 {/* Glass overlay on hover */}
@@ -269,14 +270,14 @@ const NewCarLoanPage: React.FC = () => {
           {/* Benefits Section */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-10 lg:p-12 my-20 backdrop-blur-sm border border-blue-100/50">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1">
-                <div className="rounded-2xl overflow-hidden shadow-xl h-full group">
-                  <div className="aspect-w-16 aspect-h-9">
+              <div className="order-2 lg:order-1 lg:self-stretch">
+                <div className="relative rounded-3xl overflow-hidden shadow-xl h-64 sm:h-96 lg:h-full lg:min-h-[440px] group">
+                  <div className="absolute inset-0">
                     {/* 🔴 FIXED: Removed trailing space from Unsplash URL */}
                     <img 
                       src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
                       alt="Car Finance Solutions" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       loading="lazy"
                     />
                   </div>
@@ -472,7 +473,7 @@ const NewCarLoanPage: React.FC = () => {
               <p className="text-base sm:text-lg md:text-xl mb-8 max-w-3xl mx-auto leading-relaxed opacity-90">
                 Apply today and drive away with confidence! Choose EzyLoan and hit the road in your new car without any worries. Our experts are ready to help you find the perfect financing solution.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center sm:items-stretch max-w-2xl mx-auto [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
                 {/* ✅ GLASS PRISM APPLY NOW BUTTON - CTA */}
                 <Link 
                   href="/apply-now?loan=new-car-loan"

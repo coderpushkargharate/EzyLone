@@ -86,6 +86,17 @@ h1, h2, h3, h4, h5, h6 {
   text-wrap: balance; /* avoids lonely last words on headings */
 }
 h1 { letter-spacing: -0.025em; line-height: 1.12; }
+/* Headings inside a white-text block (gradient CTA banners etc.) inherit that
+   colour instead of the dark default above. Specificity stays at (0,0,1), so a
+   colour class placed on the heading itself still wins. */
+:where(.text-white, [class*="text-white/"]) h1,
+:where(.text-white, [class*="text-white/"]) h2,
+:where(.text-white, [class*="text-white/"]) h3,
+:where(.text-white, [class*="text-white/"]) h4,
+:where(.text-white, [class*="text-white/"]) h5,
+:where(.text-white, [class*="text-white/"]) h6 {
+  color: inherit;
+}
 p {
   text-wrap: pretty; /* nicer rag, prevents orphans */
 }

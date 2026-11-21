@@ -398,28 +398,30 @@ const About = () => {
                 <img
                   src="/pic/mision.webp"
                   alt="Car Finance"
-                  className="relative w-full h-96 max-sm:h-[129px] object-cover rounded-2xl shadow-2xl"
+                  className="relative w-full aspect-[3/2] lg:aspect-auto lg:h-96 object-cover rounded-2xl shadow-2xl"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
           </div>
 
           {/* Stats */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-12 sm:mb-20">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;
               return (
                 <div
                   key={index}
-                  className="bg-white/70 backdrop-blur-xl rounded-3xl p-8 text-center border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-center border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                 >
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <IconComponent className="w-8 h-8 text-white" />
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <IconComponent className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                   </div>
-                  <div className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent mb-2">
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent mb-2">
                     {stat.number}
                   </div>
-                  <div className="text-gray-600 font-medium">{stat.label}</div>
+                  <div className="text-sm sm:text-base text-gray-600 font-medium">{stat.label}</div>
                 </div>
               );
             })}
@@ -516,7 +518,7 @@ const About = () => {
                     <div key={index} className="w-full flex-shrink-0 px-2">
                       <div className="flex items-start gap-4 backdrop-blur-xl bg-white/70 rounded-xl py-5 shadow-sm border border-white/50">
                         <div className="flex-shrink-0">
-                          <img src={testimonial.avatar} alt={testimonial.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/60" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=0D8ABC&color=fff`; }} />
+                          <img src={testimonial.avatar} alt={testimonial.name} referrerPolicy="no-referrer" width={56} height={56} className="w-14 h-14 rounded-full object-cover border-2 border-white/60 bg-blue-100" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=0D8ABC&color=fff`; }} />
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -547,7 +549,7 @@ const About = () => {
                     <div key={index} className="w-1/3 flex-shrink-0 px-3">
                       <div className="flex items-start gap-4 backdrop-blur-xl bg-white/70 rounded-xl p-5 shadow-sm border border-white/50 h-full hover:shadow-md transition-shadow">
                         <div className="flex-shrink-0">
-                          <img src={testimonial.avatar} alt={testimonial.name} className="w-14 h-14 rounded-full object-cover border-2 border-white/60" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=0D8ABC&color=fff`; }} />
+                          <img src={testimonial.avatar} alt={testimonial.name} referrerPolicy="no-referrer" width={56} height={56} className="w-14 h-14 rounded-full object-cover border-2 border-white/60 bg-blue-100" onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(testimonial.name)}&background=0D8ABC&color=fff`; }} />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-1 mb-1">
@@ -585,7 +587,7 @@ const About = () => {
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               {[
-                { img: 'https://images.unsplash.com/photo-1549924231-f129b911e442?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', tag: '🔋 EV News', title: 'Electric Vehicle Market Growth', desc: 'Latest trends in electric vehicle adoption and financing options for sustainable transportation...' },
+                { img: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', tag: '🔋 EV News', title: 'Electric Vehicle Market Growth', desc: 'Latest trends in electric vehicle adoption and financing options for sustainable transportation...' },
                 { img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', tag: '💰 Finance', title: 'Auto Loan Interest Rates', desc: 'Current market rates and best practices for vehicle financing with competitive loan options...' },
                 { img: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', tag: '📊 Market', title: 'Used Car Market Insights', desc: 'Market analysis and valuation trends for pre-owned vehicles with expert recommendations...' },
               ].map((news, idx) => (

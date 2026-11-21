@@ -250,7 +250,7 @@ const CommercialVehicleLoanPage: React.FC = () => {
               </span>
             </h2>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {[
                 { icon: Building, title: "Business Age", value: "2+ years", desc: "In business operation", bg: "from-blue-600 to-indigo-700" },
                 { icon: DollarSign, title: "Annual Turnover", value: "₹50 Lakhs+", desc: "Minimum annual turnover", bg: "from-green-600 to-emerald-700" },
@@ -261,13 +261,13 @@ const CommercialVehicleLoanPage: React.FC = () => {
                 return (
                   <div 
                     key={index} 
-                    className="group text-center p-5 sm:p-6 bg-gradient-to-br from-gray-50/70 to-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300 border border-gray-100/50 hover:border-indigo-200/50 hover:-translate-y-1"
+                    className="group text-center p-4 sm:p-6 bg-gradient-to-br from-gray-50/70 to-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl hover:shadow-lg transition-all duration-300 border border-gray-100/50 hover:border-indigo-200/50 hover:-translate-y-1"
                   >
                     <div className={`w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                       <Icon className={`w-7 h-7 sm:w-8 sm:h-8 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]`} aria-hidden="true" />
                     </div>
-                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-base sm:text-lg group-hover:text-indigo-700 transition-colors">{item.title}</h3>
-                    <p className="text-gray-600 text-base sm:text-lg font-medium">{item.value}</p>
+                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-lg group-hover:text-indigo-700 transition-colors">{item.title}</h3>
+                    <p className="text-gray-600 text-sm sm:text-lg font-medium">{item.value}</p>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">{item.desc}</p>
                   </div>
                 );

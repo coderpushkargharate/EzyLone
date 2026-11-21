@@ -120,12 +120,12 @@ const BANKING_PARTNERS = [
 // ✅ Server-safe Image component with fallback (no event handlers)
 function PartnerLogo({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative aspect-square flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 group-hover:from-blue-50 group-hover:to-cyan-50 transition-colors overflow-hidden">
+    <div className="relative aspect-[16/9] flex items-center justify-center bg-white rounded-xl border border-gray-100 px-2 py-1.5 sm:px-5 sm:py-3 group-hover:from-blue-50 group-hover:to-cyan-50 transition-colors overflow-hidden">
       {/* Primary Image */}
       <img
         src={src}
         alt={alt}
-        className="max-w-full max-h-full object-contain"
+        className="w-full h-full object-contain"
         loading="lazy"
       />
       {/* Fallback: Show initials if image fails (handled via CSS + alt text) */}
@@ -201,7 +201,7 @@ export default function LendingPartnersPage() {
                 href={partner.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative backdrop-blur-xl bg-white/70 rounded-2xl p-5 border border-white/50 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-300"
+                className="group relative backdrop-blur-xl bg-white/70 rounded-2xl p-3 sm:p-5 border border-white/50 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-300"
               >
                 {/* Logo Container - Server-safe */}
                 <PartnerLogo src={partner.logo} alt={partner.name} />
