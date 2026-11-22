@@ -175,7 +175,7 @@ const Header = memo(() => {
             transform: scale(1.05) translateY(-4px);
             border-radius: 16px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 16px 50px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.4), 0 0 30px rgba(59,130,246,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+            box-shadow: 0 16px 50px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.4), 0 0 30px rgba(53, 119, 211,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
           }
           .nav-link-water {
             position: relative;
@@ -190,7 +190,7 @@ const Header = memo(() => {
             top: 50%; left: 50%;
             width: 0; height: 0;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 40%, transparent 70%);
+            background: radial-gradient(circle, rgba(53, 119, 211,0.15) 0%, rgba(53, 119, 211,0.05) 40%, transparent 70%);
             transform: translate(-50%, -50%);
             pointer-events: none;
             z-index: 0;
@@ -202,9 +202,9 @@ const Header = memo(() => {
           }
           .nav-link-water:hover,
           .nav-link-water:active {
-            background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(6,182,212,0.08));
+            background: linear-gradient(135deg, rgba(53, 119, 211,0.1), rgba(90, 145, 222,0.08));
             transform: translateY(-3px);
-            color: #2563eb !important;
+            color: #2064c8 !important;
           }
         }
         @media (max-width: 1023px) {
@@ -248,7 +248,7 @@ const Header = memo(() => {
         }
         .apple-glass-btn:focus-visible,
         .nav-link-water:focus-visible {
-          outline: 2px solid #2563eb;
+          outline: 2px solid #2064c8;
           outline-offset: 2px;
         }
       `}</style>
@@ -286,7 +286,7 @@ const Header = memo(() => {
 
             <Link
               href="/apply-now"
-              className="lg:hidden apple-glass-btn relative bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-3 py-1.5 rounded-full font-semibold transition-apple text-base whitespace-nowrap glass-border"
+              className="lg:hidden apple-glass-btn relative bg-gradient-to-r from-blue-600 to-blue-400 text-white px-3 py-1.5 rounded-full font-semibold transition-apple text-base whitespace-nowrap glass-border"
               aria-label="Apply for a loan now"
             >
               <span className="relative z-10">Apply Now</span>
@@ -321,7 +321,7 @@ const Header = memo(() => {
               <Link href="/property-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Property Loan</span><div className="liquid-overlay" /></Link>
               <Link href="/commercial-vehicle-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Commercial Vehicle</span><div className="liquid-overlay" /></Link>
               <Link href="/contact" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Contact</span><div className="liquid-overlay" /></Link>
-              <Link href="/apply-now" className="group apple-glass-btn relative bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-apple text-base whitespace-nowrap glass-border ml-2">
+              <Link href="/apply-now" className="group apple-glass-btn relative bg-gradient-to-r from-blue-600 to-blue-400 text-white px-5 py-2 rounded-full font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-apple text-base whitespace-nowrap glass-border ml-2">
                 <span className="relative z-10">Apply Now</span>
                 <div className="liquid-overlay" />
                 <div className="absolute inset-0 glass-shimmer rounded-full opacity-0 group-hover:opacity-100 transition-apple" />
@@ -361,7 +361,7 @@ const Header = memo(() => {
                 <Link href="/commercial-vehicle-loan" onClick={(e) => handleMobileLinkClick(e, "/commercial-vehicle-loan")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Commercial Vehicle Loan</Link>
                 <Link href="/emi-calculator" onClick={(e) => handleMobileLinkClick(e, "/emi-calculator")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">EMI Calculator</Link>
                 <Link href="/contact" onClick={(e) => handleMobileLinkClick(e, "/contact")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Contact</Link>
-                <Link href="/apply-now" onClick={(e) => handleMobileLinkClick(e, "/apply-now")} className="relative text-white bg-gradient-to-r from-blue-600 to-cyan-500 px-5 py-3 rounded-full font-semibold mt-3 text-center max-w-[220px] mx-auto glass-border text-base min-h-[44px] flex items-center justify-center" role="menuitem" aria-label="Apply for a loan now">
+                <Link href="/apply-now" onClick={(e) => handleMobileLinkClick(e, "/apply-now")} className="relative text-white bg-gradient-to-r from-blue-600 to-blue-400 px-5 py-3 rounded-full font-semibold mt-3 text-center max-w-[220px] mx-auto glass-border text-base min-h-[44px] flex items-center justify-center" role="menuitem" aria-label="Apply for a loan now">
                   <span className="relative z-10">Apply Now</span>
                 </Link>
               </nav>

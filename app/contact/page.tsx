@@ -92,15 +92,15 @@ const Contact = () => {
   return (
     <>
 
-      <section id="contact" className="pb-20 bg-gradient-to-br from-blue-50 via-white to-cyan-50 relative overflow-hidden">
+      <section id="contact" className="bg-gradient-to-br from-blue-50 via-white to-blue-50 relative overflow-hidden section-pb">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute top-1/4 -left-20 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-gradient-to-br from-cyan-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/4 -left-20 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mt-8">
-          <div className="relative mb-16 w-full overflow-hidden rounded-2xl shadow-xl">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection page="contact" title="Contact EzyLoan" subtitle="Your trusted financial partner for all loan needs" />
           </div>
         </div>
@@ -109,15 +109,15 @@ const Contact = () => {
          
 
           {/* Header */}
-          <div className="text-center mb-16">
+          <div className="text-center section-head">
             <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Contact Us</span>
+              <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Contact Us</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">Ready to take the next step? Get in touch with our loan experts who will guide you through the entire process.</p>
           </div>
 
           {/* Contact Info Cards - GLASS EFFECTS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 section-mb">
             {contactInfo.map((info, index) => {
               const IconComponent = info.icon;
               return (
@@ -127,7 +127,7 @@ const Contact = () => {
                   className={`group bg-white/70 backdrop-blur-sm rounded-3xl p-6 text-center border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:border-blue-200/50 ${!info.href ? 'cursor-default' : 'cursor-pointer'}`}
                   onClick={info.href ? (e) => handleRedirect(e, info.href!) : undefined}
                 >
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-cyan-700 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     <IconComponent className="w-7 h-7 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" />
                   </div>
                   <h2 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-700 transition-colors">{info.title}</h2>
@@ -146,7 +146,7 @@ const Contact = () => {
           <div className="grid lg:grid-cols-2 gap-12">
             <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 border border-white/30 shadow-2xl hover:shadow-3xl transition-shadow duration-500">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-700 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
                   <Send className="w-5 h-5 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">Send us a Message</h2>
@@ -258,14 +258,14 @@ const Contact = () => {
                   className={`group relative w-full overflow-hidden font-semibold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-2 py-4 px-8 ${
                     isSubmitting 
                       ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white'
+                      : 'bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white'
                   }`}
                 >
                   {/* Base Glass Prism Gradient (only when not submitting) */}
                   {!isSubmitting && (
                     <>
                       {/* Base Glass Effect */}
-                      <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-cyan-600/95 backdrop-blur-md" />
+                      <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-500/95 backdrop-blur-md" />
                       
                       {/* Animated Prism Shine Layer */}
                       <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -275,7 +275,7 @@ const Contact = () => {
                       
                       {/* Prismatic Edge Glow */}
                       <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                            style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
                       
                       {/* Animated Border Glow */}
                       <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -328,7 +328,7 @@ const Contact = () => {
             {/* Right Side Content - GLASS EFFECTS */}
             <div className="space-y-8">
               {/* Pre-qualification Card - GLASS PRISM BUTTON */}
-              <div className="bg-gradient-to-br from-blue-600 to-cyan-700 rounded-3xl p-8 text-white relative overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-600 to-blue-600 rounded-3xl p-8 text-white relative overflow-hidden">
                 {/* Glass shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
                 
@@ -353,12 +353,12 @@ const Contact = () => {
                     
                     {/* Prismatic Edge Glow */}
                     <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ boxShadow: 'inset 0 0 25px rgba(37,99,235,0.2)' }} />
+                          style={{ boxShadow: 'inset 0 0 25px rgba(32, 100, 200,0.2)' }} />
                     
                     {/* Animated Border Glow */}
                     <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                           style={{
-                            background: 'linear-gradient(90deg, transparent, rgba(37,99,235,0.5), transparent)',
+                            background: 'linear-gradient(90deg, transparent, rgba(32, 100, 200,0.5), transparent)',
                             animation: 'borderGlow 3s infinite linear',
                             mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                             maskComposite: 'xor',
@@ -406,11 +406,11 @@ const Contact = () => {
           </div>
           
           {/* Compliance Banner - GLASS EFFECT */}
-          <div className="mt-12 p-4 bg-amber-50/80 backdrop-blur-sm border-l-4 border-amber-500 rounded-r-lg" role="note">
+          <div className="mt-12 p-4 bg-orange-50/80 backdrop-blur-sm border-l-4 border-orange-500 rounded-r-lg" role="note">
             <div className="flex items-start">
-              <AlertCircle className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
-              <div className="text-sm text-amber-800">
-                <strong>Important:</strong> Interest rates*, processing fees*, and loan terms vary by lender. Approval is subject to eligibility verification. Final terms are decided solely by partner banks/NBFCs. <Link href="/loan-disclosure" className="underline hover:text-amber-900 transition-colors">View full disclosures</Link>.
+              <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]" />
+              <div className="text-sm text-orange-800">
+                <strong>Important:</strong> Interest rates*, processing fees*, and loan terms vary by lender. Approval is subject to eligibility verification. Final terms are decided solely by partner banks/NBFCs. <Link href="/loan-disclosure" className="underline hover:text-orange-900 transition-colors">View full disclosures</Link>.
               </div>
             </div>
           </div>
@@ -418,7 +418,7 @@ const Contact = () => {
         
 
         {/* Footer Disclaimer - GLASS EFFECT */}
-        <div className="mt-16 pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
+        <div className="pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm section-mt">
           <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, rates*, fees*, and terms* are determined by partner lenders.

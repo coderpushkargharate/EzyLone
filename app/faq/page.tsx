@@ -99,7 +99,7 @@ export default function FAQPage() {
         title="Frequently Asked Questions"
         subtitle="Eligibility, documents, rates, EMIs and how EzyLoan works"
       />
-      <nav aria-label="Related pages" className="max-w-3xl mx-auto px-4 pb-16 -mt-6 text-center text-sm text-gray-600">
+      <nav aria-label="Related pages" className="max-w-3xl mx-auto px-4 -mt-6 text-center text-sm text-gray-600 section-pb">
         Explore:{' '}
         <Link href="/personal-loan" className="text-blue-700 underline">Personal Loan</Link> ·{' '}
         <Link href="/car-loan" className="text-blue-700 underline">Car Loan</Link> ·{' '}

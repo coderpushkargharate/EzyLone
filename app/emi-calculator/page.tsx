@@ -143,33 +143,33 @@ const EMICalculatorPage: React.FC = () => {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(calculatorSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <div className="pt-12 pb-16 bg-gradient-to-br from-blue-50 via-white to-orange-50 relative overflow-hidden">
+      <div className="page-top bg-gradient-to-br from-blue-50 via-white to-orange-50 relative overflow-hidden section-pb">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-200/30 to-cyan-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-200/20 to-pink-200/20 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/30 to-orange-200/30 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-200/30 to-blue-200/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-blue-200/20 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
         
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Compliance Banner */}
-          <div className="mb-6 md:mb-8 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Important calculator disclosures">
+          <div className="mb-6 md:mb-8 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg" role="note" aria-label="Important calculator disclosures">
             <div className="flex items-start">
-              <AlertCircle className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
-              <div className="text-sm text-amber-800">
-                <strong>Important:</strong> This EMI calculator provides <strong>illustrative estimates only</strong>. Actual loan terms, interest rates, fees, and EMIs are determined solely by partner lenders based on your credit profile, income, and underwriting policy. <Link href="/loan-disclosure" className="underline hover:text-amber-900">View full disclosures</Link>.
+              <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <div className="text-sm text-orange-800">
+                <strong>Important:</strong> This EMI calculator provides <strong>illustrative estimates only</strong>. Actual loan terms, interest rates, fees, and EMIs are determined solely by partner lenders based on your credit profile, income, and underwriting policy. <Link href="/loan-disclosure" className="underline hover:text-orange-900">View full disclosures</Link>.
               </div>
             </div>
           </div>
 
           {/* Hero Section */}
-          <div className="text-center mb-8 md:mb-16">
-            <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl md:rounded-2xl mb-4 md:mb-6 shadow-2xl transform hover:scale-110 transition-all duration-300">
+          <div className="text-center section-head">
+            <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-orange-500 to-orange-500 rounded-xl md:rounded-2xl mb-4 md:mb-6 shadow-2xl transform hover:scale-110 transition-all duration-300">
               <Calculator className="w-8 h-8 md:w-10 md:h-10 text-white" aria-hidden="true" />
             </div>
             <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight px-4">
-              <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 bg-clip-text text-transparent">EMI Calculator</span>
+              <span className="bg-gradient-to-r from-orange-500 via-orange-500 to-orange-500 bg-clip-text text-transparent">EMI Calculator</span>
             </h1>
             <p className="text-base md:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-6 md:mb-8 px-4">
               Plan your loan repayments with our <span className="font-semibold text-orange-600">smart & interactive</span> EMI calculator.
@@ -190,12 +190,12 @@ const EMICalculatorPage: React.FC = () => {
             </div>
           </div>
 
-            <div className="grid md:grid-cols-12 gap-4 md:gap-8 mb-16">
+            <div className="grid md:grid-cols-12 gap-4 md:gap-8 section-mb">
           {/* Calculator Inputs */}
           <div className="md:col-span-5 bg-white/90 backdrop-blur-sm rounded-3xl p-6 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-500 rounded-xl flex items-center justify-center mr-4 shadow-lg">
                   <Calculator className="w-6 h-6 text-white" />
                 </div>
                 Loan Details
@@ -233,9 +233,9 @@ const EMICalculatorPage: React.FC = () => {
                     step="10000"
                     value={loanAmount}
                     onChange={(e) => setLoanAmount(Number(e.target.value))}
-                    className="w-full text-black h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider hover:from-orange-200 hover:to-amber-200 transition-all duration-300"
+                    className="w-full text-black h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider hover:from-orange-200 hover:to-orange-200 transition-all duration-300"
                     style={{
-                      background: `linear-gradient(to right, #f97316 0%, #f59e0b ${((loanAmount - 50000) / (10000000 - 50000)) * 100}%, #e5e7eb ${((loanAmount - 50000) / (10000000 - 50000)) * 100}%, #e5e7eb 100%)`
+                      background: `linear-gradient(to right, #ff9100 0%, #ff9100 ${((loanAmount - 50000) / (10000000 - 50000)) * 100}%, #e5e7eb ${((loanAmount - 50000) / (10000000 - 50000)) * 100}%, #e5e7eb 100%)`
                     }}
                   />
                 </div>
@@ -275,9 +275,9 @@ const EMICalculatorPage: React.FC = () => {
                     step="0.1"
                     value={interestRate}
                     onChange={(e) => setInterestRate(Number(e.target.value))}
-                    className="w-full text-black h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider hover:from-blue-200 hover:to-cyan-200 transition-all duration-300"
+                    className="w-full text-black h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider hover:from-blue-200 hover:to-blue-200 transition-all duration-300"
                     style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #06b6d4 ${((interestRate - 5) / (25 - 5)) * 100}%, #e5e7eb ${((interestRate - 5) / (25 - 5)) * 100}%, #e5e7eb 100%)`
+                      background: `linear-gradient(to right, #3577d3 0%, #5a91de ${((interestRate - 5) / (25 - 5)) * 100}%, #e5e7eb ${((interestRate - 5) / (25 - 5)) * 100}%, #e5e7eb 100%)`
                     }}
                   />
                 </div>
@@ -316,7 +316,7 @@ const EMICalculatorPage: React.FC = () => {
                     step="1"
                     value={loanTenure}
                     onChange={(e) => setLoanTenure(Number(e.target.value))}
-                    className="w-full text-black h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider hover:from-green-200 hover:to-emerald-200 transition-all duration-300"
+                    className="w-full text-black h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider hover:from-blue-200 hover:to-blue-200 transition-all duration-300"
                     style={{
                       background: `linear-gradient(to right, #10b981 0%, #059669 ${((loanTenure - 1) / (360 - 1)) * 100}%, #e5e7eb ${((loanTenure - 1) / (360 - 1)) * 100}%, #e5e7eb 100%)`
                     }}
@@ -332,7 +332,7 @@ const EMICalculatorPage: React.FC = () => {
               <div className="pt-4">
                 <Link
                   href="/apply-now"
-                  className="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:from-orange-600 hover:via-amber-600 hover:to-yellow-600 transition-all duration-500 flex items-center justify-center group shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden"
+                  className="w-full bg-gradient-to-r from-orange-500 via-orange-500 to-orange-500 text-white py-4 px-8 rounded-2xl font-bold text-lg hover:from-orange-600 hover:via-orange-600 hover:to-orange-600 transition-all duration-500 flex items-center justify-center group shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 hover:scale-105 relative overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <Zap className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform duration-300" />
@@ -346,7 +346,7 @@ const EMICalculatorPage: React.FC = () => {
           {/* Results */}
           <div className="md:col-span-7 grid grid-cols-1 gap-4 md:gap-6">
             {/* EMI Result */}
-            <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 rounded-2xl md:rounded-3xl p-4 md:p-8 text-white shadow-2xl relative overflow-hidden group hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
+            <div className="bg-gradient-to-br from-orange-500 via-orange-500 to-orange-500 rounded-2xl md:rounded-3xl p-4 md:p-8 text-white shadow-2xl relative overflow-hidden group hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="absolute top-2 right-2 md:top-4 md:right-4">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -373,7 +373,7 @@ const EMICalculatorPage: React.FC = () => {
             {/* Breakdown */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
               <h3 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-4 md:mb-6 flex items-center">
-                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3 shadow-lg">
+                <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-blue-400 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3 shadow-lg">
                   <PieChart className="w-4 h-4 md:w-5 md:h-5 text-white" />
                 </div>
                 Payment Breakdown
@@ -384,7 +384,7 @@ const EMICalculatorPage: React.FC = () => {
                 <div className="relative">
                   <div className="w-full h-6 md:h-8 rounded-xl md:rounded-2xl overflow-hidden bg-gradient-to-r from-gray-100 to-gray-200 shadow-inner">
                     <div 
-                      className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl md:rounded-2xl transition-all duration-1000 ease-out shadow-lg" 
+                      className="h-full bg-gradient-to-r from-orange-500 to-orange-500 rounded-xl md:rounded-2xl transition-all duration-1000 ease-out shadow-lg" 
                       style={{ width: `${principalPercentage}%` }}
                     ></div>
                   </div>
@@ -397,17 +397,17 @@ const EMICalculatorPage: React.FC = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-orange-200 hover:shadow-lg transition-all duration-300">
+                <div className="bg-gradient-to-br from-orange-50 to-orange-50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-orange-200 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center mb-2 md:mb-3">
-                    <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 mr-2 md:mr-3 shadow-lg"></div>
+                    <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gradient-to-r from-orange-500 to-orange-500 mr-2 md:mr-3 shadow-lg"></div>
                     <p className="text-xs md:text-sm font-semibold text-gray-700">Principal Amount</p>
                   </div>
                   <p className="text-lg md:text-2xl font-bold text-gray-900 mb-1">{formatCurrency(loanAmount)}</p>
                   <p className="text-xs md:text-sm text-orange-600 font-medium">{principalPercentage.toFixed(1)}% of total</p>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-200 hover:shadow-lg transition-all duration-300">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-50 rounded-xl md:rounded-2xl p-4 md:p-6 border border-blue-200 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center mb-2 md:mb-3">
-                    <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 mr-2 md:mr-3 shadow-lg"></div>
+                    <div className="w-4 h-4 md:w-6 md:h-6 rounded-full bg-gradient-to-r from-blue-500 to-blue-400 mr-2 md:mr-3 shadow-lg"></div>
                     <p className="text-xs md:text-sm font-semibold text-gray-700">Interest Amount</p>
                   </div>
                   <p className="text-lg md:text-2xl font-bold text-gray-900 mb-1">{formatCurrency(totalInterest)}</p>
@@ -421,24 +421,24 @@ const EMICalculatorPage: React.FC = () => {
                     <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-green-600 mr-2 md:mr-3" />
                     <p className="text-base md:text-lg font-bold text-gray-800">Total Amount Payable</p>
                   </div>
-                  <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">{formatCurrency(totalAmount)}</p>
+                  <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">{formatCurrency(totalAmount)}</p>
                 </div>
               </div>
             </div>
 
             {/* Information */}
-            <div className="bg-gradient-to-br from-blue-50 via-white to-cyan-50 rounded-2xl md:rounded-3xl p-4 md:p-8 border border-blue-200 shadow-xl">
+            <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 rounded-2xl md:rounded-3xl p-4 md:p-8 border border-blue-200 shadow-xl">
               <div className="flex items-start">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-4 mt-1 shadow-lg">
+                <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-blue-400 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-4 mt-1 shadow-lg">
                   <Info className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-3 md:mb-4">How is EMI calculated?</h3>
+                  <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent mb-3 md:mb-4">How is EMI calculated?</h3>
                   <p className="text-gray-700 mb-3 md:mb-4 text-base md:text-lg leading-relaxed">
                     EMI stands for Equated Monthly Installment. It's the amount you pay every month until your loan is fully paid off. The EMI includes both principal and interest components.
                   </p>
                   <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-                    The formula used to calculate EMI is: <span className="font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">EMI = P × r × (1 + r)^n / ((1 + r)^n - 1)</span> where P is the principal, r is the monthly interest rate, and n is the number of installments.
+                    The formula used to calculate EMI is: <span className="font-bold bg-gradient-to-r from-orange-500 to-orange-500 bg-clip-text text-transparent">EMI = P × r × (1 + r)^n / ((1 + r)^n - 1)</span> where P is the principal, r is the monthly interest rate, and n is the number of installments.
                   </p>
                 </div>
               </div>
@@ -446,12 +446,12 @@ const EMICalculatorPage: React.FC = () => {
           </div>
         </div>
           {/* Loan Comparison */}
-          <div className="mt-20 bg-gradient-to-br from-white via-orange-50/30 to-amber-50/30 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-10 border border-white/20 backdrop-blur-sm mb-16">
+          <div className="bg-gradient-to-br from-white via-orange-50/30 to-orange-50/30 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-10 border border-white/20 backdrop-blur-sm section-mt">
             <div className="flex items-center justify-center mb-6 md:mb-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-4 shadow-2xl">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-orange-500 to-orange-500 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-4 shadow-2xl">
                 <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-white" aria-hidden="true" />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-orange-600 to-amber-600 bg-clip-text text-transparent">Loan Comparison Guide</h2>
+              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-orange-600 to-orange-600 bg-clip-text text-transparent">Loan Comparison Guide</h2>
             </div>
             
             <p className="text-center text-sm text-gray-600 mb-6 max-w-3xl mx-auto">
@@ -488,12 +488,12 @@ const EMICalculatorPage: React.FC = () => {
           </div>
 
           {/* FAQ Section - JSON-LD ONLY, NO microdata attributes */}
-          <div className="mt-20 bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-10 border border-white/20 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-white via-blue-50/30 to-blue-50/30 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-10 border border-white/20 backdrop-blur-sm section-mt">
             <div className="flex items-center justify-center mb-6 md:mb-10">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-4 shadow-2xl">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-600 to-blue-600 rounded-xl md:rounded-2xl flex items-center justify-center mr-3 md:mr-4 shadow-2xl">
                 <Info className="w-6 h-6 md:w-8 md:h-8 text-white" aria-hidden="true" />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-purple-600 to-pink-600 bg-clip-text text-transparent">Frequently Asked Questions</h2>
+              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 via-blue-700 to-blue-700 bg-clip-text text-transparent">Frequently Asked Questions</h2>
             </div>
             
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
@@ -505,10 +505,10 @@ const EMICalculatorPage: React.FC = () => {
               ].map((faq, index) => (
                 <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-8 shadow-xl border border-white/30 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 group">
                   <div className="flex items-center mb-3 md:mb-4">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-blue-400 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3 shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <span className="text-sm md:text-lg font-bold text-white">₹</span>
                     </div>
-                    <h3 className="text-base md:text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{faq.q}</h3>
+                    <h3 className="text-base md:text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">{faq.q}</h3>
                   </div>
                   <p className="text-gray-700 leading-relaxed text-sm md:text-lg">{faq.a}</p>
                 </div>
@@ -521,7 +521,7 @@ const EMICalculatorPage: React.FC = () => {
         </div>
 
         {/* Global Footer Disclaimer */}
-        <div className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
+        <div className="relative z-10 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm section-mt">
           <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center space-y-3">
               <p className="text-xs text-gray-600 leading-relaxed">

@@ -85,20 +85,20 @@ export default function FAQSection({
       )}
 
       {/* ✅ Section - NO microdata attributes (JSON-LD only) */}
-      <section className={`relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen ${className}`} role="region" aria-labelledby="faq-section-title">
+      <section className={`relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50 min-h-screen ${className}`} role="region" aria-labelledby="faq-section-title">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 -right-4 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-cyan-300/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-blue-300/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/2 -right-4 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-blue-300/10 rounded-full blur-3xl animate-pulse delay-500"></div>
         </div>
 
         {/* Header */}
         <div className="relative z-10 bg-white/70 backdrop-blur-sm border-b border-blue-100">
-          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center section-py">
             <div className="flex items-center justify-center gap-4 mb-4">
               <div className="h-[2px] w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
-              <h1 id="faq-section-title" className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">{title}</h1>
+              <h1 id="faq-section-title" className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">{title}</h1>
               <div className="h-[2px] w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
             </div>
             <p className="mt-3 text-gray-600 max-w-2xl mx-auto">{subtitle}</p>
@@ -108,16 +108,16 @@ export default function FAQSection({
         {/* Compliance Banner */}
         {showComplianceBanner && (
           <div className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note">
-              <p className="text-sm text-amber-800">
-                <strong>Important:</strong> Answers provided are for general guidance only. Loan eligibility, approval timelines, interest rates, fees, and terms vary by lender and applicant profile. Final decisions are made solely by partner banks/NBFCs. <Link href="/loan-disclosure" className="underline hover:text-amber-900">View full disclosures</Link>.
+            <div className="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg" role="note">
+              <p className="text-sm text-orange-800">
+                <strong>Important:</strong> Answers provided are for general guidance only. Loan eligibility, approval timelines, interest rates, fees, and terms vary by lender and applicant profile. Final decisions are made solely by partner banks/NBFCs. <Link href="/loan-disclosure" className="underline hover:text-orange-900">View full disclosures</Link>.
               </p>
             </div>
           </div>
         )}
 
         {/* FAQ List - NO microdata attributes */}
-        <div className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 section-py">
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <article key={index} className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
@@ -129,7 +129,7 @@ export default function FAQSection({
                   id={`faq-question-${index}`}
                 >
                   <span className="font-medium text-gray-800 pr-4 group-hover:text-blue-700 transition-colors">{faq.question}</span>
-                  <span className={`text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 text-2xl font-light flex-shrink-0 transition-transform duration-300 ${openIndex === index ? "rotate-180 scale-110" : "group-hover:scale-105"}`}>
+                  <span className={`text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400 text-2xl font-light flex-shrink-0 transition-transform duration-300 ${openIndex === index ? "rotate-180 scale-110" : "group-hover:scale-105"}`}>
                     {openIndex === index ? "−" : "+"}
                   </span>
                 </button>
@@ -151,7 +151,7 @@ export default function FAQSection({
           {/* CTA */}
           <div className="text-center mt-12">
             <p className="text-gray-600 mb-4">Still have questions?</p>
-            <Link href="/contact" className="glass-prism glass-prism-btn inline-flex px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all">
+            <Link href="/contact" className="glass-prism glass-prism-btn inline-flex px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-400 text-white font-medium rounded-full shadow-lg hover:shadow-xl transition-all">
               Contact Support
             </Link>
             <p className="text-xs text-gray-500 mt-3">Response time: 24-48 business hours | <Link href="/loan-disclosure" className="underline">Full terms</Link></p>
@@ -159,7 +159,7 @@ export default function FAQSection({
         </div>
 
         {/* Footer */}
-        <div className="relative z-10 mt-16 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
+        <div className="relative z-10 pt-8 border-t border-gray-200 bg-white/50 backdrop-blur-sm section-mt">
           <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-3">
             <p className="text-xs text-gray-600">
               <strong>Disclaimer:</strong> EzyLoan (Dibyansh Associates) is a loan facilitation service provider (DSA) and <strong>not a direct lender</strong>. All loan approvals, interest rates, fees, tenure, and terms are solely determined by partner lenders.

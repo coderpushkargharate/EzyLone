@@ -50,7 +50,7 @@ const PropertyLoanPage: React.FC = () => {
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Hero Section */}
-          <div className="relative mb-12 sm:mb-16 overflow-hidden rounded-2xl shadow-xl mt-8">
+          <div className="relative overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="property-loan" 
               title="Property Loan" 
@@ -59,9 +59,9 @@ const PropertyLoanPage: React.FC = () => {
           </div>
 
           {/* Introduction Section - GLASS EFFECTS */}
-          <div className="mb-12 lg:mb-16">
-            <div className="text-center mb-10 lg:mb-12">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+          <div className="section-mb">
+            <div className="text-center section-head">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                 Property Loans &amp; Loan Against Property
               </h1>
               <p className="text-base md:text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed px-2">
@@ -71,7 +71,7 @@ const PropertyLoanPage: React.FC = () => {
 
             <div className="grid lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
-                <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-blue-100/50 hover:border-blue-200/50 transition-all duration-300">
+                <div className="bg-gradient-to-br from-blue-50/70 to-blue-50/70 backdrop-blur-sm rounded-2xl p-6 md:p-8 border border-blue-100/50 hover:border-blue-200/50 transition-all duration-300">
                   <h2 className="text-2xl font-bold text-gray-800 mb-4">Why Choose EzyLoan?</h2>
                   <p className="text-gray-600 leading-relaxed mb-6">
                     At EzyLoan, we offer easy and flexible property loans to meet your financial needs. Get funds for buying, renovating, or expanding your property effortlessly. Leverage your property's value for personal or business expenses.
@@ -93,9 +93,9 @@ const PropertyLoanPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-8 lg:mt-0">
                 {[
-                  { icon: Zap, title: "Quick Process", desc: "Fast approvals* and seamless disbursement", bg: "from-green-600 to-emerald-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                  { icon: Percent, title: "Best Rates", desc: "Competitive interest rates* starting from 8.5% p.a.", bg: "from-blue-600 to-cyan-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                  { icon: Shield, title: "Secure", desc: "Safe and transparent loan process", bg: "from-purple-600 to-pink-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                  { icon: Zap, title: "Quick Process", desc: "Fast approvals* and seamless disbursement", bg: "from-blue-600 to-blue-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                  { icon: Percent, title: "Best Rates", desc: "Competitive interest rates* starting from 8.5% p.a.", bg: "from-blue-600 to-blue-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                  { icon: Shield, title: "Secure", desc: "Safe and transparent loan process", bg: "from-blue-700 to-blue-800", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
                   { icon: Award, title: "Trusted", desc: "Thousands of satisfied customers", bg: "from-orange-600 to-red-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" }
                 ].map((item, index) => {
                   const Icon = item.icon;
@@ -121,8 +121,8 @@ const PropertyLoanPage: React.FC = () => {
           </div>
 
           {/* Why Choose Section - GLASS EFFECTS */}
-          <div className="bg-gradient-to-br from-indigo-50/70 to-purple-50/70 backdrop-blur-sm rounded-3xl p-6 md:p-8 lg:p-12 border border-indigo-100/50 shadow-xl mb-12 lg:mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-10 bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent">
+          <div className="bg-gradient-to-br from-blue-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-blue-100/50 shadow-xl section-mb card-pad">
+            <h2 className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent section-head">
               Why Choose EzyLoan Property Loan?
             </h2>
             
@@ -132,21 +132,21 @@ const PropertyLoanPage: React.FC = () => {
                   icon: DollarSign, 
                   title: "High Loan Amount", 
                   desc: "Avail loans up to 75% of your property's market value, whether it's residential, commercial, or industrial.*",
-                  bg: "from-green-600 to-emerald-700",
+                  bg: "from-blue-600 to-blue-700",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 { 
                   icon: Percent, 
                   title: "Competitive Interest Rates", 
                   desc: "Enjoy attractive interest rates* starting as low as 8.5% p.a., ensuring affordable EMIs.",
-                  bg: "from-blue-600 to-cyan-700",
+                  bg: "from-blue-600 to-blue-600",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 { 
                   icon: Clock, 
                   title: "Flexible Repayment Tenure", 
                   desc: "Choose repayment terms ranging from 5 to 20 years based on your convenience.",
-                  bg: "from-purple-600 to-pink-700",
+                  bg: "from-blue-700 to-blue-800",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 { 
@@ -161,12 +161,12 @@ const PropertyLoanPage: React.FC = () => {
                 return (
                   <div 
                     key={index} 
-                    className="group bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 text-center border border-gray-100/50 hover:border-indigo-200/50 hover:-translate-y-1"
+                    className="group bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-md hover:shadow-xl transition-all duration-300 text-center border border-gray-100/50 hover:border-blue-200/50 hover:-translate-y-1"
                   >
                     <div className={`w-16 h-16 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                       <Icon className={`w-8 h-8 text-white ${item.iconShadow}`} aria-hidden="true" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-700 transition-colors">{item.title}</h3>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-800 transition-colors">{item.title}</h3>
                     <p className="text-gray-600">{item.desc}</p>
                   </div>
                 );
@@ -179,8 +179,8 @@ const PropertyLoanPage: React.FC = () => {
           </div>
 
           {/* Loan Details Section - GLASS EFFECTS */}
-          <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 backdrop-blur-sm rounded-3xl p-6 md:p-8 lg:p-12 border border-blue-100/50 shadow-xl mb-12 lg:mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-10 bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+          <div className="bg-gradient-to-br from-blue-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-blue-100/50 shadow-xl section-mb card-pad">
+            <h2 className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent section-head">
               Property Loan Details &amp; Features
             </h2>
             
@@ -189,7 +189,7 @@ const PropertyLoanPage: React.FC = () => {
                 {
                   title: "Loan Amount",
                   icon: DollarSign,
-                  bg: "from-green-600 to-emerald-700",
+                  bg: "from-blue-600 to-blue-700",
                   items: [
                     { label: "Minimum", value: "₹5,00,000" },
                     { label: "Maximum", value: "₹5 Crore+" },
@@ -199,7 +199,7 @@ const PropertyLoanPage: React.FC = () => {
                 {
                   title: "Interest Rate",
                   icon: Percent,
-                  bg: "from-blue-600 to-cyan-700",
+                  bg: "from-blue-600 to-blue-600",
                   items: [
                     { label: "Starting from", value: "8.5% p.a.*" },
                     { label: "Up to", value: "12.0% p.a.*" },
@@ -209,7 +209,7 @@ const PropertyLoanPage: React.FC = () => {
                 {
                   title: "Tenure & Fees",
                   icon: Clock,
-                  bg: "from-purple-600 to-pink-700",
+                  bg: "from-blue-700 to-blue-800",
                   items: [
                     { label: "Tenure", value: "5 - 20 years" },
                     { label: "Processing Fee", value: "Up to 1%*" },
@@ -248,8 +248,8 @@ const PropertyLoanPage: React.FC = () => {
           </div>
 
           {/* Eligibility Criteria - GLASS EFFECTS */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 md:p-8 lg:p-10 shadow-xl border border-gray-100/50 mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 bg-gradient-to-r from-indigo-600 to-purple-500 bg-clip-text text-transparent">
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100/50 section-mb card-pad">
+            <h2 className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent section-head">
               Eligibility Criteria
             </h2>
             
@@ -260,8 +260,8 @@ const PropertyLoanPage: React.FC = () => {
                   title: "Age Criteria", 
                   value: "21 - 65 years", 
                   desc: "At the time of loan maturity",
-                  bg: "from-blue-600 to-indigo-700",
-                  bgCard: "from-blue-50/70 to-indigo-50/70",
+                  bg: "from-blue-600 to-blue-800",
+                  bgCard: "from-blue-50/70 to-blue-50/70",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 { 
@@ -269,8 +269,8 @@ const PropertyLoanPage: React.FC = () => {
                   title: "Monthly Income", 
                   value: "₹50,000+", 
                   desc: "Net monthly income*",
-                  bg: "from-green-600 to-emerald-700",
-                  bgCard: "from-green-50/70 to-emerald-50/70",
+                  bg: "from-blue-600 to-blue-700",
+                  bgCard: "from-blue-50/70 to-blue-50/70",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 { 
@@ -278,8 +278,8 @@ const PropertyLoanPage: React.FC = () => {
                   title: "Property Ownership", 
                   value: "Clear Title", 
                   desc: "Property documents required*",
-                  bg: "from-purple-600 to-pink-700",
-                  bgCard: "from-purple-50/70 to-pink-50/70",
+                  bg: "from-blue-700 to-blue-800",
+                  bgCard: "from-blue-50/70 to-blue-50/70",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 { 
@@ -296,12 +296,12 @@ const PropertyLoanPage: React.FC = () => {
                 return (
                   <div 
                     key={index} 
-                    className={`group text-center p-4 sm:p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-gray-100/50 hover:border-indigo-200/50 hover:-translate-y-1 bg-gradient-to-br ${item.bgCard} backdrop-blur-sm`}
+                    className={`group text-center p-4 sm:p-6 rounded-2xl transition-all duration-300 hover:shadow-md border border-gray-100/50 hover:border-blue-200/50 hover:-translate-y-1 bg-gradient-to-br ${item.bgCard} backdrop-blur-sm`}
                   >
                     <div className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br ${item.bg} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
                       <Icon className={`w-6 h-6 sm:w-8 sm:h-8 text-white ${item.iconShadow}`} aria-hidden="true" />
                     </div>
-                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-xl group-hover:text-indigo-700 transition-colors">{item.title}</h3>
+                    <h3 className="font-bold text-gray-800 mb-1 sm:mb-2 text-sm sm:text-xl group-hover:text-blue-800 transition-colors">{item.title}</h3>
                     <p className="text-gray-700 text-sm sm:text-xl font-medium">{item.value}</p>
                     <p className="text-xs sm:text-base text-gray-600 mt-1">{item.desc}</p>
                   </div>
@@ -314,7 +314,7 @@ const PropertyLoanPage: React.FC = () => {
           </div>
 
           {/* ✅ COMPLIANCE-FIXED CTA Section - GLASS PRISM BUTTONS */}
-          <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-6 md:p-8 lg:p-12 text-center text-white shadow-2xl mb-10 relative overflow-hidden" role="region" aria-label="Call to action">
+          <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl text-center text-white shadow-2xl relative overflow-hidden section-mb card-pad" role="region" aria-label="Call to action">
             {/* Glass shine effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
             
@@ -341,7 +341,7 @@ const PropertyLoanPage: React.FC = () => {
                 {/* ✅ GLASS PRISM APPLY BUTTON */}
                 <Link 
                   href="/apply-now" 
-                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-indigo-700 bg-white/95 backdrop-blur-md hover:bg-white transition-all duration-500 px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 text-lg md:text-xl w-full sm:w-auto"
+                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-blue-800 bg-white/95 backdrop-blur-md hover:bg-white transition-all duration-500 px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-700 text-lg md:text-xl w-full sm:w-auto"
                   onClick={(e) => handleRedirect(e, "/apply-now")}
                   aria-label="Apply for property loan - check eligibility"
                 >
@@ -350,7 +350,7 @@ const PropertyLoanPage: React.FC = () => {
                   
                   {/* Animated Prism Shine Layer */}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-100/60 to-transparent" 
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/60 to-transparent" 
                           style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
                   </span>
                   
@@ -377,16 +377,16 @@ const PropertyLoanPage: React.FC = () => {
                   
                   {/* Subtle Particle Sparkles on Hover */}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 pointer-events-none">
-                    <span className="absolute top-1/2 left-1/4 w-1 h-1 bg-indigo-200/80 rounded-full animate-ping" style={{ animationDelay: '0ms', animationDuration: '1.5s' }} />
-                    <span className="absolute top-1/3 right-1/4 w-1 h-1 bg-indigo-200/60 rounded-full animate-ping" style={{ animationDelay: '200ms', animationDuration: '1.8s' }} />
-                    <span className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-indigo-200/70 rounded-full animate-ping" style={{ animationDelay: '400ms', animationDuration: '2s' }} />
+                    <span className="absolute top-1/2 left-1/4 w-1 h-1 bg-blue-200/80 rounded-full animate-ping" style={{ animationDelay: '0ms', animationDuration: '1.5s' }} />
+                    <span className="absolute top-1/3 right-1/4 w-1 h-1 bg-blue-200/60 rounded-full animate-ping" style={{ animationDelay: '200ms', animationDuration: '1.8s' }} />
+                    <span className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-blue-200/70 rounded-full animate-ping" style={{ animationDelay: '400ms', animationDuration: '2s' }} />
                   </span>
                 </Link>
                 
                 {/* ✅ GLASS PRISM CONTACT BUTTON */}
                 <Link 
                   href="/contact" 
-                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white border-2 border-white/80 bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all duration-500 px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 text-lg md:text-xl w-full sm:w-auto"
+                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white border-2 border-white/80 bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all duration-500 px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-700 text-lg md:text-xl w-full sm:w-auto"
                   onClick={(e) => handleRedirect(e, "/contact")}
                   aria-label="Contact EzyLoan support team"
                 >
@@ -431,7 +431,7 @@ const PropertyLoanPage: React.FC = () => {
         </div>
 
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 
@@ -444,11 +444,11 @@ const PropertyLoanPage: React.FC = () => {
             {/* ✅ GLASS PRISM CONSULTATION BUTTON */}
             <Link 
               href="/contact" 
-              className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-500 py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-500 py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               onClick={(e) => handleRedirect(e, "/contact")}
             >
               {/* Base Glass Prism Gradient */}
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-indigo-600/95 backdrop-blur-md" />
+              <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-700/95 backdrop-blur-md" />
               
               {/* Animated Prism Shine Layer */}
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -458,7 +458,7 @@ const PropertyLoanPage: React.FC = () => {
               
               {/* Prismatic Edge Glow */}
               <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                    style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
               
               {/* Animated Border Glow */}
               <span className="absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"

@@ -46,7 +46,7 @@ const PrivacyPolicyPage = () => {
       >
         
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 py-16">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 section-py">
           <div className="container mx-auto px-4">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
@@ -60,7 +60,7 @@ const PrivacyPolicyPage = () => {
         </div>
 
         {/* Content */}
-        <div className="container mx-auto px-4 py-16">
+        <div className="container mx-auto px-4 section-py">
           <div className="max-w-4xl mx-auto">
             <article className="bg-white rounded-lg shadow-lg p-8">
 
@@ -75,12 +75,12 @@ const PrivacyPolicyPage = () => {
               </div>
 
               {/* ✅ COMPLIANCE NOTICE - Prominent disclosure */}
-              <div className="mb-8 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Important privacy notice">
-                <p className="text-sm text-amber-800">
+              <div className="mb-8 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg" role="note" aria-label="Important privacy notice">
+                <p className="text-sm text-orange-800">
                   <strong>Important:</strong> EzyLoan is a loan facilitation service provider (DSA), not a direct lender. 
                   By using our services, you consent to sharing your personal data with partner banks/NBFCs for loan assessment. 
                   Each lender has its own privacy policy governing how they use your data. 
-                  <Link href="/loan-disclosure" className="underline hover:text-amber-900 ml-1">View loan disclosures</Link>.
+                  <Link href="/loan-disclosure" className="underline hover:text-orange-900 ml-1">View loan disclosures</Link>.
                 </p>
               </div>
 

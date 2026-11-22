@@ -103,10 +103,10 @@ const NewCarLoanPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         
         {/* Hero Section */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* 🔥 HERO BANNER */}
-          <div className="relative mb-16 w-full">
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="new-car-loan"
               title="New Car Loan"
@@ -115,7 +115,7 @@ const NewCarLoanPage: React.FC = () => {
           </div>
 
           {/* Stats */}
-          <div className="mt-12 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
+          <div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
@@ -137,7 +137,7 @@ const NewCarLoanPage: React.FC = () => {
         </div>
 
         {/* Main Content Section */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 section-py">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
@@ -151,7 +151,7 @@ const NewCarLoanPage: React.FC = () => {
                 {features.map((feature, index) => (
                   <div 
                     key={index} 
-                    className="flex items-start space-x-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 hover:border-blue-300/50 hover:shadow-md transition-all duration-300 group"
+                    className="flex items-start space-x-3 p-4 bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl border border-blue-100 hover:border-blue-300/50 hover:shadow-md transition-all duration-300 group"
                   >
                     <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform duration-300" />
                     <span className="text-gray-800 font-medium group-hover:text-blue-700 transition-colors">{feature}</span>
@@ -163,11 +163,11 @@ const NewCarLoanPage: React.FC = () => {
                 {/* ✅ GLASS PRISM APPLY NOW BUTTON */}
                 <Link 
                   href="/apply-now?loan=new-car-loan"
-                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 transition-all duration-500 py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 transition-all duration-500 py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0"
                   onClick={(e) => handleRedirect(e, "/apply-now?loan=new-car-loan")}
                 >
                   {/* Base Glass Prism Gradient */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-indigo-700/95 backdrop-blur-md" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-800/95 backdrop-blur-md" />
                   
                   {/* Animated Prism Shine Layer */}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -177,7 +177,7 @@ const NewCarLoanPage: React.FC = () => {
                   
                   {/* Prismatic Edge Glow */}
                   <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                        style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
                   
                   {/* Animated Border Glow */}
                   <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -221,12 +221,12 @@ const NewCarLoanPage: React.FC = () => {
                   
                   {/* Prismatic Edge Glow */}
                   <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{ boxShadow: 'inset 0 0 20px rgba(37,99,235,0.15)' }} />
+                        style={{ boxShadow: 'inset 0 0 20px rgba(32, 100, 200,0.15)' }} />
                   
                   {/* Animated Border Glow */}
                   <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                         style={{
-                          background: 'linear-gradient(90deg, transparent, rgba(37,99,235,0.4), transparent)',
+                          background: 'linear-gradient(90deg, transparent, rgba(32, 100, 200,0.4), transparent)',
                           animation: 'borderGlow 3s infinite linear',
                           mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                           maskComposite: 'xor',
@@ -269,7 +269,7 @@ const NewCarLoanPage: React.FC = () => {
           </div>
 
           {/* Benefits Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-6 md:p-10 lg:p-12 my-20 backdrop-blur-sm border border-blue-100/50">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-3xl backdrop-blur-sm border border-blue-100/50 section-my card-pad">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="order-2 lg:order-1 lg:self-stretch">
                 <div className="relative rounded-3xl overflow-hidden shadow-xl h-64 sm:h-96 lg:h-full lg:min-h-[440px] group">
@@ -309,8 +309,8 @@ const NewCarLoanPage: React.FC = () => {
                         key={index} 
                         className="flex items-start space-x-4 p-5 bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100/50 hover:shadow-md hover:border-blue-200/50 transition-all duration-300 group"
                       >
-                        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300">
-                          <Icon className="w-6 h-6 text-indigo-600 group-hover:text-indigo-700 transition-colors" />
+                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-300">
+                          <Icon className="w-6 h-6 text-blue-700 group-hover:text-blue-800 transition-colors" />
                         </div>
                         <div>
                           <h3 className="font-bold text-gray-800 group-hover:text-blue-700 transition-colors">{item.title}</h3>
@@ -325,10 +325,10 @@ const NewCarLoanPage: React.FC = () => {
           </div>
 
           {/* Why Choose Us Section - 🔴 G2RS FIX #4: "Best Rates" → "Competitive Rates" */}
-          <div className="py-16">
-            <div className="text-center mb-16 max-w-4xl mx-auto">
+          <div className="section-py">
+            <div className="text-center max-w-4xl mx-auto section-head">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                   Why Choose EzyLoan?
                 </span>
               </h2>
@@ -344,25 +344,25 @@ const NewCarLoanPage: React.FC = () => {
                   // 🔴 FIX: "Best Rates" → "Competitive Rates"
                   title: "Competitive Rates", 
                   desc: "Industry-leading interest rates starting from 7.99% per annum with no hidden charges",
-                  gradient: "from-yellow-400 to-amber-500"
+                  gradient: "from-orange-400 to-orange-500"
                 },
                 { 
                   icon: Clock, 
                   title: "Quick Process", 
                   desc: "Get approved within 48 hours with minimal documentation and digital verification",
-                  gradient: "from-blue-400 to-cyan-500"
+                  gradient: "from-blue-400 to-blue-400"
                 },
                 { 
                   icon: Users, 
                   title: "Expert Support", 
                   desc: "Dedicated relationship managers available 24/7 for personalized assistance",
-                  gradient: "from-purple-400 to-pink-500"
+                  gradient: "from-blue-500 to-blue-600"
                 },
                 { 
                   icon: Award, 
                   title: "Trusted Brand", 
                   desc: "Over 10,000+ satisfied customers across India with 4.9/5 average rating",
-                  gradient: "from-rose-400 to-red-500"
+                  gradient: "from-orange-400 to-red-500"
                 }
               ].map((item, index) => {
                 const Icon = item.icon;
@@ -383,18 +383,18 @@ const NewCarLoanPage: React.FC = () => {
           </div>
 
           {/* Testimonial Section */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-3xl p-8 md:p-12 my-20 backdrop-blur-sm border border-indigo-100/50">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-3xl backdrop-blur-sm border border-blue-100/50 section-my card-pad">
             <div className="max-w-4xl mx-auto text-center">
               <div className="flex justify-center mb-6">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
+                  <Star key={i} className="w-6 h-6 text-orange-400 fill-current" />
                 ))}
               </div>
               <blockquote className="text-2xl font-bold text-gray-900 mb-6 italic">
                 "EzyLoan made buying my first car completely stress-free. The entire process took less than 2 days from application to approval!"
               </blockquote>
               <div className="flex items-center justify-center space-x-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xl shadow-md">
                   RS
                 </div>
                 <div className="text-left">
@@ -406,37 +406,37 @@ const NewCarLoanPage: React.FC = () => {
           </div>
 
           {/* ✅ WORKING CONTACT SECTION - Glass Cards with Clickable Links */}
-          <div className="mb-16">
-            <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-cyan-50/40 pointer-events-none" />
+          <div className="section-mb">
+            <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/60 shadow-[0_8px_32px_0_rgba(24,69,134,0.1)] overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-blue-50/40 pointer-events-none" />
               <div className="relative z-10">
                 <div className="text-center mb-6">
                   <h3 className="text-xl sm:text-2xl font-bold mb-2">
-                    <span className="bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-transparent">Get In Touch With Us</span>
+                    <span className="bg-gradient-to-r from-[#2064c8] to-[#5a91de] bg-clip-text text-transparent">Get In Touch With Us</span>
                   </h3>
                   <p className="text-gray-600 text-sm sm:text-base">Our experts are ready to help you with your new car loan</p>
                 </div>
                 <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
                   {/* Phone - Clickable */}
                   <a href="tel:+916372977626" className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer p-3 rounded-xl hover:bg-white/50 transition-colors">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                       <Phone className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Call Us</h4>
-                      <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">+91 63729 77626</p>
-                      <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">+91 96924 29674</p>
+                      <p className="text-[#2064c8] font-medium text-sm sm:text-base hover:underline">+91 63729 77626</p>
+                      <p className="text-[#2064c8] font-medium text-sm sm:text-base hover:underline">+91 96924 29674</p>
                       <p className="text-xs text-slate-500/80 hidden sm:block">Mon-Sat: 9AM to 7PM</p>
                     </div>
                   </a>
                   {/* Email - Clickable */}
                   <a href="mailto:care@ezyloan.co.in" className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer p-3 rounded-xl hover:bg-white/50 transition-colors">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                       <Mail className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Email Us</h4>
-                      <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">care@ezyloan.co.in</p>
+                      <p className="text-[#2064c8] font-medium text-sm sm:text-base hover:underline">care@ezyloan.co.in</p>
                       <p className="text-xs text-slate-500/80 hidden sm:block">Quick response guaranteed</p>
                     </div>
                   </a>
@@ -447,12 +447,12 @@ const NewCarLoanPage: React.FC = () => {
                     rel="noopener noreferrer"
                     className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer p-3 rounded-xl hover:bg-white/50 transition-colors"
                   >
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                       <MapPin className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Visit Us</h4>
-                      <p className="text-[#2563eb] font-medium text-xs sm:text-sm hover:underline line-clamp-2">
+                      <p className="text-[#2064c8] font-medium text-xs sm:text-sm hover:underline line-clamp-2">
                         1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha - 753011
                       </p>
                     </div>
@@ -463,7 +463,7 @@ const NewCarLoanPage: React.FC = () => {
           </div>
 
           {/* CTA Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 lg:p-12 text-center text-white shadow-2xl my-20 relative overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl sm:rounded-3xl text-center text-white shadow-2xl relative overflow-hidden section-my card-pad">
             {/* Glass shine effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
             
@@ -492,12 +492,12 @@ const NewCarLoanPage: React.FC = () => {
                   
                   {/* Prismatic Edge Glow */}
                   <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{ boxShadow: 'inset 0 0 25px rgba(37,99,235,0.2)' }} />
+                        style={{ boxShadow: 'inset 0 0 25px rgba(32, 100, 200,0.2)' }} />
                   
                   {/* Animated Border Glow */}
                   <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                         style={{
-                          background: 'linear-gradient(90deg, transparent, rgba(37,99,235,0.5), transparent)',
+                          background: 'linear-gradient(90deg, transparent, rgba(32, 100, 200,0.5), transparent)',
                           animation: 'borderGlow 3s infinite linear',
                           mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                           maskComposite: 'xor',
@@ -565,7 +565,7 @@ const NewCarLoanPage: React.FC = () => {
         </div>
 
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 
@@ -582,7 +582,7 @@ const NewCarLoanPage: React.FC = () => {
               onClick={(e) => handleRedirect(e, "/contact")}
             >
               {/* Base Glass Effect */}
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-indigo-700/95 backdrop-blur-md" />
+              <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-800/95 backdrop-blur-md" />
               
               {/* Animated Prism Shine Layer */}
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -592,7 +592,7 @@ const NewCarLoanPage: React.FC = () => {
               
               {/* Prismatic Edge Glow */}
               <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3), inset 0 0 35px rgba(37,99,235,0.2)' }} />
+                    style={{ boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3), inset 0 0 35px rgba(32, 100, 200,0.2)' }} />
               
               {/* Animated Border Glow */}
               <span className="absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"

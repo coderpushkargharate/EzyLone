@@ -101,8 +101,8 @@ export default function LoanDisclosure({ loanDetails, emiExample, eligibility, c
         </div>
       </div>
 
-      <div className="flex items-start gap-3 px-5 sm:px-6 py-4 border-t border-slate-100 bg-amber-50/60">
-        <ShieldCheck className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+      <div className="flex items-start gap-3 px-5 sm:px-6 py-4 border-t border-slate-100 bg-orange-50/60">
+        <ShieldCheck className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
         <p className="text-xs sm:text-[13px] leading-relaxed text-slate-700">
           <strong className="text-slate-900">EzyLoan is a loan facilitation service (DSA), not a lender.</strong>{" "}
           Loans are offered by RBI-regulated banks and NBFCs, subject to their approval and terms. Actual rate, fees and

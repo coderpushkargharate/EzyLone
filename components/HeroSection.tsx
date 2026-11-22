@@ -68,7 +68,7 @@ const LOAN_TYPES = [
   {
     group: "Vehicle Loans",
     icon: Car,
-    color: "from-blue-500 to-cyan-600",
+    color: "from-blue-500 to-blue-500",
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
     isHighlighted: true,
@@ -83,17 +83,17 @@ const LOAN_TYPES = [
   {
     group: "Personal",
     icon: CreditCard,
-    color: "from-purple-500 to-indigo-600",
-    bgColor: "bg-purple-50",
-    iconColor: "text-purple-600",
+    color: "from-blue-600 to-blue-700",
+    bgColor: "bg-blue-50",
+    iconColor: "text-blue-700",
     types: [{ value: "personal-loan", label: "Personal Loan", icon: CreditCard }],
   },
   {
     group: "Property Loans",
     icon: Home,
-    color: "from-emerald-500 to-teal-600",
-    bgColor: "bg-emerald-50",
-    iconColor: "text-emerald-600",
+    color: "from-blue-500 to-blue-500",
+    bgColor: "bg-green-50",
+    iconColor: "text-green-600",
     types: [
       { value: "home-loan", label: "Home Loan", icon: Home },
       { value: "property-loan-lap", label: "Property Loan (LAP)", icon: Building },
@@ -102,7 +102,7 @@ const LOAN_TYPES = [
   {
     group: "Business",
     icon: Briefcase,
-    color: "from-orange-500 to-amber-600",
+    color: "from-orange-500 to-orange-600",
     bgColor: "bg-orange-50",
     iconColor: "text-orange-600",
     types: [{ value: "business-loan", label: "Business Loan", icon: Briefcase }],
@@ -357,7 +357,7 @@ const BankingPartnersCarousel = memo(
     const heading = (
       <div className="flex items-center justify-center gap-4 mb-4">
         <div className="h-[2px] w-12 sm:w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-        <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+        <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
           Trusted Banking &amp; NBFC Partners
         </h2>
         <div className="h-[2px] w-12 sm:w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
@@ -1223,7 +1223,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           disabled={isSubmitting}
           className={`glass-prism-btn w-full inline-flex items-center justify-center gap-2 font-bold ${
             isLg ? "py-3 text-base" : "py-2 text-xs"
-          } rounded-lg disabled:opacity-50 bg-gradient-to-r from-orange-500 to-amber-500 text-white min-h-[44px] active:scale-[0.98] transition-transform duration-100`}
+          } rounded-lg disabled:opacity-50 bg-gradient-to-r from-orange-500 to-orange-500 text-white min-h-[44px] active:scale-[0.98] transition-transform duration-100`}
         >
           {isSubmitting ? (
             <>
@@ -1275,19 +1275,19 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   if (page === "home") {
     return (
       <section
-        className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-2 lg:pt-4 pb-6 overflow-hidden"
+        className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-2 lg:pt-4 pb-6 overflow-hidden"
         suppressHydrationWarning
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full" />
-          <div className="absolute top-40 -right-40 w-96 h-96 bg-cyan-400/10 rounded-full" />
+          <div className="absolute top-40 -right-40 w-96 h-96 bg-blue-300/10 rounded-full" />
         </div>
 
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Mobile view */}
           <div className="lg:hidden mobile-view-block">
             <div
-              className="relative mt-5  rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50"
+              className="relative mt-5 rounded-2xl overflow-hidden mb-6 shadow-xl border border-gray-100/50"
               style={{ minHeight: "280px", aspectRatio: "4/3" }}
             >
               <div className="absolute inset-0">
@@ -1302,7 +1302,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   fetchPriority="high"
                 />
               </div>
-              <div className="relative z-10 p-4 sm:p-5 ">
+              <div className="relative z-10 p-4 sm:p-5">
                 <h1 className="text-2xl sm:text-4xl font-bold w-75 text-gray-900 leading-tight mb-2">
                   <span>Get Loan Approved in </span>
                   <span className="text-blue-600">24 Hours* in Odisha</span>
@@ -1324,10 +1324,10 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                     </div>
                   ))}
                 </div>
-                <p className="text-gray-700 font-medium text-[11px] sm:text-xs mb-1  mt-2">
+                <p className="text-gray-700 font-medium text-[11px] sm:text-xs mb-1 mt-2">
                   ✅ No hidden charges
                 </p>
-                <div className="grid grid-cols-3 gap-1.5  w-72">
+                <div className="grid grid-cols-3 gap-1.5 w-72">
                   {[
                     { icon: Clock, label: "Quick Approval" },
                     { icon: Percent, label: "Lowest Rates" },
@@ -1337,7 +1337,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                       key={label}
                       className="glass-prism text-center p-2 bg-white/60 rounded-lg"
                     >
-                      <div className="w-7 h-7 bg-blue-100  rounded-full flex items-center justify-center mx-auto mb-1">
+                      <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-1">
                         <Icon className="w-3.5 h-3.5 text-blue-600" />
                       </div>
                       <p className="text-[10px] sm:text-xs font-semibold text-gray-800 leading-tight">
@@ -1350,7 +1350,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
             </div>
 
             <div
-              className="w-full bg-gradient-to-r from-blue-600/95 to-cyan-500/95 rounded-2xl p-3 sm:p-4 text-white shadow-2xl border border-white/30 relative"
+              className="w-full bg-gradient-to-r from-blue-600/95 to-blue-400/95 rounded-2xl p-3 sm:p-4 text-white shadow-2xl border border-white/30 relative"
               data-loan-dropdown
             >
               <div className="text-center mb-3">
@@ -1381,7 +1381,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   screen readers; the mobile one is display:none here. */}
               <p role="heading" aria-level={1} className="text-5xl font-bold text-gray-900 leading-tight">
                 <span>Get Loan Approved in </span>
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                   24 Hours* in Odisha
                 </span>
               </p>
@@ -1402,11 +1402,11 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   </div>
                 ))}
               </div>
-              <p className="text-gray-700 font-medium flex items-center gap-1.5 ">
+              <p className="text-gray-700 font-medium flex items-center gap-1.5">
                 <CheckCircle className="w-4 h-4 text-green-800" />
                 <span>No hidden charges</span>
               </p>
-              <div className="grid grid-cols-3  gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 {[
                   { icon: Clock, label: "Quick Approval" },
                   { icon: Percent, label: "Competitive Interest Rates" },
@@ -1416,7 +1416,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                     key={label}
                     className="glass-prism text-center p-4 bg-white/70 rounded-xl"
                   >
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-400 rounded-full flex items-center justify-center mx-auto mb-2">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                     <p className="text-sm font-semibold text-gray-800">{label}</p>
@@ -1450,7 +1450,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                 />
               </div>
               <div
-                className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30"
+                className="absolute lg:top-[-30px] w-100 bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl p-8 py-4 text-white shadow-2xl z-20 border border-white/30"
                 style={{ position: "absolute", top: "-30px", right: "0.30rem", width: "25rem" }}
               >
                 <div className="text-center mb-4">
@@ -1496,7 +1496,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                       <span className="font-bold text-gray-800 mr-1 sm:mr-2 text-sm sm:text-base">
                         4.8
                       </span>
-                      <div className="flex text-yellow-400">
+                      <div className="flex text-orange-400">
                         {[...Array(5)].map((_, i) => (
                           <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-current" />
                         ))}
@@ -1556,7 +1556,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                               key={i}
                               className={`w-3.5 h-3.5 ${
                                 i < testimonial.rating
-                                  ? "text-yellow-400 fill-yellow-400"
+                                  ? "text-orange-400 fill-orange-400"
                                   : "text-gray-300"
                               }`}
                             />
@@ -1588,7 +1588,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
                   <span
                     className={`h-2.5 rounded-full transition-all duration-300 ${
                       testimonialIndex === i
-                        ? "w-8 bg-gradient-to-r from-blue-600 to-cyan-500 shadow-md"
+                        ? "w-8 bg-gradient-to-r from-blue-600 to-blue-400 shadow-md"
                         : "w-2.5 bg-slate-300"
                     }`}
                   />
@@ -1606,7 +1606,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   // Non-home page (banner carousel)
   if (isLoading) {
     return (
-      <section className="relative overflow-hidden min-h-[50vh] bg-gray-100 flex items-center justify-center pt-20">
+      <section className="relative overflow-hidden min-h-[142px] md:min-h-[460px] rounded-2xl bg-gray-100 flex items-center justify-center">
         <div className="text-lg">Loading...</div>
       </section>
     );
@@ -1614,7 +1614,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
 
   if (error) {
     return (
-      <section className="relative overflow-hidden min-h-[50vh] bg-red-50 flex items-center justify-center pt-20">
+      <section className="relative overflow-hidden min-h-[142px] md:min-h-[460px] rounded-2xl bg-red-50 flex items-center justify-center">
         <div className="text-red-600 text-center p-4 max-w-md">
           <p className="font-medium">⚠️ {error}</p>
           <button
@@ -1633,7 +1633,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       <section
         className={`relative overflow-hidden ${
           page === "home" ? "min-h-screen" : "min-h-[16vh]"
-        } flex items-center justify-center bg-blue-600 pt-20`}
+        } flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-blue-800`}
       >
         <div className="text-center text-white p-6">
           <h1 className="text-4xl font-bold">{title || "EzyLoan"}</h1>
@@ -1648,7 +1648,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
       id={page === "home" ? "home" : undefined}
       className={`relative overflow-hidden pt-0 ${
         page === "home"
-          ? "min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50"
+          ? "min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50"
           : "min-h-[16vh]"
       }`}
       suppressHydrationWarning

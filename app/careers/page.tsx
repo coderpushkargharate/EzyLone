@@ -228,20 +228,20 @@ export default function CareersPage() {
       {/* ❌ REMOVED: JobPosting schema from listing page - causes validation errors */}
       {/* ✅ JobPosting schema should ONLY be on individual job detail pages: /careers/[jobId] */}
 
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50 min-h-screen">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-1/2 -right-4 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
-          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-cyan-300/10 rounded-full blur-3xl animate-pulse delay-500" />
+          <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-blue-300/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 -right-4 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-blue-300/10 rounded-full blur-3xl animate-pulse delay-500" />
         </div>
 
         {/* HERO SECTION - GLASS EFFECTS */}
         <section className="relative z-10 bg-white/70 backdrop-blur-sm border-b border-blue-100/50">
-          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 text-center">
+          <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center section-py">
             <div className="flex items-center justify-center gap-4 mb-6">
               <div className="h-[2px] w-16 md:w-20 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-              <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 Build Your Career With EzyLoan
               </h1>
               <div className="h-[2px] w-16 md:w-20 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
@@ -252,8 +252,8 @@ export default function CareersPage() {
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 mt-8">
               {[
                 { label: "🚀 Fast Growth", color: "blue", bg: "from-blue-500 to-blue-600" },
-                { label: "💡 Innovative Culture", color: "cyan", bg: "from-cyan-500 to-cyan-600" },
-                { label: "🤝 Collaborative Team", color: "emerald", bg: "from-emerald-500 to-emerald-600" },
+                { label: "💡 Innovative Culture", color: "cyan", bg: "from-blue-400 to-blue-500" },
+                { label: "🤝 Collaborative Team", color: "emerald", bg: "from-blue-500 to-blue-600" },
               ].map((badge, i) => (
                 <div 
                   key={i} 
@@ -270,18 +270,18 @@ export default function CareersPage() {
 
         {/* COMPLIANCE BANNER - GLASS EFFECT */}
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="p-3 md:p-4 bg-amber-50/80 backdrop-blur-sm border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Employment disclosures">
-            <p className="text-xs md:text-sm text-amber-800">
+          <div className="p-3 md:p-4 bg-orange-50/80 backdrop-blur-sm border-l-4 border-orange-500 rounded-r-lg" role="note" aria-label="Employment disclosures">
+            <p className="text-xs md:text-sm text-orange-800">
               <strong>Important:</strong> EzyLoan (Dibyansh Associates) is an Equal Opportunity Employer. All employment decisions are based on qualifications, merit, and business needs. We do not discriminate based on race, religion, color, national origin, gender, sexual orientation, age, marital status, veteran status, or disability status.{" "}
-              <Link href="/privacy-policy" className="underline hover:text-amber-900 ml-1 transition-colors">Privacy Policy</Link>.
+              <Link href="/privacy-policy" className="underline hover:text-orange-900 ml-1 transition-colors">Privacy Policy</Link>.
             </p>
           </div>
         </div>
 
         {/* OPEN ROLES SECTION - GLASS EFFECTS */}
         <section className="relative z-10 max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-          <div className="text-center mb-10 md:mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Current Openings</h2>
+          <div className="text-center section-head">
+            <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Current Openings</h2>
             <p className="mt-2 text-gray-600 text-sm md:text-base">Explore opportunities to make an impact</p>
           </div>
 
@@ -293,21 +293,21 @@ export default function CareersPage() {
               >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-cyan-500 transition-all duration-300">
+                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-blue-400 transition-all duration-300">
                       {job.title}
                     </h3>
                     <div className="flex flex-wrap gap-2 mt-2">
                       <span className="px-3 py-1 bg-blue-50/70 backdrop-blur-sm text-blue-700 text-xs font-medium rounded-full border border-blue-200/50 flex items-center gap-1">
                         <MapPin className="w-3 h-3" /> {job.location}
                       </span>
-                      <span className="px-3 py-1 bg-cyan-50/70 backdrop-blur-sm text-cyan-700 text-xs font-medium rounded-full border border-cyan-200/50 flex items-center gap-1">
+                      <span className="px-3 py-1 bg-blue-50/70 backdrop-blur-sm text-blue-600 text-xs font-medium rounded-full border border-blue-200/50 flex items-center gap-1">
                         <Briefcase className="w-3 h-3" /> {job.type.replace("_", " ")}
                       </span>
-                      <span className="px-3 py-1 bg-purple-50/70 backdrop-blur-sm text-purple-700 text-xs font-medium rounded-full border border-purple-200/50 flex items-center gap-1">
+                      <span className="px-3 py-1 bg-blue-50/70 backdrop-blur-sm text-blue-800 text-xs font-medium rounded-full border border-blue-200/50 flex items-center gap-1">
                         ⏱ {job.experience}
                       </span>
                       {job.minSalary && job.maxSalary && (
-                        <span className="px-3 py-1 bg-emerald-50/70 backdrop-blur-sm text-emerald-700 text-xs font-medium rounded-full border border-emerald-200/50 flex items-center gap-1">
+                        <span className="px-3 py-1 bg-green-50/70 backdrop-blur-sm text-green-700 text-xs font-medium rounded-full border border-green-200/50 flex items-center gap-1">
                           💰 ₹{(job.minSalary / 1000).toFixed(0)}K - ₹{(job.maxSalary / 1000).toFixed(0)}K / {job.salaryPeriod?.toLowerCase()}
                         </span>
                       )}
@@ -339,11 +339,11 @@ export default function CareersPage() {
                   {/* ✅ GLASS PRISM APPLY BUTTON */}
                   <button
                     onClick={() => openApplyModal(job)}
-                    className="group relative flex-shrink-0 px-5 md:px-6 py-2.5 md:py-3 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 text-sm overflow-hidden bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white"
+                    className="group relative flex-shrink-0 px-5 md:px-6 py-2.5 md:py-3 font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 text-sm overflow-hidden bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white"
                     aria-label={`Apply for ${job.title} position`}
                   >
                     {/* Base Glass Prism Gradient */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-cyan-600/95 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-500/95 backdrop-blur-md" />
                     
                     {/* Animated Prism Shine Layer */}
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -353,7 +353,7 @@ export default function CareersPage() {
                     
                     {/* Prismatic Edge Glow */}
                     <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
                     
                     {/* Animated Border Glow */}
                     <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -417,10 +417,10 @@ export default function CareersPage() {
               </button>
               
               <div className="pr-8">
-                <h2 id="modal-title" className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Apply for {selectedJob.title}</h2>
+                <h2 id="modal-title" className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Apply for {selectedJob.title}</h2>
                 <p className="text-gray-600 mt-1 text-sm">{selectedJob.location} • {selectedJob.type.replace("_", " ")}</p>
                 {selectedJob.minSalary && selectedJob.maxSalary && (
-                  <p className="text-emerald-600 mt-1 text-sm font-medium">💰 Budget: ₹{(selectedJob.minSalary / 1000).toFixed(0)}K - ₹{(selectedJob.maxSalary / 1000).toFixed(0)}K / {selectedJob.salaryPeriod?.toLowerCase()}</p>
+                  <p className="text-green-600 mt-1 text-sm font-medium">💰 Budget: ₹{(selectedJob.minSalary / 1000).toFixed(0)}K - ₹{(selectedJob.maxSalary / 1000).toFixed(0)}K / {selectedJob.salaryPeriod?.toLowerCase()}</p>
                 )}
               </div>
               
@@ -590,14 +590,14 @@ export default function CareersPage() {
                   className={`group relative w-full py-3 md:py-3.5 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 text-sm md:text-base overflow-hidden ${
                     isSubmitting 
                       ? "bg-gray-400 cursor-not-allowed" 
-                      : "bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      : "bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                   }`} 
                   aria-busy={isSubmitting}
                 >
                   {/* Base Glass Prism Gradient (only when not submitting) */}
                   {!isSubmitting && (
                     <>
-                      <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-cyan-600/95 backdrop-blur-md" />
+                      <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-500/95 backdrop-blur-md" />
                       
                       {/* Animated Prism Shine Layer */}
                       <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -607,7 +607,7 @@ export default function CareersPage() {
                       
                       {/* Prismatic Edge Glow */}
                       <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                            style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
                       
                       {/* Animated Border Glow */}
                       <span className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -686,7 +686,7 @@ export default function CareersPage() {
         `}</style>
 
         {/* FOOTER - GLASS EFFECT */}
-        <div className="relative z-10 mt-12 md:mt-16 pt-6 md:pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
+        <div className="relative z-10 pt-6 md:pt-8 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm section-mt">
           <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2 md:space-y-3">
             <p className="text-xs text-gray-600 leading-relaxed">
               <strong>Recruitment Disclaimer:</strong> EzyLoan (Dibyansh Associates) is an Equal Opportunity Employer. All hiring decisions are based on qualifications, skills, and business requirements. We do not charge any fees from candidates at any stage of the recruitment process. Beware of fraudulent job offers.

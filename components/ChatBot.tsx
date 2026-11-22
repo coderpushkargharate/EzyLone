@@ -42,7 +42,7 @@ function renderText(text: string): React.ReactNode {
     // Simple "### heading" support — used e.g. for the big estimated EMI figure.
     if (/^###\s+/.test(line)) {
       return (
-        <p key={i} className="my-0.5 text-lg font-bold text-[#2563eb]">
+        <p key={i} className="my-0.5 text-lg font-bold text-[#2064c8]">
           {line.replace(/^###\s+/, '')}
         </p>
       );
@@ -340,7 +340,7 @@ const ChatBot: React.FC = () => {
         <button
           onClick={() => setOpen(true)}
           aria-label="Chat with EzySaathi AI"
-          className="fixed bottom-24 right-4 z-[9998] flex origin-right items-center gap-2 rounded-full border border-white/25 bg-gradient-to-r from-[#2563eb]/80 to-[#06b6d4]/80 px-4 py-3 text-white shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-105 md:bottom-6 md:right-6"
+          className="fixed bottom-24 right-4 z-[9998] flex origin-right items-center gap-2 rounded-full border border-white/25 bg-gradient-to-r from-[#2064c8]/80 to-[#5a91de]/80 px-4 py-3 text-white shadow-xl backdrop-blur-md transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-105 md:bottom-6 md:right-6"
         >
           <MessageSquare className="h-6 w-6" />
           <span className="hidden text-sm font-semibold sm:inline">Chat with us</span>
@@ -353,7 +353,7 @@ const ChatBot: React.FC = () => {
       {open && (
         <div className="fixed bottom-24 right-4 z-[9998] flex h-[min(68vh,540px)] w-[min(92vw,384px)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl md:bottom-6 md:right-6">
           {/* Header */}
-          <div className="flex items-center justify-between bg-gradient-to-r from-[#2563eb] to-[#06b6d4] px-4 py-3 text-white">
+          <div className="flex items-center justify-between bg-gradient-to-r from-[#2064c8] to-[#5a91de] px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20">
                 <Bot className="h-5 w-5" />
@@ -389,7 +389,7 @@ const ChatBot: React.FC = () => {
                 <div
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                     m.role === 'user'
-                      ? 'rounded-br-md bg-[#2563eb] text-white'
+                      ? 'rounded-br-md bg-[#2064c8] text-white'
                       : 'rounded-bl-md border border-gray-100 bg-white text-gray-800'
                   }`}
                 >
@@ -408,7 +408,7 @@ const ChatBot: React.FC = () => {
                   <button
                     key={q}
                     onClick={() => send(q)}
-                    className="rounded-full border border-[#2563eb]/30 bg-white px-3 py-1.5 text-xs font-medium text-[#2563eb] shadow-sm transition-colors hover:bg-[#2563eb] hover:text-white"
+                    className="rounded-full border border-[#2064c8]/30 bg-white px-3 py-1.5 text-xs font-medium text-[#2064c8] shadow-sm transition-colors hover:bg-[#2064c8] hover:text-white"
                   >
                     {q}
                   </button>
@@ -444,7 +444,7 @@ const ChatBot: React.FC = () => {
               }}
               placeholder={listening ? 'Listening… speak now' : 'Type or tap 🎤 to speak…'}
               maxLength={1000}
-              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-[#2563eb] focus:ring-1 focus:ring-[#2563eb]"
+              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-[#2064c8] focus:ring-1 focus:ring-[#2064c8]"
             />
             {/* Mic (voice-to-text). Always visible. While recording it glows red
                 and pulses so it clearly reads as "listening", not muted. */}
@@ -464,7 +464,7 @@ const ChatBot: React.FC = () => {
                 listening
                   ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                   : micSupported
-                    ? 'border border-gray-200 bg-gray-50 text-[#2563eb] hover:bg-gray-100'
+                    ? 'border border-gray-200 bg-gray-50 text-[#2064c8] hover:bg-gray-100'
                     : 'border border-gray-200 bg-gray-50 text-gray-400 hover:bg-gray-100'
               }`}
             >
@@ -478,7 +478,7 @@ const ChatBot: React.FC = () => {
               type="submit"
               disabled={!input.trim() || loading}
               aria-label="Send message"
-              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#2563eb] to-[#06b6d4] text-white transition-opacity disabled:opacity-40"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#2064c8] to-[#5a91de] text-white transition-opacity disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
             </button>

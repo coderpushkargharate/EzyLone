@@ -65,7 +65,7 @@ export default async function BlogsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 page-top section-pb">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       {blogs.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema) }} />
@@ -88,7 +88,7 @@ export default async function BlogsPage() {
       </header>
 
       {blogs.length === 0 ? (
-        <p className="text-center text-gray-500 py-16">No articles published yet. Please check back soon.</p>
+        <p className="text-center text-gray-500 section-py">No articles published yet. Please check back soon.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {blogs.map((b, i) => (
@@ -106,7 +106,7 @@ export default async function BlogsPage() {
                     className="w-full h-48 object-cover"
                   />
                 ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-blue-50 to-cyan-50" />
+                  <div className="w-full h-48 bg-gradient-to-br from-blue-50 to-blue-50" />
                 )}
               </Link>
               <div className="p-5 flex flex-col flex-grow">

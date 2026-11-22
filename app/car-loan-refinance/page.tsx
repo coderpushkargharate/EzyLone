@@ -46,11 +46,11 @@ const CarLoanRefinance: React.FC = () => {
   return (
     <>
   
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 bg-white to-cyan-50/30 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 bg-white to-blue-50/30 relative overflow-hidden">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Hero Section */}
-          <div className="relative mb-12 sm:mb-16 overflow-hidden rounded-2xl shadow-xl mt-8">
+          <div className="relative overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="car-refinance" 
               title="Car Refinance" 
@@ -59,7 +59,7 @@ const CarLoanRefinance: React.FC = () => {
           </div>
 
           {/* Intro Section - GLASS EFFECTS */}
-          <div className="bg-gradient-to-r from-blue-50/70 to-cyan-50/70 backdrop-blur-sm py-12 sm:py-16 border-y border-blue-100/50">
+          <div className="bg-gradient-to-r from-blue-50/70 to-blue-50/70 backdrop-blur-sm border-y border-blue-100/50 section-py">
             <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <div className="inline-flex items-center space-x-2 bg-blue-100/80 backdrop-blur-sm px-4 py-2 rounded-full border border-blue-200/50 mb-6">
@@ -83,12 +83,12 @@ const CarLoanRefinance: React.FC = () => {
                   {/* ✅ GLASS PRISM APPLY BUTTON */}
                   <Link 
                     href="/apply-now?loan=used-car-refinance"
-                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     onClick={(e) => handleRedirect(e, "/apply-now?loan=used-car-refinance")}
                     aria-label="Apply for car loan refinancing"
                   >
                     {/* Base Glass Prism Gradient */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-cyan-500/95 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-400/95 backdrop-blur-md" />
                     
                     {/* Animated Prism Shine Layer */}
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -98,7 +98,7 @@ const CarLoanRefinance: React.FC = () => {
                     
                     {/* Prismatic Edge Glow */}
                     <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
                     
                     {/* Animated Border Glow */}
                     <span className="absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -128,12 +128,12 @@ const CarLoanRefinance: React.FC = () => {
                   {/* ✅ GLASS PRISM CONTACT BUTTON */}
                   <Link 
                     href="/contact"
-                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     onClick={(e) => handleRedirect(e, "/contact")}
                     aria-label="Contact EzyLoan support"
                   >
                     {/* Base Glass Prism Gradient */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-green-600/95 via-green-500/90 to-emerald-500/95 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-500/95 backdrop-blur-md" />
                     
                     {/* Animated Prism Shine Layer */}
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -174,13 +174,13 @@ const CarLoanRefinance: React.FC = () => {
           </div>
           
           {/* Main Content */}
-          <div className="bg-gradient-to-br from-gray-50/50 via-white to-blue-50/50 py-16 sm:py-20">
+          <div className="bg-gradient-to-br from-gray-50/50 via-white to-blue-50/50 section-py">
             <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
               
               {/* Car Loan Refinance Section */}
-              <div className="text-center mb-12 sm:mb-16">
+              <div className="text-center section-head">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-                  <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                     Car Loan Refinance
                   </span>
                 </h2>
@@ -190,7 +190,7 @@ const CarLoanRefinance: React.FC = () => {
               </div>
 
               {/* Benefits Grid - GLASS EFFECTS + ICON VISIBILITY FIX */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 section-mb">
                 {[
                   {
                     icon: (
@@ -198,7 +198,7 @@ const CarLoanRefinance: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     ),
-                    bg: "from-green-600 to-emerald-700",
+                    bg: "from-blue-600 to-blue-700",
                     border: "border-green-100/50 hover:border-green-200/50",
                     hoverColor: "group-hover:text-green-600",
                     title: "Swift",
@@ -211,7 +211,7 @@ const CarLoanRefinance: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
                       </svg>
                     ),
-                    bg: "from-blue-600 to-cyan-700",
+                    bg: "from-blue-600 to-blue-600",
                     border: "border-blue-100/50 hover:border-blue-200/50",
                     hoverColor: "group-hover:text-blue-600",
                     title: "Unlock",
@@ -224,9 +224,9 @@ const CarLoanRefinance: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     ),
-                    bg: "from-purple-600 to-pink-700",
-                    border: "border-purple-100/50 hover:border-purple-200/50",
-                    hoverColor: "group-hover:text-purple-600",
+                    bg: "from-blue-700 to-blue-800",
+                    border: "border-blue-100/50 hover:border-blue-200/50",
+                    hoverColor: "group-hover:text-blue-700",
                     title: "Flexible",
                     subtitle: "Repayment Tenure",
                     desc: "Select a payment plan between 12 to 60 months according to your budget. Choose a longer repayment period in order to lower your EMI for enhanced financial flexibility."
@@ -250,9 +250,9 @@ const CarLoanRefinance: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                       </svg>
                     ),
-                    bg: "from-teal-600 to-green-700",
-                    border: "border-teal-100/50 hover:border-teal-200/50",
-                    hoverColor: "group-hover:text-teal-600",
+                    bg: "from-blue-500 to-blue-700",
+                    border: "border-blue-100/50 hover:border-blue-200/50",
+                    hoverColor: "group-hover:text-blue-500",
                     title: "Tailor",
                     subtitle: "Repayment Structure",
                     desc: "You can choose a repayment plan that suits your financial needs from our diverse portfolio of partners, offering step-up and balance transfer options."
@@ -279,10 +279,10 @@ const CarLoanRefinance: React.FC = () => {
               </div>
 
               {/* Ready to Experience Section */}
-              <div className="text-center mb-16 sm:mb-20">
+              <div className="text-center section-head">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
                   <span className="text-gray-800">Ready to Experience the Benefits of </span>
-                  <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                     Car Loan Refinance
                   </span>
                   <span className="text-gray-800">?</span>
@@ -290,12 +290,12 @@ const CarLoanRefinance: React.FC = () => {
                 {/* ✅ GLASS PRISM APPLY NOW BUTTON */}
                 <Link 
                   href="/apply-now?loan=used-car-refinance"
-                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-500 px-8 sm:px-12 py-4 rounded-full text-lg sm:text-xl shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 transition-all duration-500 px-8 sm:px-12 py-4 rounded-full text-lg sm:text-xl shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                   onClick={(e) => handleRedirect(e, "/apply-now?loan=used-car-refinance")}
                   aria-label="Apply for car loan refinancing now"
                 >
                   {/* Base Glass Prism Gradient */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-green-600/95 via-green-500/90 to-emerald-600/95 backdrop-blur-md" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-600/95 backdrop-blur-md" />
                   
                   {/* Animated Prism Shine Layer */}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -334,13 +334,13 @@ const CarLoanRefinance: React.FC = () => {
               </div>
 
               {/* Eligibility & Documents - GLASS EFFECTS */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 mb-16 sm:mb-20">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 section-mb">
                 {/* Eligibility Criteria */}
                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-xl border border-green-100/50 hover:border-green-200/50 transition-colors duration-300">
                   <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
                     <span className="text-gray-800">ELIGIBILITY</span>
                     <br />
-                    <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                       FOR LOAN AGAINST CAR
                     </span>
                   </h3>
@@ -364,7 +364,7 @@ const CarLoanRefinance: React.FC = () => {
                     </div>
                     
                     <div>
-                      <h4 className="text-xl font-bold mb-4 text-purple-600">Self-Employed Individuals:</h4>
+                      <h4 className="text-xl font-bold mb-4 text-blue-700">Self-Employed Individuals:</h4>
                       <ul className="space-y-2 sm:space-y-3">
                         {[
                           "Age criteria: 25 to 60 years",
@@ -386,7 +386,7 @@ const CarLoanRefinance: React.FC = () => {
                   <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
                     <span className="text-gray-800">Documents</span>
                     <br />
-                    <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                       Required for Loan Against CAR
                     </span>
                   </h3>
@@ -416,8 +416,8 @@ const CarLoanRefinance: React.FC = () => {
               </div>
 
               {/* CTA Section - GLASS PRISM BUTTONS */}
-              <div className="text-center mt-12 sm:mt-16">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-6 sm:p-8 lg:p-12 relative overflow-hidden">
+              <div className="text-center section-mt">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-3xl relative overflow-hidden card-pad">
                   {/* Glass shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
                   
@@ -460,12 +460,12 @@ const CarLoanRefinance: React.FC = () => {
                       
                       {/* Prismatic Edge Glow */}
                       <span className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                            style={{ boxShadow: 'inset 0 0 25px rgba(37,99,235,0.2)' }} />
+                            style={{ boxShadow: 'inset 0 0 25px rgba(32, 100, 200,0.2)' }} />
                       
                       {/* Animated Border Glow */}
                       <span className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                             style={{
-                              background: 'linear-gradient(90deg, transparent, rgba(37,99,235,0.5), transparent)',
+                              background: 'linear-gradient(90deg, transparent, rgba(32, 100, 200,0.5), transparent)',
                               animation: 'borderGlow 3s infinite linear',
                               mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                               maskComposite: 'xor',
@@ -493,12 +493,12 @@ const CarLoanRefinance: React.FC = () => {
           </div>
 
           {/* FAQ Section - GLASS EFFECTS */}
-          <div className="py-16 sm:py-20">
+          <div className="section-py">
             <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12 sm:mb-16">
+              <div className="text-center section-head">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
                   <span className="text-gray-800">Frequently Asked </span>
-                  <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                     Questions
                   </span>
                 </h2>
@@ -512,20 +512,20 @@ const CarLoanRefinance: React.FC = () => {
                   {
                     question: "What type of loan can I get against a used car?",
                     answer: "You can apply for a secured loan where your used car is used as collateral. The loan amount typically depends on the car's market value, age, and condition.",
-                    bg: "from-green-600 to-emerald-700",
+                    bg: "from-blue-600 to-blue-700",
                     border: "border-green-100/50"
                   },
                   {
                     question: "What are the eligibility criteria for getting a loan against a used car?",
                     answer: "The eligibility criteria may include a minimum age requirement, proof of income, and ownership of the car. The car should also meet specific age and condition standards.",
-                    bg: "from-blue-600 to-cyan-700",
+                    bg: "from-blue-600 to-blue-600",
                     border: "border-blue-100/50"
                   },
                   {
                     question: "How much loan can I get against my used car?",
                     answer: "The loan amount can vary, but it is usually a percentage of your car's current market value, often ranging between 50% to 80%.",
-                    bg: "from-purple-600 to-pink-700",
-                    border: "border-purple-100/50"
+                    bg: "from-blue-700 to-blue-800",
+                    border: "border-blue-100/50"
                   },
                   {
                     question: "What is the interest rate on a loan against a used car?",
@@ -536,14 +536,14 @@ const CarLoanRefinance: React.FC = () => {
                   {
                     question: "How long does it take to process a loan against a used car?",
                     answer: "The processing time may vary by lender but generally takes a few days once all required documents are submitted and verified.",
-                    bg: "from-indigo-600 to-purple-700",
-                    border: "border-indigo-100/50"
+                    bg: "from-blue-700 to-blue-800",
+                    border: "border-blue-100/50"
                   },
                   {
                     question: "What documents are required to apply for a loan against a used car?",
                     answer: "Commonly required documents include proof of car ownership, car insurance, identity proof, address proof, and proof of income.",
-                    bg: "from-pink-600 to-rose-700",
-                    border: "border-pink-100/50"
+                    bg: "from-blue-700 to-orange-700",
+                    border: "border-blue-100/50"
                   }
                 ].map((faq, index) => (
                   <div 
@@ -571,7 +571,7 @@ const CarLoanRefinance: React.FC = () => {
         </div>
 
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 

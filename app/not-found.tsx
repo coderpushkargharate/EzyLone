@@ -19,7 +19,7 @@ const LINKS = [
 
 export default function NotFound() {
   return (
-    <main className="min-h-[70vh] bg-gray-50 px-4 py-16 flex items-center">
+    <main className="min-h-[70vh] bg-gray-50 px-4 flex items-center section-py">
       <div className="max-w-xl mx-auto text-center">
         <p className="text-sm font-semibold text-blue-600">404</p>
         <h1 className="mt-2 text-3xl font-bold text-gray-900">Page not found</h1>

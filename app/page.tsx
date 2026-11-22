@@ -77,8 +77,8 @@ export default function Home() {
 
         <LoanDisclosure loanDetails={loanDetails} eligibility={eligibility} className="mt-10 sm:mt-12" />
 
-        <section className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12" aria-labelledby="home-cta-heading">
-          <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-cyan-500 px-6 py-8 sm:px-10 sm:py-10 flex flex-col md:flex-row items-center justify-between gap-6 text-white shadow-lg">
+        <section className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 section-py" aria-labelledby="home-cta-heading">
+          <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-blue-400 px-6 py-8 sm:px-10 sm:py-10 flex flex-col md:flex-row items-center justify-between gap-6 text-white shadow-lg">
             <div className="text-center md:text-left">
               <h2 id="home-cta-heading" className="text-2xl sm:text-3xl font-bold">Check your loan eligibility in 30 seconds</h2>
               <p className="mt-2 text-sm sm:text-base text-white/90">Free pre-check · No impact on your credit score* · Offers from 15+ banks &amp; NBFCs</p>

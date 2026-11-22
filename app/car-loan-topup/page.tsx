@@ -46,11 +46,11 @@ const CarLoanTopUp: React.FC = () => {
   return (
     <>
 
-      <div className="min-h-screen bg-gradient-to-br bg-white from-white via-blue-50/30 to-cyan-50/30 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br bg-white from-white via-blue-50/30 to-blue-50/30 relative overflow-hidden">
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Hero Section */}
-          <div className="relative mb-12 sm:mb-16 overflow-hidden rounded-2xl shadow-xl mt-8">
+          <div className="relative overflow-hidden rounded-2xl shadow-xl hero-wrap">
             {/* 🔴 G2RS FIX #4: Updated subtitle to use "loan" terminology */}
             <HeroSection
               page="car-top-up" 
@@ -60,7 +60,7 @@ const CarLoanTopUp: React.FC = () => {
           </div>
 
           {/* Intro Section */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 py-12 sm:py-16">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-50 section-py">
             <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center">
                 <div className="inline-flex items-center space-x-2 bg-green-100 px-4 py-2 rounded-full border border-green-200 mb-6">
@@ -82,9 +82,9 @@ const CarLoanTopUp: React.FC = () => {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
                     {[
-                      { icon: TrendingUp, title: "Low-interest rates", bg: "from-green-500 to-emerald-500", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                      { icon: Clock, title: "Quick approval process", bg: "from-blue-500 to-cyan-500", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                      { icon: Shield, title: "Flexible repayment options", bg: "from-purple-500 to-pink-500", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" }
+                      { icon: TrendingUp, title: "Low-interest rates", bg: "from-blue-500 to-blue-500", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                      { icon: Clock, title: "Quick approval process", bg: "from-blue-500 to-blue-400", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                      { icon: Shield, title: "Flexible repayment options", bg: "from-blue-600 to-blue-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" }
                     ].map((item, index) => {
                       const Icon = item.icon;
                       return (
@@ -109,12 +109,12 @@ const CarLoanTopUp: React.FC = () => {
                 {/* ✅ GLASS PRISM APPLY BUTTON */}
                 <Link 
                   href="/apply-now?loan=car-loan-topup"
-                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 transition-all duration-500 px-6 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                   onClick={(e) => handleRedirect(e, "/apply-now?loan=car-loan-topup")}
                   aria-label="Apply for car loan top-up"
                 >
                   {/* Base Glass Prism Gradient */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-green-600/95 via-green-500/90 to-emerald-600/95 backdrop-blur-md" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-600/95 backdrop-blur-md" />
                   
                   {/* Animated Prism Shine Layer */}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -155,23 +155,23 @@ const CarLoanTopUp: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="bg-gradient-to-br from-gray-50 via-white to-green-50 py-16 sm:py-20">
+          <div className="bg-gradient-to-br from-gray-50 via-white to-blue-50 section-py">
             <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
               
               {/* Car Loan Top-Up Section */}
-              <div className="text-center mb-12 sm:mb-16">
+              <div className="text-center section-head">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8">
-                  <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                     Car Loan Top-Up
                   </span>
                 </h2>
               </div>
 
               {/* Ready to Experience Section */}
-              <div className="text-center mb-16 sm:mb-20">
+              <div className="text-center section-head">
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-8">
                   <span className="text-gray-800">Ready to Experience the Benefits of </span>
-                  <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                     Car Loan Top-Up
                   </span>
                   <span className="text-gray-800">?</span>
@@ -179,12 +179,12 @@ const CarLoanTopUp: React.FC = () => {
                 {/* ✅ GLASS PRISM APPLY NOW BUTTON */}
                 <Link 
                   href="/apply-now?loan=car-loan-topup"
-                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 transition-all duration-500 px-8 sm:px-12 py-4 rounded-full text-lg sm:text-xl font-semibold hover:shadow-2xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 transition-all duration-500 px-8 sm:px-12 py-4 rounded-full text-lg sm:text-xl font-semibold hover:shadow-2xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                   onClick={(e) => handleRedirect(e, "/apply-now?loan=car-loan-topup")}
                   aria-label="Apply for car loan top-up now"
                 >
                   {/* Base Glass Prism Gradient */}
-                  <span className="absolute inset-0 bg-gradient-to-r from-green-600/95 via-green-500/90 to-emerald-600/95 backdrop-blur-md" />
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-600/95 backdrop-blur-md" />
                   
                   {/* Animated Prism Shine Layer */}
                   <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -222,14 +222,14 @@ const CarLoanTopUp: React.FC = () => {
               </div>
 
               {/* Eligibility Section */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-xl border border-green-100/50 max-w-6xl mx-auto mb-16">
+              <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-xl border border-green-100/50 max-w-6xl mx-auto section-mb">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                   {/* Left Side - Content */}
                   <div>
                     <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
                       <span className="text-gray-800">ELIGIBILITY</span>
                       <br />
-                      <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                      <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                         for Car Loan Top Up
                       </span>
                     </h3>
@@ -273,31 +273,31 @@ const CarLoanTopUp: React.FC = () => {
               </div>
 
               {/* Benefits Section - GLASS EFFECTS + FIXED ICON VISIBILITY */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 section-mb">
                 {[
                   { 
                     icon: CreditCard, 
                     title: "Instant Liquidity", 
                     desc: "Get immediate access to funds without the hassle of applying for a new loan from scratch.",
-                    bg: "from-green-600 to-emerald-700",
+                    bg: "from-blue-600 to-blue-700",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-green-50/70 to-emerald-50/70"
+                    cardBg: "from-blue-50/70 to-blue-50/70"
                   },
                   { 
                     icon: Clock, 
                     title: "Quick Approval", 
                     desc: "Faster processing since you're already our customer. Get approved in just 24 hours.",
-                    bg: "from-blue-600 to-cyan-700",
+                    bg: "from-blue-600 to-blue-600",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-blue-50/70 to-cyan-50/70"
+                    cardBg: "from-blue-50/70 to-blue-50/70"
                   },
                   { 
                     icon: Shield, 
                     title: "Same Interest Rate", 
                     desc: "Enjoy the same competitive interest rate as your existing car loan with no additional charges.",
-                    bg: "from-purple-600 to-pink-700",
+                    bg: "from-blue-700 to-blue-800",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-purple-50/70 to-pink-50/70"
+                    cardBg: "from-blue-50/70 to-blue-50/70"
                   }
                 ].map((benefit, index) => {
                   const Icon = benefit.icon;
@@ -317,10 +317,10 @@ const CarLoanTopUp: React.FC = () => {
               </div>
 
               {/* TopUp Amount Calculator - GLASS EFFECTS */}
-              <div className="bg-gradient-to-br from-green-50/70 via-white/70 to-emerald-50/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-12 border border-green-100/50 shadow-xl mb-16">
-                <div className="text-center mb-10">
+              <div className="bg-gradient-to-br from-blue-50/70 via-white/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-green-100/50 shadow-xl section-mb card-pad">
+                <div className="text-center section-head">
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
-                    <span className="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                       How Much Can You Get?
                     </span>
                   </h2>
@@ -356,7 +356,7 @@ const CarLoanTopUp: React.FC = () => {
                       {[
                         { label: "Excellent Credit", amount: "Up to ₹10 Lakhs", bg: "bg-green-50" },
                         { label: "Good Credit", amount: "Up to ₹7 Lakhs", bg: "bg-blue-50" },
-                        { label: "Average Credit", amount: "Up to ₹5 Lakhs", bg: "bg-yellow-50" }
+                        { label: "Average Credit", amount: "Up to ₹5 Lakhs", bg: "bg-orange-50" }
                       ].map((item, index) => (
                         <div key={index} className={`flex justify-between items-center p-4 ${item.bg} rounded-xl border border-gray-100/50`}>
                           <span className="font-medium text-gray-700">{item.label}</span>
@@ -372,10 +372,10 @@ const CarLoanTopUp: React.FC = () => {
               </div>
 
               {/* Use Cases - GLASS EFFECTS */}
-              <div className="mb-16">
-                <div className="text-center mb-10">
+              <div className="section-mb">
+                <div className="text-center section-head">
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
-                    <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                       Perfect For Your Needs
                     </span>
                   </h2>
@@ -386,9 +386,9 @@ const CarLoanTopUp: React.FC = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {[
-                    { icon: "🏠", title: "Home Renovation", desc: "Upgrade your home with the extra funds", bg: "from-blue-600 to-cyan-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                    { icon: "🎓", title: "Education", desc: "Fund your or your child's education", bg: "from-purple-600 to-pink-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                    { icon: "💼", title: "Business", desc: "Invest in your business growth", bg: "from-green-600 to-emerald-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                    { icon: "🏠", title: "Home Renovation", desc: "Upgrade your home with the extra funds", bg: "from-blue-600 to-blue-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                    { icon: "🎓", title: "Education", desc: "Fund your or your child's education", bg: "from-blue-700 to-blue-800", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                    { icon: "💼", title: "Business", desc: "Invest in your business growth", bg: "from-blue-600 to-blue-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
                     { icon: "🚨", title: "Emergency", desc: "Handle unexpected financial needs", bg: "from-orange-600 to-red-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" }
                   ].map((item, index) => (
                     <div 
@@ -406,8 +406,8 @@ const CarLoanTopUp: React.FC = () => {
               </div>
 
               {/* Eligibility & Documents - GLASS EFFECTS */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 mb-16">
-                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/30 shadow-xl">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 section-mb">
+                <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl card-pad">
                   <h3 className="text-xl sm:text-2xl font-bold mb-5 sm:mb-6 text-gray-800">Eligibility Criteria</h3>
                   <div className="space-y-3 sm:space-y-4">
                     {[
@@ -425,7 +425,7 @@ const CarLoanTopUp: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/30 shadow-xl">
+                <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-white/30 shadow-xl card-pad">
                   <h3 className="text-xl sm:text-2xl font-bold mb-5 sm:mb-6 text-gray-800">Required Documents</h3>
                   <div className="space-y-3 sm:space-y-4">
                     {[
@@ -445,7 +445,7 @@ const CarLoanTopUp: React.FC = () => {
               </div>
 
               {/* CTA Section - GLASS PRISM BUTTONS */}
-              <div className="bg-gradient-to-r from-green-600 to-emerald-500 rounded-3xl p-6 sm:p-8 lg:p-12 text-center text-white relative overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-500 rounded-3xl text-center text-white relative overflow-hidden card-pad">
                 {/* Glass shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
                 
@@ -469,7 +469,7 @@ const CarLoanTopUp: React.FC = () => {
                       
                       {/* Animated Prism Shine Layer */}
                       <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-green-100/60 to-transparent" 
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/60 to-transparent" 
                               style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
                       </span>
                       
@@ -545,7 +545,7 @@ const CarLoanTopUp: React.FC = () => {
         </div>
 
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 

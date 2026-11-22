@@ -120,7 +120,7 @@ const BANKING_PARTNERS = [
 // ✅ Server-safe Image component with fallback (no event handlers)
 function PartnerLogo({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative aspect-[16/9] flex items-center justify-center bg-white rounded-xl border border-gray-100 px-2 py-1.5 sm:px-5 sm:py-3 group-hover:from-blue-50 group-hover:to-cyan-50 transition-colors overflow-hidden">
+    <div className="relative aspect-[16/9] flex items-center justify-center bg-white rounded-xl border border-gray-100 px-2 py-1.5 sm:px-5 sm:py-3 group-hover:from-blue-50 group-hover:to-blue-50 transition-colors overflow-hidden">
       {/* Primary Image */}
       <img
         src={src}
@@ -146,11 +146,11 @@ export default function LendingPartnersPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8 sm:py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 page-top section-pb">
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-40 -right-40 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-40 -right-40 w-96 h-96 bg-blue-300/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -159,11 +159,11 @@ export default function LendingPartnersPage() {
         <section className="mb-10">
           <div className="backdrop-blur-xl bg-white/70 rounded-3xl p-6 sm:p-8 shadow-lg border border-white/50">
             <div className="text-center max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-100 to-cyan-100 rounded-full mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-100 to-blue-100 rounded-full mb-4">
                 <span className="text-xs font-semibold text-blue-700">🤝 Trusted Network</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-                Our <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">Banking Partners</span>
+                Our <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Banking Partners</span>
               </h1>
               <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">
                 EzyLoan partners with <strong className="text-gray-800">India's leading banks and NBFCs</strong> to provide you with the best loan options. 
@@ -181,10 +181,10 @@ export default function LendingPartnersPage() {
         </section>
 
         {/* Partners Grid */}
-        <section className="mb-12" aria-labelledby="section-partners">
+        <section className="section-mb" aria-labelledby="section-partners">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full shadow-sm"></div>
+              <div className="w-3 h-3 bg-gradient-to-br from-blue-500 to-blue-400 rounded-full shadow-sm"></div>
               <h2 id="section-partners" className="text-2xl font-bold text-gray-800">
                 Partner Institutions
               </h2>
@@ -214,7 +214,7 @@ export default function LendingPartnersPage() {
                   <span className={`inline-block text-[10px] font-medium px-2 py-1 rounded-full ${
                     partner.type === 'Bank' 
                       ? 'bg-blue-100 text-blue-700' 
-                      : 'bg-purple-100 text-purple-700'
+                      : 'bg-blue-100 text-blue-800'
                   }`}>
                     {partner.type}
                   </span>
@@ -226,7 +226,7 @@ export default function LendingPartnersPage() {
                 </div>
 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-600/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-600/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
               </a>
             ))}
           </div>
@@ -234,7 +234,7 @@ export default function LendingPartnersPage() {
 
         {/* CTA Section */}
         <section className="mb-10">
-          <div className="backdrop-blur-xl bg-gradient-to-r from-blue-600 to-cyan-500 rounded-3xl p-8 text-center text-white shadow-xl">
+          <div className="backdrop-blur-xl bg-gradient-to-r from-blue-600 to-blue-400 rounded-3xl p-8 text-center text-white shadow-xl">
             <h2 className="text-2xl sm:text-3xl font-bold mb-3">
               Ready to Get Started?
             </h2>
@@ -260,7 +260,7 @@ export default function LendingPartnersPage() {
         </section>
 
         {/* Compliance Notice */}
-        <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 border-l-4 border-blue-500 rounded-r-xl backdrop-blur-sm" role="note">
+        <div className="mb-8 p-4 bg-gradient-to-r from-blue-50 to-blue-50 border-l-4 border-blue-500 rounded-r-xl backdrop-blur-sm" role="note">
           <p className="text-sm text-blue-800">
             <strong>Transparency Notice:</strong> EzyLoan is a Direct Selling Agent (DSA) for partner financial institutions. 
             We do not charge any upfront fees from borrowers. All loan products are offered by RBI-regulated entities.

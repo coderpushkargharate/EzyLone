@@ -1,5 +1,34 @@
 import type { Config } from 'tailwindcss'
 
+// Logo blue #2064c8 sits at 600, logo orange #ff9100 at 500.
+const brandBlue = {
+  50: '#eef4fc',
+  100: '#d9e6f8',
+  200: '#b8d0f2',
+  300: '#8bb3e9',
+  400: '#5a91de',
+  500: '#3577d3',
+  600: '#2064c8',
+  700: '#1a52a6',
+  800: '#184586',
+  900: '#173b6d',
+  950: '#0f2547',
+}
+
+const brandOrange = {
+  50: '#fff8eb',
+  100: '#ffecc9',
+  200: '#ffd690',
+  300: '#ffbb52',
+  400: '#ffa424',
+  500: '#ff9100',
+  600: '#e07400',
+  700: '#b95500',
+  800: '#94420a',
+  900: '#7a370c',
+  950: '#461a02',
+}
+
 const config: Config = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,19 +38,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
-        },
+        // Brand palettes derived from the EzyLoan logo. `blue` and `orange` are
+        // remapped site-wide so every existing blue-*/orange-* class is on-brand.
+        blue: brandBlue,
+        orange: brandOrange,
+        brand: { ...brandBlue, DEFAULT: brandBlue[600], orange: brandOrange[500] },
+        primary: brandBlue,
         secondary: {
           50: '#f0fdf4',
           100: '#dcfce7',
@@ -35,19 +57,7 @@ const config: Config = {
           900: '#14532d',
           950: '#052e16',
         },
-        accent: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-          950: '#431407',
-        },
+        accent: brandOrange,
       },
       fontFamily: {
         // Inter (via next/font, exposed as --font-inter on <html>) is the primary

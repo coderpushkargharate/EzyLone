@@ -12,7 +12,7 @@ export const metadata = pageMeta({
 
 export default function CompliancePage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 page-top section-pb">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-blue-100">
         
         {/* Header */}
@@ -61,15 +61,15 @@ export default function CompliancePage() {
           <h2 id="section-declaration" className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">
             2. Important Declaration
           </h2>
-          <div className="bg-amber-50 border border-amber-200 p-5 rounded-lg">
-            <p className="font-semibold text-amber-800 mb-3">Please read carefully:</p>
+          <div className="bg-orange-50 border border-orange-200 p-5 rounded-lg">
+            <p className="font-semibold text-orange-800 mb-3">Please read carefully:</p>
             <ul className="list-disc list-inside space-y-2 text-gray-700">
               <li><strong>EzyLoan is NOT a lender:</strong> We do not sanction, disburse, or collect loans. All loan products are provided by our partner banks and NBFCs.</li>
               <li><strong>NO Investment Advisory:</strong> We do NOT provide investment advice, portfolio management, or financial planning services.</li>
               <li><strong>NO Trading Services:</strong> We do NOT deal in stocks, mutual funds, securities, derivatives, cryptocurrency, or any trading/investment products.</li>
               <li><strong>NO Wealth Management:</strong> We are not a SEBI-registered investment advisor, PMS provider, or wealth management firm.</li>
             </ul>
-            <p className="mt-4 text-sm text-amber-700 italic">
+            <p className="mt-4 text-sm text-orange-700 italic">
               EzyLoan solely facilitates loan applications between borrowers and RBI-regulated lending institutions.
             </p>
           </div>

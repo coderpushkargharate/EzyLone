@@ -190,7 +190,7 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
     d ? new Date(d).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+    <article className="max-w-3xl mx-auto px-4 sm:px-6 page-top section-pb">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
 
@@ -276,7 +276,7 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
       </section>
 
       {/* CTA + internal links */}
-      <div className="mt-10 p-6 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-center">
+      <div className="mt-10 p-6 rounded-xl bg-gradient-to-r from-blue-600 to-blue-400 text-white text-center">
         <p className="text-lg font-semibold mb-3">Ready to apply for a loan?</p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/apply-now" className="px-5 py-2 bg-white text-blue-700 rounded-lg font-semibold hover:bg-blue-50">Apply Now</Link>
@@ -325,11 +325,11 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
         .blog-content p { margin: 1em 0; }
         .blog-content ul, .blog-content ol { margin: 1em 0; padding-left: 24px; }
         .blog-content li { margin: 0.5em 0; }
-        .blog-content a { color: #1a73e8; text-decoration: underline; }
+        .blog-content a { color: #2064c8; text-decoration: underline; }
         .blog-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1em 0; }
         .blog-content table { width: 100%; border-collapse: collapse; margin: 1.5em 0; display: block; overflow-x: auto; }
         .blog-content th, .blog-content td { border: 1px solid #e5e7eb; padding: 8px 12px; text-align: left; }
-        .blog-content blockquote { margin: 1.5em 0; padding: 12px 18px; border-left: 4px solid #1a73e8; background: #f8fafc; color: #475569; font-style: italic; }
+        .blog-content blockquote { margin: 1.5em 0; padding: 12px 18px; border-left: 4px solid #2064c8; background: #f8fafc; color: #475569; font-style: italic; }
         .blog-content code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
         .blog-content pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 1.5em 0; }
       ` }} />

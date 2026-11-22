@@ -340,15 +340,15 @@ const ApplyNowPage: React.FC = () => {
           MAIN PAGE CONTENT - FULLY RESPONSIVE
           =========================================== */}
       <div 
-        className="min-h-screen bg-gradient-to-br from-white bg-white via-blue-50/30 to-cyan-50/30 relative overflow-hidden"
+        className="min-h-screen bg-gradient-to-br from-white bg-white via-blue-50/30 to-blue-50/30 relative overflow-hidden"
         itemScope 
         itemType="https://schema.org/WebPage"
         role="main"
       >
         {/* Hero Image Section (banner) — hidden per request. Kept commented so it can be restored later. */}
         {/*
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-20 sm:pt-20 lg:pt-24 xl:pt-28">
-          <div className="relative mb-8 sm:mb-10 lg:mb-12 xl:mb-16 overflow-hidden rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl mt-8">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="apply"
               title="Apply for Loan"
@@ -359,7 +359,7 @@ const ApplyNowPage: React.FC = () => {
         */}
 
         {/* ===== HERO + 3-STEP APPLICATION (mockup design) ===== */}
-        <section className="relative pt-1 sm:pt-4 lg:pt-8 pb-8 sm:pb-12 bg-gradient-to-b from-[#e6f0ff] via-[#f3f8ff] to-white overflow-hidden">
+        <section className="relative page-top section-pb bg-gradient-to-b from-[#eef4fc] via-[#f3f8ff] to-white overflow-hidden">
           <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,500px)] gap-5 lg:gap-12 items-start">
 
@@ -370,12 +370,12 @@ const ApplyNowPage: React.FC = () => {
                   <div className="relative z-10 w-[56%] sm:w-[55%] lg:w-full pt-3 sm:pt-6 lg:pt-0">
                     <h1 className="text-[27px] leading-[1.08] sm:text-[42px] lg:text-[46px] xl:text-[52px] font-extrabold text-[#0b1b3f] tracking-tight">
                       Get the Right Car Finance with{' '}
-                      <span className="bg-gradient-to-r from-[#1d5bf0] to-[#f7941d] bg-clip-text text-transparent italic pr-1">EzyLoan</span>
+                      <span className="bg-gradient-to-r from-[#1d5bf0] to-[#ff9100] bg-clip-text text-transparent italic pr-1">EzyLoan</span>
                     </h1>
-                    <ul className="mt-2.5 sm:mt-4 space-y-0.5 sm:space-y-1 text-[12px] sm:text-[15px] lg:text-base text-[#1e3a8a] font-medium lg:flex lg:flex-wrap lg:gap-x-4 lg:space-y-0">
+                    <ul className="mt-2.5 sm:mt-4 space-y-0.5 sm:space-y-1 text-[12px] sm:text-[15px] lg:text-base text-[#173b6d] font-medium lg:flex lg:flex-wrap lg:gap-x-4 lg:space-y-0">
                       {['Simple Application', 'Quick Response*', 'Trusted Lending Partners'].map((t) => (
                         <li key={t} className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#f7941d] shrink-0" aria-hidden="true" />{t}
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#ff9100] shrink-0" aria-hidden="true" />{t}
                         </li>
                       ))}
                     </ul>
@@ -396,12 +396,12 @@ const ApplyNowPage: React.FC = () => {
                 {/* Trust badges: 2x2 on phones/laptops, 4 across on tablet & wide screens */}
                 <div className="mt-3 sm:mt-5 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-2 sm:gap-3">
                   {[
-                    { icon: <Zap className="w-6 h-6 text-amber-500 fill-amber-400" />, text: <>Top-Up up to<br />200% of Car Value*</> },
+                    { icon: <Zap className="w-6 h-6 text-orange-500 fill-orange-400" />, text: <>Top-Up up to<br />200% of Car Value*</> },
                     { icon: <Clock className="w-6 h-6 text-blue-600" />, text: <>Quick &amp;<br />Digital Process</> },
                     { icon: <Handshake className="w-6 h-6 text-blue-600" />, text: <>Trusted<br />Partners</> },
                     { icon: <ShieldCheck className="w-6 h-6 text-white fill-green-600" />, text: <>Secure &amp;<br />Private</> },
                   ].map((b, i) => (
-                    <div key={i} className="flex items-center gap-2.5 bg-white rounded-xl shadow-[0_4px_14px_rgba(30,64,175,0.10)] border border-blue-50 px-3 py-2.5 lg:px-4 lg:py-3">
+                    <div key={i} className="flex items-center gap-2.5 bg-white rounded-xl shadow-[0_4px_14px_rgba(24,69,134,0.10)] border border-blue-50 px-3 py-2.5 lg:px-4 lg:py-3">
                       <span className="shrink-0" aria-hidden="true">{b.icon}</span>
                       <span className="text-[12px] sm:text-[12.5px] lg:text-sm font-semibold text-[#0b1b3f] leading-tight">{b.text}</span>
                     </div>
@@ -409,7 +409,7 @@ const ApplyNowPage: React.FC = () => {
                 </div>
               </div>
               {/* Right: Apply Now card */}
-              <div id="apply-form" className="scroll-mt-28 bg-white rounded-2xl shadow-[0_10px_40px_rgba(30,64,175,0.12)] border border-blue-50 p-4 sm:p-6 lg:p-7">
+              <div id="apply-form" className="scroll-mt-28 bg-white rounded-2xl shadow-[0_10px_40px_rgba(24,69,134,0.12)] border border-blue-50 p-4 sm:p-6 lg:p-7">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-blue-50 flex items-center justify-center shrink-0" aria-hidden="true">
                     <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600" />
@@ -430,7 +430,7 @@ const ApplyNowPage: React.FC = () => {
                       <React.Fragment key={label}>
                         <li className="flex flex-col items-center w-20 shrink-0" aria-current={active ? 'step' : undefined}>
                           <span className={`w-9 h-9 rounded-full flex items-center justify-center text-base font-bold border-2 ${
-                            active ? 'bg-blue-600 border-blue-600 text-white shadow-[0_0_0_4px_rgba(37,99,235,0.15)]'
+                            active ? 'bg-blue-600 border-blue-600 text-white shadow-[0_0_0_4px_rgba(32,100,200,0.15)]'
                               : done ? 'bg-blue-600 border-blue-600 text-white'
                               : 'bg-gray-100 border-gray-300 text-gray-700'
                           }`}>
@@ -575,12 +575,12 @@ const ApplyNowPage: React.FC = () => {
                     )}
                     {step < 3 ? (
                       <button type="button" onClick={goNext}
-                        className="flex-1 inline-flex items-center justify-center gap-3 py-3.5 rounded-xl bg-gradient-to-b from-[#2f74ff] to-[#1446c9] text-white text-lg sm:text-xl font-bold shadow-[0_8px_20px_rgba(29,78,216,0.35)] hover:brightness-110 active:translate-y-px transition">
+                        className="flex-1 inline-flex items-center justify-center gap-3 py-3.5 rounded-xl bg-gradient-to-b from-[#3577d3] to-[#1a52a6] text-white text-lg sm:text-xl font-bold shadow-[0_8px_20px_rgba(26,82,166,0.35)] hover:brightness-110 active:translate-y-px transition">
                         Continue <ArrowRight className="w-6 h-6" />
                       </button>
                     ) : (
                       <button type="submit" disabled={isSubmitting || !formData.consent} aria-busy={isSubmitting}
-                        className="flex-1 inline-flex items-center justify-center gap-3 py-3.5 rounded-xl bg-gradient-to-b from-[#2f74ff] to-[#1446c9] text-white text-lg sm:text-xl font-bold shadow-[0_8px_20px_rgba(29,78,216,0.35)] hover:brightness-110 active:translate-y-px transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        className="flex-1 inline-flex items-center justify-center gap-3 py-3.5 rounded-xl bg-gradient-to-b from-[#3577d3] to-[#1a52a6] text-white text-lg sm:text-xl font-bold shadow-[0_8px_20px_rgba(26,82,166,0.35)] hover:brightness-110 active:translate-y-px transition disabled:opacity-50 disabled:cursor-not-allowed">
                         {isSubmitting ? 'Submitting…' : <>Submit Application <ArrowRight className="w-6 h-6" /></>}
                       </button>
                     )}
@@ -592,7 +592,7 @@ const ApplyNowPage: React.FC = () => {
                     </div>
                   )}
 
-                  <p className="text-xs sm:text-sm text-[#1e3a8a] pt-1 text-center leading-snug">
+                  <p className="text-xs sm:text-sm text-[#173b6d] pt-1 text-center leading-snug">
                     <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline-block -mt-0.5 mr-1.5" aria-hidden="true" />
                     Your information is safe, secure and used only for loan processing.
                   </p>
@@ -607,14 +607,14 @@ const ApplyNowPage: React.FC = () => {
             {/* Our Loan Solutions */}
             <div className="mt-8 sm:mt-12">
               <h2 className="text-[22px] sm:text-3xl font-extrabold text-[#0b1b3f]">Our Loan Solutions</h2>
-              <span className="block mt-1 h-1 w-16 rounded-full bg-gradient-to-r from-[#f7941d] to-[#ffb347]" aria-hidden="true" />
+              <span className="block mt-1 h-1 w-16 rounded-full bg-gradient-to-r from-[#ff9100] to-[#ffbb52]" aria-hidden="true" />
               <div className="mt-4 grid grid-cols-5 gap-1.5 sm:gap-4">
                 {LOAN_SOLUTIONS.map((s) => (
                   <button
                     key={s.value}
                     type="button"
                     onClick={() => pickLoanSolution(s.value)}
-                    className="group flex flex-col items-center justify-start gap-1.5 sm:gap-2 bg-white rounded-xl sm:rounded-2xl border border-blue-50 shadow-[0_4px_14px_rgba(30,64,175,0.10)] px-1 sm:px-2 py-3 sm:py-5 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_rgba(30,64,175,0.16)] transition"
+                    className="group flex flex-col items-center justify-start gap-1.5 sm:gap-2 bg-white rounded-xl sm:rounded-2xl border border-blue-50 shadow-[0_4px_14px_rgba(24,69,134,0.10)] px-1 sm:px-2 py-3 sm:py-5 hover:-translate-y-0.5 hover:shadow-[0_8px_22px_rgba(24,69,134,0.16)] transition"
                   >
                     <span className="h-8 sm:h-10 flex items-center [&_svg]:w-7 [&_svg]:h-7 sm:[&_svg]:w-10 sm:[&_svg]:h-10" aria-hidden="true">{s.icon}</span>
                     <span className="text-[10px] sm:text-sm font-semibold text-[#0b1b3f] text-center leading-tight">{s.label}</span>
@@ -635,7 +635,7 @@ const ApplyNowPage: React.FC = () => {
         </section>
         
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 
@@ -686,7 +686,7 @@ const LOAN_SOLUTIONS: { value: string; label: React.ReactNode; icon: React.React
     value: 'car-loan-topup', label: <>Car Loan<br />Top-Up</>,
     icon: (
       <span className="relative">
-        <Coins className="w-10 h-10 text-amber-500" strokeWidth={1.8} />
+        <Coins className="w-10 h-10 text-orange-500" strokeWidth={1.8} />
         <span className="absolute -right-2 -bottom-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-600 text-white flex items-center justify-center">
           <ArrowRight className="!w-2.5 !h-2.5 sm:!w-3 sm:!h-3 -rotate-90" strokeWidth={3} />
         </span>

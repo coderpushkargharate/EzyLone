@@ -50,7 +50,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Hero Section */}
-          <div className="relative mb-12 sm:mb-16 overflow-hidden rounded-2xl shadow-xl mt-8">
+          <div className="relative overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="car-balance-transfer" 
               title="Car Balance Transfer" 
@@ -59,10 +59,10 @@ const CarLoanBalanceTransfer: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className="py-6 sm:py-8 lg:py-5">
+          <div>
             
             {/* Introduction Section */}
-            <div className="text-center mb-12 sm:mb-16">
+            <div className="text-center section-head">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gray-800">
                 Car Loan Balance Transfer: Lower Your Monthly EMI
               </h1>
@@ -72,8 +72,8 @@ const CarLoanBalanceTransfer: React.FC = () => {
             </div>
 
             {/* Why Choose EzyLoan Section - GLASS EFFECTS + FIXED ICON VISIBILITY */}
-            <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-12 mb-12 sm:mb-16 border border-blue-100/50">
-              <div className="text-center mb-10">
+            <div className="bg-gradient-to-br from-blue-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-blue-100/50 section-mb card-pad">
+              <div className="text-center section-head">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
                   Why choose EzyLoan for a Car Loan Balance Transfer?
                 </h2>
@@ -86,7 +86,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     title: "Low-interest rates",
                     desc: "Get significantly reduced interest rates compared to your current lender and save thousands on your monthly EMIs.",
                     // ✅ FIXED: Darker gradient for better white icon contrast + added shadow
-                    bg: "from-green-600 to-emerald-700",
+                    bg: "from-blue-600 to-blue-700",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   },
                   {
@@ -94,7 +94,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     title: "Quick approval process",
                     desc: "Experience fast processing with minimal documentation and get approval within 24-48 hours.",
                     // ✅ FIXED: Darker gradient for better white icon contrast + added shadow
-                    bg: "from-blue-600 to-cyan-700",
+                    bg: "from-blue-600 to-blue-600",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   },
                   {
@@ -102,7 +102,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     title: "Flexible repayment options",
                     desc: "Choose from various repayment tenures and enjoy the flexibility to prepay without penalties.",
                     // ✅ FIXED: Darker gradient for better white icon contrast + added shadow
-                    bg: "from-purple-600 to-pink-700",
+                    bg: "from-blue-700 to-blue-800",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                   }
                 ].map((item, index) => {
@@ -131,8 +131,8 @@ const CarLoanBalanceTransfer: React.FC = () => {
             </div>
 
             {/* Benefits Section - GLASS EFFECTS + FIXED ICON VISIBILITY */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-12 shadow-lg mb-12 sm:mb-16 border border-gray-100/50">
-              <div className="text-center mb-10">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-100/50 section-mb card-pad">
+              <div className="text-center section-head">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
                   Discover the Benefits of Car Loan Balance Transfer
                 </h2>
@@ -150,7 +150,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     // ✅ FIXED: Darker bg + shadow for icon visibility
                     bg: "bg-blue-600",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-blue-50/70 to-indigo-50/70"
+                    cardBg: "from-blue-50/70 to-blue-50/70"
                   },
                   {
                     icon: TrendingDown,
@@ -159,16 +159,16 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     // ✅ FIXED: Darker bg + shadow for icon visibility
                     bg: "bg-green-600",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-green-50/70 to-emerald-50/70"
+                    cardBg: "from-blue-50/70 to-blue-50/70"
                   },
                   {
                     icon: RefreshCw,
                     title: "Fast and Efficient",
                     desc: "Our streamlined online process gets your balance transfer for car loan approved quickly, so you can start saving from the word go.",
                     // ✅ FIXED: Darker bg + shadow for icon visibility
-                    bg: "bg-purple-600",
+                    bg: "bg-blue-700",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-purple-50/70 to-pink-50/70"
+                    cardBg: "from-blue-50/70 to-blue-50/70"
                   },
                   {
                     icon: Shield,
@@ -177,7 +177,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     // ✅ FIXED: Darker bg + shadow for icon visibility
                     bg: "bg-orange-600",
                     iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]",
-                    cardBg: "from-orange-50/70 to-yellow-50/70"
+                    cardBg: "from-orange-50/70 to-orange-50/70"
                   }
                 ].map((item, index) => {
                   const Icon = item.icon;
@@ -203,8 +203,8 @@ const CarLoanBalanceTransfer: React.FC = () => {
             </div>
 
             {/* Documents Section - GLASS EFFECTS + FIXED ICON VISIBILITY */}
-            <div className="bg-gradient-to-br from-gray-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-12 mb-12 sm:mb-16 border border-gray-100/50">
-              <div className="text-center mb-10">
+            <div className="bg-gradient-to-br from-gray-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-gray-100/50 section-mb card-pad">
+              <div className="text-center section-head">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
                   Documents you require for Balance Loan Transfer?
                 </h2>
@@ -214,10 +214,10 @@ const CarLoanBalanceTransfer: React.FC = () => {
                 {[
                   { icon: FileText, title: "Complete application", bg: "bg-blue-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
                   { icon: User, title: "Recent Passport Size Photograph", bg: "bg-green-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                  { icon: CreditCard, title: "Identity Proof", bg: "bg-purple-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                  { icon: CreditCard, title: "Identity Proof", bg: "bg-blue-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
                   { icon: Car, title: "Valid Car Registration Copy", bg: "bg-orange-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                  { icon: MapPin, title: "Address Proof", bg: "bg-indigo-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
-                  { icon: DollarSign, title: "Income Proof", bg: "bg-teal-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                  { icon: MapPin, title: "Address Proof", bg: "bg-blue-700", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
+                  { icon: DollarSign, title: "Income Proof", bg: "bg-blue-500", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },
                   { icon: FileText, title: "Loan Track Statement", bg: "bg-red-600", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" }
                 ].map((item, index) => {
                   const Icon = item.icon;
@@ -244,12 +244,12 @@ const CarLoanBalanceTransfer: React.FC = () => {
                   {/* ✅ GLASS PRISM APPLY NOW BUTTON */}
                   <Link 
                     href="/apply-now?loan=car-loan-bt"
-                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-500 px-6 py-3 sm:px-8 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-500 px-6 py-3 sm:px-8 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     onClick={(e) => handleRedirect(e, "/apply-now?loan=car-loan-bt")}
                     aria-label="Apply for car loan balance transfer"
                   >
                     {/* Base Glass Prism Gradient */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-indigo-600/95 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-700/95 backdrop-blur-md" />
                     
                     {/* Animated Prism Shine Layer */}
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -259,7 +259,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     
                     {/* Prismatic Edge Glow */}
                     <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                          style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
                     
                     {/* Animated Border Glow */}
                     <span className="absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -289,12 +289,12 @@ const CarLoanBalanceTransfer: React.FC = () => {
                   {/* ✅ GLASS PRISM CONTACT US BUTTON */}
                   <Link 
                     href="/contact"
-                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 transition-all duration-500 px-6 py-3 sm:px-8 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                    className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 transition-all duration-500 px-6 py-3 sm:px-8 sm:py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     onClick={(e) => handleRedirect(e, "/contact")}
                     aria-label="Contact EzyLoan support"
                   >
                     {/* Base Glass Prism Gradient */}
-                    <span className="absolute inset-0 bg-gradient-to-r from-green-600/95 via-green-500/90 to-teal-600/95 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-500/95 backdrop-blur-md" />
                     
                     {/* Animated Prism Shine Layer */}
                     <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -334,7 +334,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
             </div>
 
             {/* Eligibility Section - GLASS EFFECTS */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 sm:p-8 lg:p-12 shadow-lg mb-12 sm:mb-16 border border-gray-100/50">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg border border-gray-100/50 section-mb card-pad">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
                 <div>
                   <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
@@ -384,37 +384,37 @@ const CarLoanBalanceTransfer: React.FC = () => {
             </div>
 
             {/* ✅ WORKING CONTACT SECTION - Glass Cards with Clickable Links */}
-            <div className="mb-12 sm:mb-16">
-              <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-cyan-50/40 pointer-events-none" />
+            <div className="section-mb">
+              <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/60 shadow-[0_8px_32px_0_rgba(24,69,134,0.1)] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-blue-50/40 pointer-events-none" />
                 <div className="relative z-10">
                   <div className="text-center mb-6">
                     <h3 className="text-xl sm:text-2xl font-bold mb-2">
-                      <span className="bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-transparent">Get In Touch With Us</span>
+                      <span className="bg-gradient-to-r from-[#2064c8] to-[#5a91de] bg-clip-text text-transparent">Get In Touch With Us</span>
                     </h3>
                     <p className="text-gray-600 text-sm sm:text-base">Our experts are ready to help you with your car loan balance transfer</p>
                   </div>
                   <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
                     {/* Phone - Clickable */}
                     <a href="tel:+916372977626" className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer p-3 rounded-xl hover:bg-white/50 transition-colors">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                         <Phone className="w-6 h-6 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Call Us</h4>
-                        <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">+91 63729 77626</p>
-                        <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">+91 96924 29674</p>
+                        <p className="text-[#2064c8] font-medium text-sm sm:text-base hover:underline">+91 63729 77626</p>
+                        <p className="text-[#2064c8] font-medium text-sm sm:text-base hover:underline">+91 96924 29674</p>
                         <p className="text-xs text-slate-500/80 hidden sm:block">Mon-Sat: 9AM to 7PM</p>
                       </div>
                     </a>
                     {/* Email - Clickable */}
                     <a href="mailto:care@ezyloan.co.in" className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer p-3 rounded-xl hover:bg-white/50 transition-colors">
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                         <Mail className="w-6 h-6 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Email Us</h4>
-                        <p className="text-[#2563eb] font-medium text-sm sm:text-base hover:underline">care@ezyloan.co.in</p>
+                        <p className="text-[#2064c8] font-medium text-sm sm:text-base hover:underline">care@ezyloan.co.in</p>
                         <p className="text-xs text-slate-500/80 hidden sm:block">Quick response guaranteed</p>
                       </div>
                     </a>
@@ -425,12 +425,12 @@ const CarLoanBalanceTransfer: React.FC = () => {
                       rel="noopener noreferrer"
                       className="flex items-center space-x-3 sm:space-x-4 group cursor-pointer p-3 rounded-xl hover:bg-white/50 transition-colors"
                     >
-                      <div className="w-12 h-12 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                         <MapPin className="w-6 h-6 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800 text-sm sm:text-base">Visit Us</h4>
-                        <p className="text-[#2563eb] font-medium text-xs sm:text-sm hover:underline line-clamp-2">
+                        <p className="text-[#2064c8] font-medium text-xs sm:text-sm hover:underline line-clamp-2">
                           1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha - 753011
                         </p>
                       </div>
@@ -441,7 +441,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
             </div>
 
             {/* Final CTA Section - GLASS PRISM BUTTONS */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-6 sm:p-8 lg:p-12 text-center text-white relative overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-3xl text-center text-white relative overflow-hidden card-pad">
               {/* Glass shine effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
               
@@ -471,12 +471,12 @@ const CarLoanBalanceTransfer: React.FC = () => {
                     
                     {/* Prismatic Edge Glow */}
                     <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                          style={{ boxShadow: 'inset 0 0 25px rgba(37,99,235,0.2)' }} />
+                          style={{ boxShadow: 'inset 0 0 25px rgba(32, 100, 200,0.2)' }} />
                     
                     {/* Animated Border Glow */}
                     <span className="absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                           style={{
-                            background: 'linear-gradient(90deg, transparent, rgba(37,99,235,0.5), transparent)',
+                            background: 'linear-gradient(90deg, transparent, rgba(32, 100, 200,0.5), transparent)',
                             animation: 'borderGlow 3s infinite linear',
                             mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                             maskComposite: 'xor',
@@ -540,7 +540,7 @@ const CarLoanBalanceTransfer: React.FC = () => {
         </div>
 
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 

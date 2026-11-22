@@ -80,9 +80,9 @@ const Footer = memo(() => {
           
           {/* Background decorations - only visible on desktop */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-cyan-500/10 to-blue-600/10 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-600/10 to-purple-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-600/10 to-blue-700/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(53,119,211,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(53,119,211,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ const Footer = memo(() => {
             <div className="lg:col-span-2 space-y-5">
               <div className="flex items-center space-x-3">
                 <div className="relative shrink-0 w-12 h-12">
-                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30 border border-cyan-400/30">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-400/30 border border-blue-300/30">
                     <Image
                       src="/new-ezy-logo.webp"
                       alt="EzyLoan Logo"
@@ -107,26 +107,26 @@ const Footer = memo(() => {
                       style={{ width: 28, height: 28 }}
                     />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
                     <BadgeCheck className="w-3 h-3 text-white" />
                   </div>
                 </div>
                 <div>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-cyan-300 via-blue-300 to-purple-300 bg-clip-text text-transparent">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-300 via-blue-300 to-blue-300 bg-clip-text text-transparent">
                     EzyLoan
                   </span>
-                  <p className="text-xs text-cyan-300/90 font-medium">Your Trusted Loan Partner</p>
+                  <p className="text-xs text-blue-300/90 font-medium">Your Trusted Loan Partner</p>
                 </div>
               </div>
 
               {/* Trust Badge - simpler on mobile */}
-              <div className="bg-blue-900/50 rounded-xl p-4 border border-cyan-500/20">
+              <div className="bg-blue-900/50 rounded-xl p-4 border border-blue-400/20">
                 <p className="text-gray-200 leading-relaxed max-w-md text-sm">
                   🌟 Making dreams come true with quick, easy loans. Join{' '}
-                  <span className="text-cyan-300 font-semibold">10,000+ trusted customers</span> across India.
+                  <span className="text-blue-300 font-semibold">10,000+ trusted customers</span> across India.
                 </p>
                 <div className="flex items-center space-x-1 mt-3">
-                  <span className="text-amber-400 text-sm">⭐⭐⭐⭐⭐</span>
+                  <span className="text-orange-400 text-sm">⭐⭐⭐⭐⭐</span>
                   <span className="text-xs text-gray-300/80">4.9/5 Rating</span>
                 </div>
               </div>
@@ -134,7 +134,7 @@ const Footer = memo(() => {
               {/* Social Links - simplified hover effects only on desktop */}
               <div>
                 <h3 className="text-base font-semibold text-white mb-3 flex items-center">
-                  <span className="w-2 h-2 bg-cyan-400 rounded-full mr-2" />
+                  <span className="w-2 h-2 bg-blue-300 rounded-full mr-2" />
                   Follow Us
                 </h3>
                 <div className="flex space-x-2">
@@ -147,9 +147,9 @@ const Footer = memo(() => {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={social.label}
-                        className="w-10 h-10 bg-blue-800/40 rounded-xl flex items-center justify-center border border-cyan-500/30 transition-colors duration-200 lg:hover:bg-gradient-to-br lg:hover:from-cyan-500 lg:hover:to-blue-600"
+                        className="w-10 h-10 bg-blue-800/40 rounded-xl flex items-center justify-center border border-blue-400/30 transition-colors duration-200 lg:hover:bg-gradient-to-br lg:hover:from-blue-400 lg:hover:to-blue-600"
                       >
-                        <IconComponent className="w-4 h-4 text-cyan-300" />
+                        <IconComponent className="w-4 h-4 text-blue-300" />
                       </a>
                     );
                   })}
@@ -161,7 +161,7 @@ const Footer = memo(() => {
             {/* Products Links */}
             <div>
               <h3 className="text-base font-semibold text-white mb-4 flex items-center">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2" />
+                <span className="w-1.5 h-1.5 bg-blue-300 rounded-full mr-2" />
                 Products
               </h3>
               <ul className="space-y-2">
@@ -169,10 +169,10 @@ const Footer = memo(() => {
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-gray-300/90 hover:text-cyan-300 transition-colors duration-200 flex items-center group text-sm py-1"
+                      className="text-gray-300/90 hover:text-blue-300 transition-colors duration-200 flex items-center group text-sm py-1"
                     >
                       <span className="lg:group-hover:translate-x-0.5 transition-transform duration-200">{link.name}</span>
-                      <ArrowRight className="w-3 h-3 ml-2 opacity-0 lg:group-hover:opacity-100 transition-all duration-200 text-cyan-400" />
+                      <ArrowRight className="w-3 h-3 ml-2 opacity-0 lg:group-hover:opacity-100 transition-all duration-200 text-blue-300" />
                     </Link>
                   </li>
                 ))}
@@ -182,7 +182,7 @@ const Footer = memo(() => {
             {/* Company Links */}
             <div>
               <h3 className="text-base font-semibold text-white mb-4 flex items-center">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2" />
+                <span className="w-1.5 h-1.5 bg-blue-300 rounded-full mr-2" />
                 Company
               </h3>
               <ul className="space-y-2">
@@ -190,10 +190,10 @@ const Footer = memo(() => {
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-gray-300/90 hover:text-cyan-300 transition-colors duration-200 flex items-center group text-sm py-1"
+                      className="text-gray-300/90 hover:text-blue-300 transition-colors duration-200 flex items-center group text-sm py-1"
                     >
                       <span className="lg:group-hover:translate-x-0.5 transition-transform duration-200">{link.name}</span>
-                      <ArrowRight className="w-3 h-3 ml-2 opacity-0 lg:group-hover:opacity-100 transition-all duration-200 text-cyan-400" />
+                      <ArrowRight className="w-3 h-3 ml-2 opacity-0 lg:group-hover:opacity-100 transition-all duration-200 text-blue-300" />
                     </Link>
                   </li>
                 ))}
@@ -203,7 +203,7 @@ const Footer = memo(() => {
             {/* Resources Links */}
             <div>
               <h3 className="text-base font-semibold text-white mb-4 flex items-center">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full mr-2" />
+                <span className="w-1.5 h-1.5 bg-blue-300 rounded-full mr-2" />
                 Resources
               </h3>
               <ul className="space-y-2">
@@ -211,10 +211,10 @@ const Footer = memo(() => {
                   <li key={index}>
                     <Link
                       href={link.href}
-                      className="text-gray-300/90 hover:text-cyan-300 transition-colors duration-200 flex items-center group text-sm py-1"
+                      className="text-gray-300/90 hover:text-blue-300 transition-colors duration-200 flex items-center group text-sm py-1"
                     >
                       <span className="lg:group-hover:translate-x-0.5 transition-transform duration-200">{link.name}</span>
-                      <ArrowRight className="w-3 h-3 ml-2 opacity-0 lg:group-hover:opacity-100 transition-all duration-200 text-cyan-400" />
+                      <ArrowRight className="w-3 h-3 ml-2 opacity-0 lg:group-hover:opacity-100 transition-all duration-200 text-blue-300" />
                     </Link>
                   </li>
                 ))}
@@ -224,92 +224,92 @@ const Footer = memo(() => {
         </div>
 
         {/* Contact + Compliance Section - simplified for mobile */}
-        <div className="py-2 border-t border-cyan-500/20">
-          <div className="bg-amber-900/30 rounded-2xl p-4 md:p-6 border border-amber-500/30">
+        <div className="py-2 border-t border-blue-400/20">
+          <div className="bg-orange-900/30 rounded-2xl p-4 md:p-6 border border-orange-500/30">
             <div className="grid md:grid-cols-2 gap-6">
               {/* Contact Info */}
               <div className="space-y-4">
                 <div className="text-center md:text-left">
                   <h3 className="text-lg font-semibold text-white mb-2 flex items-center justify-center md:justify-start">
-                    <span className="w-3 h-3 bg-cyan-400 rounded-full mr-2" />
+                    <span className="w-3 h-3 bg-blue-300 rounded-full mr-2" />
                     📞 Get in Touch
                   </h3>
-                  <div className="w-16 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400 mx-auto md:mx-0 rounded-full" />
+                  <div className="w-16 h-0.5 bg-gradient-to-r from-blue-300 to-blue-400 mx-auto md:mx-0 rounded-full" />
                 </div>
                 <div className="space-y-3">
                   <a
                     href="tel:+916372977626"
-                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-cyan-500/30"
+                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-blue-400/30"
                   >
-                    <div className="w-9 h-9 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                    <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-blue-400 rounded-lg flex items-center justify-center shadow-md shrink-0">
                       <Phone className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <span className="text-white font-semibold text-base">+91 6372977626</span>
-                      <p className="text-cyan-300/90 text-xs">Mon-Sat, 9AM-8PM IST</p>
+                      <p className="text-blue-300/90 text-xs">Mon-Sat, 9AM-8PM IST</p>
                     </div>
                   </a>
                   <a
                     href="tel:+919692429674"
-                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-cyan-500/30"
+                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-blue-400/30"
                   >
-                    <div className="w-9 h-9 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                    <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-blue-400 rounded-lg flex items-center justify-center shadow-md shrink-0">
                       <Phone className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <span className="text-white font-semibold text-base">+91 9692429674</span>
-                      <p className="text-cyan-300/90 text-xs">Mon-Sat, 9AM-8PM IST</p>
+                      <p className="text-blue-300/90 text-xs">Mon-Sat, 9AM-8PM IST</p>
                     </div>
                   </a>
                   <a
                     href="https://wa.me/919692429674?text=Hi%2C%20I'm%20interested%20in%20getting%20a%20loan"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center space-x-3 p-3 bg-emerald-900/40 rounded-lg border border-emerald-500/30"
+                    className="flex items-center space-x-3 p-3 bg-green-900/40 rounded-lg border border-green-500/30"
                   >
-                    <div className="w-9 h-9 bg-gradient-to-r from-emerald-500 to-green-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                    <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-blue-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
                       <span className="text-white text-sm font-bold">💬</span>
                     </div>
                     <div>
                       <span className="text-white font-semibold text-base">WhatsApp: +91 96924 29674</span>
-                      <p className="text-emerald-300/90 text-xs">Instant support available</p>
+                      <p className="text-green-300/90 text-xs">Instant support available</p>
                     </div>
                   </a>
                   <a
                     href="https://wa.me/916372977626?text=Hi%2C%20I'm%20interested%20in%20getting%20a%20loan"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center space-x-3 p-3 bg-emerald-900/40 rounded-lg border border-emerald-500/30"
+                    className="flex items-center space-x-3 p-3 bg-green-900/40 rounded-lg border border-green-500/30"
                   >
-                    <div className="w-9 h-9 bg-gradient-to-r from-emerald-500 to-green-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                    <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-blue-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
                       <span className="text-white text-sm font-bold">💬</span>
                     </div>
                     <div>
                       <span className="text-white font-semibold text-base">WhatsApp: +91 63729 77626</span>
-                      <p className="text-emerald-300/90 text-xs">Instant support available</p>
+                      <p className="text-green-300/90 text-xs">Instant support available</p>
                     </div>
                   </a>
                   <a
                     href="mailto:contact@ezyloan.co.in"
-                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-cyan-500/30"
+                    className="flex items-center space-x-3 p-3 bg-blue-900/50 rounded-lg border border-blue-400/30"
                   >
-                    <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-md shrink-0">
+                    <div className="w-9 h-9 bg-gradient-to-r from-blue-500 to-blue-400 rounded-lg flex items-center justify-center shadow-md shrink-0">
                       <Mail className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <span className="text-white font-semibold text-base">contact@ezyloan.co.in</span>
-                      <p className="text-cyan-300/90 text-xs">We reply within 24 hours</p>
+                      <p className="text-blue-300/90 text-xs">We reply within 24 hours</p>
                     </div>
                   </a>
-                  <div className="flex items-start space-x-3 p-3 bg-blue-900/50 rounded-lg border border-cyan-500/30">
-                    <div className="w-9 h-9 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mt-0.5 shadow-md shrink-0">
+                  <div className="flex items-start space-x-3 p-3 bg-blue-900/50 rounded-lg border border-blue-400/30">
+                    <div className="w-9 h-9 bg-gradient-to-r from-blue-600 to-blue-600 rounded-lg flex items-center justify-center mt-0.5 shadow-md shrink-0">
                       <MapPin className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <span className="text-white font-semibold text-sm leading-relaxed">
                         1st Floor, Hindustan-Tyres, Pir Bazar, Bhanpur, Cuttack, Odisha-753011, India
                       </span>
-                      <p className="text-cyan-300/90 text-xs mt-1">🕐 Visit us: Mon-Sat, 10AM-6PM</p>
+                      <p className="text-blue-300/90 text-xs mt-1">🕐 Visit us: Mon-Sat, 10AM-6PM</p>
                     </div>
                   </div>
                 </div>
@@ -317,15 +317,15 @@ const Footer = memo(() => {
 
               {/* Legal Notice */}
               <div className="py-2">
-                <div className="bg-slate-800/70 rounded-xl p-4 border border-amber-500/40">
+                <div className="bg-slate-800/70 rounded-xl p-4 border border-orange-500/40">
                   <p className="text-gray-200/95 text-xs leading-relaxed mb-2.5">
-                    <span className="font-semibold text-amber-400 flex items-center gap-1.5">
+                    <span className="font-semibold text-orange-400 flex items-center gap-1.5">
                       <Info className="w-3.5 h-3.5" /> Important Notice:
                     </span>
                     We do not provide investment advisory services and do not deal in stocks, mutual funds, securities, or trading products.
                   </p>
                   <p className="text-gray-200/95 text-xs leading-relaxed mb-2.5">
-                    <strong className="text-cyan-300">EzyLoan is not a lender.</strong> We are a loan facilitation platform connecting borrowers with trusted Banks and NBFCs.
+                    <strong className="text-blue-300">EzyLoan is not a lender.</strong> We are a loan facilitation platform connecting borrowers with trusted Banks and NBFCs.
                   </p>
                   <p className="text-gray-200/95 text-xs leading-relaxed">
                     We facilitate loan applications and are not engaged in financial advisory, investment services, or lending activities.
@@ -340,19 +340,19 @@ const Footer = memo(() => {
         </div>
 
         {/* Legal Links - simplified container */}
-        <div className="py-6 md:py-8 border-t border-cyan-500/20">
-          <div className="bg-slate-800/60 rounded-2xl p-4 md:p-6 border border-cyan-500/20">
+        <div className="py-6 md:py-8 border-t border-blue-400/20">
+          <div className="bg-slate-800/60 rounded-2xl p-4 md:p-6 border border-blue-400/20">
             <h4 className="text-center text-lg font-semibold text-white mb-4 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-cyan-400 mr-2" />
+              <ShieldCheck className="w-5 h-5 text-blue-300 mr-2" />
               Legal &amp; Compliance
-              <ShieldCheck className="w-5 h-5 text-cyan-400 ml-2" />
+              <ShieldCheck className="w-5 h-5 text-blue-300 ml-2" />
             </h4>
             <div className="flex flex-wrap justify-center gap-2 md:gap-3 mb-5">
               {footerLinks.legal.map((link, index) => (
                 <Link
                   key={index}
                   href={link.href}
-                  className="text-gray-300/90 hover:text-cyan-300 transition-colors duration-300 text-sm font-medium px-3 md:px-4 py-2 rounded-lg hover:bg-cyan-500/10"
+                  className="text-gray-300/90 hover:text-blue-300 transition-colors duration-300 text-sm font-medium px-3 md:px-4 py-2 rounded-lg hover:bg-blue-400/10"
                 >
                   {link.name}
                 </Link>
@@ -360,7 +360,7 @@ const Footer = memo(() => {
             </div>
             <div className="text-center">
               <p className="text-xs text-gray-400/90 flex items-center justify-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-cyan-400" />
+                <Lock className="w-3.5 h-3.5 text-blue-300" />
                 Your data is secure and protected under Indian financial regulations
               </p>
             </div>
@@ -368,12 +368,12 @@ const Footer = memo(() => {
         </div>
 
         {/* Copyright - simplified footer */}
-        <div className="py-4 border-t border-cyan-500/20">
-          <div className="bg-slate-900/90 rounded-2xl p-4 md:p-6 border border-cyan-500/30">
+        <div className="py-4 border-t border-blue-400/20">
+          <div className="bg-slate-900/90 rounded-2xl p-4 md:p-6 border border-blue-400/30">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div className="text-center md:text-left">
                 <div className="text-gray-200/95 text-sm font-medium">
-                  © {currentYear} <span className="text-cyan-300 font-bold">EzyLoan</span>. All rights reserved.
+                  © {currentYear} <span className="text-blue-300 font-bold">EzyLoan</span>. All rights reserved.
                 </div>
               </div>
               <div className="text-center md:text-right">
@@ -381,16 +381,16 @@ const Footer = memo(() => {
                   Designed with <span className="text-red-400">❤️</span> for your financial success
                 </div>
                 <div className="text-xs text-gray-400/80">
-                  🌟 Trusted by <span className="text-cyan-300 font-semibold">10,000+ customers</span> across India
+                  🌟 Trusted by <span className="text-blue-300 font-semibold">10,000+ customers</span> across India
                 </div>
               </div>
             </div>
-            <div className="mt-6 pt-5 border-t border-cyan-500/20">
+            <div className="mt-6 pt-5 border-t border-blue-400/20">
               <div className="flex flex-wrap justify-center items-center gap-4 md:gap-5 text-xs text-gray-400/90">
-                <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-emerald-400" />256-bit SSL Encryption</span>
-                <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />RBI Compliant Partner</span>
-                <span className="flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5 text-purple-400" />Data Protection Act 2023</span>
-                <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-amber-400" />24/7 Customer Support</span>
+                <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-green-400" />256-bit SSL Encryption</span>
+                <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-blue-300" />RBI Compliant Partner</span>
+                <span className="flex items-center gap-1.5"><BadgeCheck className="w-3.5 h-3.5 text-blue-500" />Data Protection Act 2023</span>
+                <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-orange-400" />24/7 Customer Support</span>
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ export const metadata = pageMeta({
 
 export default function LoanDisclosurePage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 page-top section-pb">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8 border border-blue-100">
         
         {/* Page Header */}
@@ -36,7 +36,7 @@ export default function LoanDisclosurePage() {
           <h2 id="compliance-summary" className="text-lg font-semibold text-gray-800 mb-3">
             Key Compliance Disclosures
           </h2>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-5 rounded-xl">
+          <div className="bg-gradient-to-r from-blue-50 to-blue-50 border border-blue-200 p-5 rounded-xl">
             <ul className="space-y-3">
               <li className="flex items-start">
                 <span className="text-green-600 mr-2 mt-0.5" aria-hidden="true">✓</span>
@@ -142,7 +142,7 @@ export default function LoanDisclosurePage() {
           <h2 id="important-disclosures" className="text-lg font-semibold text-gray-800 mb-3">
             Important Disclosures
           </h2>
-          <div className="bg-amber-50 border border-amber-200 p-5 rounded-xl">
+          <div className="bg-orange-50 border border-orange-200 p-5 rounded-xl">
             <ul className="list-disc list-inside space-y-2 text-gray-700">
               <li><strong>Loan approval is not guaranteed:</strong> All applications are subject to lender's credit assessment, documentation verification, and internal underwriting policy.</li>
               <li><strong>Variable terms:</strong> Interest rates, tenure, processing fees, prepayment charges, and other terms vary by lender, loan product, applicant profile, and market conditions.</li>
@@ -201,7 +201,7 @@ export default function LoanDisclosurePage() {
           <h2 id="regulatory" className="text-lg font-semibold text-gray-800 mb-3">
             Regulatory Information
           </h2>
-          <div className="bg-indigo-50 border border-indigo-200 p-5 rounded-xl">
+          <div className="bg-blue-50 border border-blue-200 p-5 rounded-xl">
             <ul className="list-disc list-inside space-y-2 text-gray-700 text-sm">
               <li>EzyLoan (Dibyansh Associates) operates as a Direct Selling Agent (DSA) for partner banks/NBFCs.</li>
               <li>We are not an RBI-registered NBFC. All lending activities are performed by our regulated partner institutions.</li>

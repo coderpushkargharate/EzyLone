@@ -7,7 +7,7 @@ import Link from 'next/link';
 // Next only passes a digest in production, which matches the server log entry.
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <main className="min-h-[70vh] bg-gray-50 px-4 py-16 flex items-center">
+    <main className="min-h-[70vh] bg-gray-50 px-4 flex items-center section-py">
       <div className="max-w-xl mx-auto text-center">
         <h1 className="text-3xl font-bold text-gray-900">Something went wrong</h1>
         <p className="mt-3 text-gray-600">

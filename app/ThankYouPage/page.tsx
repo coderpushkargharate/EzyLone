@@ -106,18 +106,18 @@ const ThankYouPage = () => {
       />
 
       <div
-        className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4 py-10"
+        className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-blue-50 px-4 page-top section-pb"
         itemScope
         itemType="https://schema.org/WebPage"
       >
         {/* ✅ COMPLIANCE BANNER - Visible above content */}
-        <div className="w-full max-w-3xl mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Important application notice">
+        <div className="w-full max-w-3xl mb-6 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg" role="note" aria-label="Important application notice">
           <div className="flex items-start">
-            <AlertCircle className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
-            <p className="text-sm text-amber-800">
+            <AlertCircle className="w-5 h-5 text-orange-600 mr-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
+            <p className="text-sm text-orange-800">
               <strong>Note:</strong> Application submission does not guarantee approval*. 
               EzyLoan is a loan facilitator (DSA), not a direct lender. Final decisions are made by partner banks/NBFCs. 
-              <Link href="/loan-disclosure" className="underline hover:text-amber-900 ml-1">View full disclosures</Link>.
+              <Link href="/loan-disclosure" className="underline hover:text-orange-900 ml-1">View full disclosures</Link>.
             </p>
           </div>
         </div>
@@ -140,7 +140,7 @@ const ThankYouPage = () => {
         </p>
 
         {/* Submission Info Box - ✅ Enhanced with compliance */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 max-w-xl text-center mb-10 shadow-sm">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 max-w-xl text-center shadow-sm section-mb">
           <p className="text-gray-700 text-base sm:text-lg leading-relaxed">
             Our team will review your application and contact you soon. 
             You will also receive a confirmation email within 24–48 business hours*.
@@ -210,7 +210,7 @@ const ThankYouPage = () => {
         </div>
 
         {/* What's Next Section - ✅ Compliance-enhanced */}
-        <div className="bg-gradient-to-r from-blue-500 to-cyan-400 text-white rounded-2xl p-6 max-w-3xl w-full shadow-lg mb-8">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-300 text-white rounded-2xl p-6 max-w-3xl w-full shadow-lg mb-8">
           <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-center">What's Next?*</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 text-center">
             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl hover:bg-white/20 transition-all">
@@ -228,7 +228,7 @@ const ThankYouPage = () => {
               <p className="text-sm mt-2 opacity-90">Our team reviews eligibility*</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl hover:bg-white/20 transition-all">
-              <div className="bg-white text-yellow-400 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center mb-3 text-2xl sm:text-3xl shadow-md">
+              <div className="bg-white text-orange-400 w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center mb-3 text-2xl sm:text-3xl shadow-md">
                 💰
               </div>
               <p className="font-semibold text-base sm:text-lg">Lender Decision</p>

@@ -42,7 +42,7 @@ export default function TermsPage() {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+      className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 page-top section-pb"
       itemScope
       itemType="https://schema.org/WebPage"
     >
@@ -72,11 +72,11 @@ export default function TermsPage() {
         </header>
 
         {/* ✅ COMPLIANCE BANNER - Prominent DSA/Lender Disclosure */}
-        <div className="mb-8 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg" role="note" aria-label="Important service disclosure">
-          <p className="text-sm text-amber-800">
+        <div className="mb-8 p-4 bg-orange-50 border-l-4 border-orange-500 rounded-r-lg" role="note" aria-label="Important service disclosure">
+          <p className="text-sm text-orange-800">
             <strong>⚠️ Important Disclosure:</strong> EzyLoan (operated by Dibyansh Associates) is a <strong>loan facilitation service provider (Direct Selling Agent / DSA)</strong> and <strong>NOT a direct lender, bank, or NBFC</strong>. 
             We connect borrowers with partner financial institutions. All loan approvals, interest rates*, fees*, tenure, and terms* are solely determined by partner lenders. 
-            <Link href="/loan-disclosure" className="underline hover:text-amber-900 ml-1">View full loan disclosures</Link>.
+            <Link href="/loan-disclosure" className="underline hover:text-orange-900 ml-1">View full loan disclosures</Link>.
           </p>
         </div>
 

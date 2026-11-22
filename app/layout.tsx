@@ -122,7 +122,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#2563eb',
+  themeColor: '#2064c8',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
@@ -233,7 +233,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* ✅ INLINE CRITICAL CSS - Eliminates 670ms render-blocking */}
         <style dangerouslySetInnerHTML={{ __html: `
-          .hero-section{position:relative;background:linear-gradient(135deg,#eff6ff,#fff,#ecfeff);padding-top:.5rem}
+          .hero-section{position:relative;background:linear-gradient(135deg,#eef4fc,#fff,#ecfeff);padding-top:.5rem}
           @media(min-width:640px){.hero-section{padding-top:.5rem}}
           @media(min-width:1024px){.hero-section{padding-top:1rem}}
           .hero-section .rounded-full{border-radius:9999px}

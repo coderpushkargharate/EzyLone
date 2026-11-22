@@ -80,7 +80,7 @@ export default function InstallAppBanner() {
   return (
     <section className="px-4 sm:px-6 lg:px-8 mt-4" aria-labelledby="get-app-heading">
       <div className="max-w-[85rem] mx-auto">
-        <div className="glass-prism bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl p-5 sm:p-7 text-white overflow-hidden">
+        <div className="glass-prism bg-gradient-to-r from-blue-600 to-blue-400 rounded-2xl p-5 sm:p-7 text-white overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             {/* Left: pitch + actions */}
             <div className="min-w-0">

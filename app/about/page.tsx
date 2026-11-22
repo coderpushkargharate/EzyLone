@@ -31,7 +31,7 @@ const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Ar
   const heading = (
     <div className="flex items-center justify-center gap-4 mb-4">
       <div className="h-[2px] w-12 sm:w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-      <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+      <h2 className="text-lg sm:text-2xl lg:text-3xl font-bold text-center bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
         Trusted Banking &amp; NBFC Partners
       </h2>
       <div className="h-[2px] w-12 sm:w-16 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
@@ -43,7 +43,7 @@ const BankingPartnersCarousel = memo(({ bankingPartners }: { bankingPartners: Ar
   const mobileTrackWidth = 124 * itemCount;
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-blue-100/50 shadow-2xl mb-20">
+    <div className="bg-gradient-to-r from-blue-50 to-blue-50 backdrop-blur-xl rounded-3xl border border-blue-100/50 shadow-2xl section-mb card-pad">
       <div className="max-w-7xl mx-auto">
         {heading}
         <div className="relative overflow-hidden py-2 lg:py-4">
@@ -305,16 +305,16 @@ const About = () => {
 
   return (
     <>
-      <section id="about" className="pb-20 bg-gradient-to-br from-white bg-white via-blue-50/30 to-cyan-50/30 relative overflow-hidden">
+      <section id="about" className="bg-gradient-to-br from-white bg-white via-blue-50/30 to-blue-50/30 relative overflow-hidden section-pb">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-200/10 to-cyan-200/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-cyan-200/10 to-blue-200/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-200/10 to-blue-200/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-200/10 to-blue-200/10 rounded-full blur-3xl"></div>
         </div>
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Hero Image Section */}
-          <div className="relative mb-16 w-full overflow-hidden rounded-2xl shadow-xl mt-8">
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="about"
               title="About EzyLoan"
@@ -323,15 +323,15 @@ const About = () => {
           </div>
 
           {/* ✅ MANDATORY ABOUT CONTENT - Channel Partner Disclosure */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-blue-100/50 shadow-xl mb-16">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl border border-blue-100/50 shadow-xl section-mb card-pad">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
-                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-cyan-100 px-4 py-2 rounded-full backdrop-blur-sm border border-blue-200/50 mb-6">
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-blue-100 px-4 py-2 rounded-full backdrop-blur-sm border border-blue-200/50 mb-6">
                   <Info className="w-4 h-4 text-blue-700" />
                   <span className="text-sm font-medium text-blue-700">Who We Are</span>
                 </div>
                 <h1 className="text-3xl lg:text-4xl font-bold mb-6">
-                  <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                     ABOUT EZYLOAN
                   </span>
                 </h1>
@@ -365,28 +365,28 @@ const About = () => {
                 {/* ✅ Glass Prism Buttons - Working with Redirect */}
                 <div className="flex flex-wrap gap-4">
                   <button 
-                    className="relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold px-6 py-3 rounded-lg transition-all duration-500 group/btn cursor-pointer shadow-[0_4px_20px_rgba(37,99,235,0.25)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 active:translate-y-0"
+                    className="relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold px-6 py-3 rounded-lg transition-all duration-500 group/btn cursor-pointer shadow-[0_4px_20px_rgba(32,100,200,0.25)] hover:shadow-[0_8px_30px_rgba(32,100,200,0.4)] hover:-translate-y-0.5 active:translate-y-0"
                     onClick={(e) => handleRedirect(e, "/apply-now?loan=fast-approval")}
                   >
-                    <span className="absolute inset-0 bg-gradient-to-r from-[#2563eb]/90 via-[#3b82f6]/85 to-[#06b6d4]/90 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-[#2064c8]/90 via-[#3577d3]/85 to-[#5a91de]/90 backdrop-blur-md" />
                     <span className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300">
                       <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
                     </span>
-                    <span className="absolute inset-0 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(59,130,246,0.25)' }} />
+                    <span className="absolute inset-0 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(53, 119, 211,0.25)' }} />
                     <span className="absolute -inset-px rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)', animation: 'borderGlow 3s infinite linear', mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'xor', WebkitMaskComposite: 'xor', padding: '1px' }} />
                     <span className="relative z-10 flex items-center gap-2 text-white">
                       ✓ Fast Approval
                     </span>
                   </button>
                   <button 
-                    className="relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold px-6 py-3 rounded-lg transition-all duration-500 group/btn cursor-pointer shadow-[0_4px_20px_rgba(6,182,212,0.25)] hover:shadow-[0_8px_30px_rgba(6,182,212,0.4)] hover:-translate-y-0.5 active:translate-y-0"
+                    className="relative inline-flex items-center justify-center gap-2 overflow-hidden font-semibold px-6 py-3 rounded-lg transition-all duration-500 group/btn cursor-pointer shadow-[0_4px_20px_rgba(90,145,222,0.25)] hover:shadow-[0_8px_30px_rgba(90,145,222,0.4)] hover:-translate-y-0.5 active:translate-y-0"
                     onClick={(e) => handleRedirect(e, "/apply-now?loan=transparent-process")}
                   >
-                    <span className="absolute inset-0 bg-gradient-to-r from-[#06b6d4]/90 via-[#0891b2]/85 to-[#2563eb]/90 backdrop-blur-md" />
+                    <span className="absolute inset-0 bg-gradient-to-r from-[#5a91de]/90 via-[#3577d3]/85 to-[#2064c8]/90 backdrop-blur-md" />
                     <span className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300">
                       <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
                     </span>
-                    <span className="absolute inset-0 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(6,182,212,0.25)' }} />
+                    <span className="absolute inset-0 rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(90, 145, 222,0.25)' }} />
                     <span className="absolute -inset-px rounded-lg opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent)', animation: 'borderGlow 3s infinite linear', mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)', maskComposite: 'xor', WebkitMaskComposite: 'xor', padding: '1px' }} />
                     <span className="relative z-10 flex items-center gap-2 text-white">
                       ✓ Transparent Process
@@ -395,7 +395,7 @@ const About = () => {
                 </div>
               </div>
               <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-3xl blur opacity-20"></div>
+                <div className="absolute -inset-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-3xl blur opacity-20"></div>
                 <img
                   src="/pic/mision.webp"
                   alt="Car Finance"
@@ -408,7 +408,7 @@ const About = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-12 sm:mb-20">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 section-mb">
             {stats.map((stat, index) => {
               const IconComponent = stat.icon;
               return (
@@ -416,10 +416,10 @@ const About = () => {
                   key={index}
                   className="bg-white/70 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-center border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
                 >
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-blue-400 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
                     <IconComponent className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                   </div>
-                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent mb-2">
+                  <div className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2">
                     {stat.number}
                   </div>
                   <div className="text-sm sm:text-base text-gray-600 font-medium">{stat.label}</div>
@@ -432,14 +432,14 @@ const About = () => {
           <BankingPartnersCarousel bankingPartners={bankingPartners} />
 
           {/* What We Specialize In */}
-          <div className="bg-gradient-to-br from-cyan-50 via-white to-blue-50 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-cyan-100/50 shadow-xl mb-16">
+          <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 backdrop-blur-xl rounded-3xl border border-blue-100/50 shadow-xl section-mb card-pad">
             <div className="grid lg:grid-cols-2 gap-12">
               <div>
-                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-100 to-blue-100 px-4 py-2 rounded-full backdrop-blur-sm border border-cyan-200/50 mb-6">
-                  <span className="text-sm font-medium text-cyan-700">Our Services</span>
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-blue-100 px-4 py-2 rounded-full backdrop-blur-sm border border-blue-200/50 mb-6">
+                  <span className="text-sm font-medium text-blue-600">Our Services</span>
                 </div>
                 <h3 className="text-4xl font-bold mb-8">
-                  <span className="bg-gradient-to-r from-cyan-600 to-blue-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-500 to-blue-500 bg-clip-text text-transparent">
                     WHAT WE SPECIALIZE IN
                   </span>
                 </h3>
@@ -456,7 +456,7 @@ const About = () => {
                     <button
                       key={idx}
                       onClick={(e) => handleRedirect(e, service.link)}
-                      className="relative w-full text-left bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group/btn overflow-hidden cursor-pointer"
+                      className="relative w-full text-left bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group/btn overflow-hidden cursor-pointer"
                     >
                       <span className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300">
                         <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" style={{ backgroundSize: '200% 100%', animation: 'shimmer 2s infinite linear' }} />
@@ -467,11 +467,11 @@ const About = () => {
                 </div>
               </div>
               <div>
-                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2 rounded-full backdrop-blur-sm border border-purple-200/50 mb-6">
-                  <span className="text-sm font-medium text-purple-700">Why Choose Us</span>
+                <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-blue-100 px-4 py-2 rounded-full backdrop-blur-sm border border-blue-200/50 mb-6">
+                  <span className="text-sm font-medium text-blue-800">Why Choose Us</span>
                 </div>
                 <h4 className="text-3xl font-bold mb-8">
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">
                     WHY CHOOSE US?
                   </span>
                 </h4>
@@ -481,9 +481,9 @@ const About = () => {
                     { icon: '⭐', title: 'Quality', desc: 'Providing best-in-class service and value for automotive dealers and customers with flexible, competitive rates tailored to your needs.' },
                     { icon: '🤝', title: 'Customer Service', desc: 'Customer-first approach with experienced professionals offering flexible and competitive rates tailored to your specific requirements.' },
                   ].map((item, idx) => (
-                    <div key={idx} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <div key={idx} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-blue-100/50 shadow-lg hover:shadow-xl transition-all duration-300">
                       <div className="flex items-start space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-bold text-lg">{item.icon}</span>
                         </div>
                         <div>
@@ -499,13 +499,13 @@ const About = () => {
           </div>
 
           {/* 🔥 Testimonials Section - Same as Home Page HeroSection */}
-          <div className="bg-gradient-to-br from-green-50 via-white to-emerald-50 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-green-100/50 shadow-xl mb-16">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-2 rounded-full backdrop-blur-sm border border-green-200/50 mb-6">
+          <div className="bg-gradient-to-br from-blue-50 via-white to-blue-50 backdrop-blur-xl rounded-3xl border border-green-100/50 shadow-xl section-mb card-pad">
+            <div className="text-center section-head">
+              <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-blue-100 px-4 py-2 rounded-full backdrop-blur-sm border border-green-200/50 mb-6">
                 <span className="text-sm font-medium text-green-700">Customer Reviews</span>
               </div>
               <h3 className="text-4xl font-bold">
-                <span className="bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
                   TESTIMONIALS
                 </span>
               </h3>
@@ -523,7 +523,7 @@ const About = () => {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            {[...Array(5)].map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />))}
+                            {[...Array(5)].map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < testimonial.rating ? 'text-orange-400 fill-orange-400' : 'text-gray-300'}`} />))}
                           </div>
                           <p className="text-gray-700 text-sm leading-relaxed mb-2">"{testimonial.quote}"</p>
                           <p className="text-gray-600 text-sm font-medium">– {testimonial.name}, {testimonial.location}</p>
@@ -536,7 +536,7 @@ const About = () => {
               <div className="flex justify-center gap-1 mt-4">
                 {testimonials.map((_, index) => (
                   <button key={index} onClick={() => setCurrentTestimonialMobile(index)} className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1" aria-label={`Go to testimonial ${index + 1}`}>
-                    <span className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonialMobile === index ? 'bg-gradient-to-r from-blue-600 to-cyan-500 w-6' : 'w-2.5 bg-gray-300/60 backdrop-blur-sm'}`} />
+                    <span className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonialMobile === index ? 'bg-gradient-to-r from-blue-600 to-blue-400 w-6' : 'w-2.5 bg-gray-300/60 backdrop-blur-sm'}`} />
                   </button>
                 ))}
               </div>
@@ -554,7 +554,7 @@ const About = () => {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-1 mb-1">
-                            {[...Array(5)].map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />))}
+                            {[...Array(5)].map((_, i) => (<Star key={i} className={`w-3.5 h-3.5 ${i < testimonial.rating ? 'text-orange-400 fill-orange-400' : 'text-gray-300'}`} />))}
                           </div>
                           <p className="text-gray-700 text-sm leading-relaxed mb-2 line-clamp-3">"{testimonial.quote}"</p>
                           <p className="text-gray-600 text-sm font-medium">– {testimonial.name}, {testimonial.location}</p>
@@ -567,7 +567,7 @@ const About = () => {
               <div className="flex justify-center gap-1 mt-4">
                 {Array.from({ length: Math.max(1, testimonials.length - 2) }).map((_, index) => (
                   <button key={index} onClick={() => setCurrentTestimonialDesktop(index)} className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1" aria-label={`Go to testimonials group ${index + 1}`}>
-                    <span className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonialDesktop === index ? 'bg-gradient-to-r from-blue-600 to-cyan-500 w-6' : 'w-2.5 bg-gray-300/60 backdrop-blur-sm'}`} />
+                    <span className={`h-2.5 rounded-full transition-all duration-300 ${currentTestimonialDesktop === index ? 'bg-gradient-to-r from-blue-600 to-blue-400 w-6' : 'w-2.5 bg-gray-300/60 backdrop-blur-sm'}`} />
                   </button>
                 ))}
               </div>
@@ -575,8 +575,8 @@ const About = () => {
           </div>
 
           {/* Latest Automotive News */}
-          <div className="bg-gradient-to-br from-orange-50 via-white to-red-50 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-orange-100/50 shadow-xl mb-16">
-            <div className="text-center mb-12">
+          <div className="bg-gradient-to-br from-orange-50 via-white to-red-50 backdrop-blur-xl rounded-3xl border border-orange-100/50 shadow-xl section-mb card-pad">
+            <div className="text-center section-head">
               <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-orange-100 to-red-100 px-4 py-2 rounded-full backdrop-blur-sm border border-orange-200/50 mb-6">
                 <span className="text-sm font-medium text-orange-700">Industry Updates</span>
               </div>
@@ -608,10 +608,10 @@ const About = () => {
           </div>
 
           {/* Values */}
-          <div className="bg-white/50 backdrop-blur-xl rounded-3xl p-8 lg:p-12 border border-white/30 shadow-2xl">
-            <div className="text-center mb-12">
+          <div className="bg-white/50 backdrop-blur-xl rounded-3xl border border-white/30 shadow-2xl card-pad">
+            <div className="text-center section-head">
               <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                   Our Core Values
                 </span>
               </h3>
@@ -624,7 +624,7 @@ const About = () => {
                 const IconComponent = value.icon;
                 return (
                   <div key={index} className="text-center group hover:transform hover:scale-105 transition-all duration-300">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
                       <IconComponent className="w-8 h-8 text-white" />
                     </div>
                     <h4 className="text-xl font-bold text-gray-800 mb-3">{value.title}</h4>
@@ -636,53 +636,53 @@ const About = () => {
           </div>
 
           {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-          <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} contained={false} className="mt-10 mb-16" />
+          <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} contained={false} className="mt-10 section-mb" />
 
 
 
           {/* ✅ WORKING CONTACT SECTION - Glass Cards with Clickable Links */}
           <div className="mt-10">
             <div>
-              <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-8 border border-white/60 shadow-[0_8px_32px_0_rgba(31,38,135,0.1)] mb-10 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-cyan-50/40 pointer-events-none" />
+              <div className="relative bg-white/40 backdrop-blur-2xl rounded-3xl p-8 border border-white/60 shadow-[0_8px_32px_0_rgba(24,69,134,0.1)] overflow-hidden section-mb">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-transparent to-blue-50/40 pointer-events-none" />
                 <div className="relative z-10">
                   <div className="text-center mb-8">
                     <h3 className="text-2xl font-bold mb-2">
-                      <span className="bg-gradient-to-r from-[#2563eb] to-[#06b6d4] bg-clip-text text-transparent">Get In Touch With Us</span>
+                      <span className="bg-gradient-to-r from-[#2064c8] to-[#5a91de] bg-clip-text text-transparent">Get In Touch With Us</span>
                     </h3>
                   </div>
                   <div className="grid md:grid-cols-3 gap-6">
                     {/* Phone - Clickable */}
                     <a href="tel:+916372977626" className="flex items-center space-x-4 group cursor-pointer">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                         <Phone className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800">Call Us</h4>
-                        <p className="text-[#2563eb] font-medium hover:underline">+91 63729 77626</p>
-                        <p className="text-[#2563eb] font-medium hover:underline">+91 96924 29674</p>
+                        <p className="text-[#2064c8] font-medium hover:underline">+91 63729 77626</p>
+                        <p className="text-[#2064c8] font-medium hover:underline">+91 96924 29674</p>
                         <p className="text-sm text-slate-500/80">Mon-Sat: 9AM to 7PM</p>
                       </div>
                     </a>
                     {/* Email - Clickable */}
                     <a href="mailto:contact@ezyloan.co.in" className="flex items-center space-x-4 group cursor-pointer">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                         <Mail className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800">Email Us</h4>
-                        <p className="text-[#2563eb] font-medium hover:underline">contact@ezyloan.co.in</p>
+                        <p className="text-[#2064c8] font-medium hover:underline">contact@ezyloan.co.in</p>
                         <p className="text-sm text-slate-500/80">Quick response guaranteed</p>
                       </div>
                     </a>
                     {/* Location - Clickable Google Maps */}
                     <a href="https://www.google.com/maps/search/?api=1&query=1st+Floor+Hindustan+Tyres+Building+Pir+Bazar+Bhanpur+Cuttack+Odisha+753011" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-4 group cursor-pointer">
-                      <div className="w-14 h-14 bg-gradient-to-br from-[#2563eb]/90 to-[#06b6d4]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(37,99,235,0.25)] group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.35)] transition-all duration-300 group-hover:scale-110">
+                      <div className="w-14 h-14 bg-gradient-to-br from-[#2064c8]/90 to-[#5a91de]/90 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_4px_16px_rgba(32,100,200,0.25)] group-hover:shadow-[0_6px_20px_rgba(32,100,200,0.35)] transition-all duration-300 group-hover:scale-110">
                         <MapPin className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800">Visit Us</h4>
-                        <p className="text-[#2563eb] font-medium text-sm hover:underline">1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha - 753011</p>
+                        <p className="text-[#2064c8] font-medium text-sm hover:underline">1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha - 753011</p>
                       </div>
                     </a>
                   </div>

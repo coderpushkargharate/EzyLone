@@ -71,12 +71,12 @@ export default function VoiceAssistant({ showScrollTop = true }: StickyActionsPr
   const [showScrollTopBtn, setShowScrollTopBtn] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  // Brand Colors — matched to the EzyLone website palette (blue → cyan).
-  const BRAND_PRIMARY = '#2563eb';   // blue-600 (site primary)
-  const BRAND_SECONDARY = '#06b6d4'; // cyan-500 (site accent)
-  const BRAND_ACCENT = '#0ea5e9';    // sky-500
-  const BRAND_LIGHT = '#eff6ff';     // blue-50
-  const BRAND_DARK = '#1e3a8a';      // blue-900
+  // Brand Colors — taken from the EzyLoan logo (blue #2064c8 + orange #ff9100).
+  const BRAND_PRIMARY = '#2064c8';   // blue-600 (site primary)
+  const BRAND_SECONDARY = '#5a91de'; // blue-400 (light brand blue)
+  const BRAND_ACCENT = '#ff9100';    // logo orange
+  const BRAND_LIGHT = '#eef4fc';     // blue-50
+  const BRAND_DARK = '#173b6d';      // blue-900
 
   useEffect(() => {
     const timer = setTimeout(() => setShowButtons(true), 300);

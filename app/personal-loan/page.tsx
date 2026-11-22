@@ -157,9 +157,9 @@ const PersonalLoanPage: React.FC = () => {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
         {/* Banner Image Section */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Image Section */}
-          <div className="relative mb-16 max-w-8xl mx-auto overflow-hidden rounded-2xl shadow-xl ">
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-xl hero-wrap">
             <HeroSection
               page="personal-loan"
               title="Personal Loan"
@@ -169,12 +169,12 @@ const PersonalLoanPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 section-pb">
           {/* Introduction Section */}
-          <div className="mb-8 sm:mb-12 lg:mb-16">
-            <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+          <div className="section-mb">
+            <div className="text-center section-head">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">
-                <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                   Fulfill Your Dreams with Personal Loans
                 </span>
               </h1>
@@ -185,8 +185,8 @@ const PersonalLoanPage: React.FC = () => {
           </div>
 
           {/* Features Grid - GLASS EFFECTS */}
-          <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 backdrop-blur-sm rounded-3xl p-8 lg:p-12 mb-16 border border-blue-100/50">
-            <div className="text-center mb-12">
+          <div className="bg-gradient-to-br from-blue-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-blue-100/50 section-mb card-pad">
+            <div className="text-center section-head">
               <h2 className="text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
                 Why Choose Personal Loan?
               </h2>
@@ -198,21 +198,21 @@ const PersonalLoanPage: React.FC = () => {
                   icon: Zap,
                   title: "Quick Loan Processing*",
                   desc: "Get quick approval* with minimal documentation, ensuring you receive the funds you need without unnecessary delays. Subject to verification.",
-                  bg: "from-green-600 to-emerald-700",
+                  bg: "from-blue-600 to-blue-700",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 {
                   icon: DollarSign,
                   title: "Flexible Loan Amounts",
                   desc: "Choose a loan amount that fits your needs* – from ₹50,000 to ₹50 lakhs, giving you the financial freedom to achieve your goals. Subject to income & credit assessment.",
-                  bg: "from-blue-600 to-cyan-700",
+                  bg: "from-blue-600 to-blue-600",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 },
                 {
                   icon: TrendingUp,
                   title: "Competitive Interest Rates*",
                   desc: "Enjoy competitive interest rates* starting as low as 10.5% p.a., making your EMIs affordable and easy to manage. Final rate subject to credit profile.",
-                  bg: "from-purple-600 to-pink-700",
+                  bg: "from-blue-700 to-blue-800",
                   iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
                 }
               ].map((item, index) => {
@@ -240,7 +240,7 @@ const PersonalLoanPage: React.FC = () => {
           </div>
 
           {/* Additional Content Section - GLASS EFFECTS */}
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+          <div className="grid md:grid-cols-2 gap-12 items-center section-mb">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-gray-800">
                 Tailored Financing Solutions for Every Need
@@ -254,8 +254,8 @@ const PersonalLoanPage: React.FC = () => {
               
               <div className="grid grid-cols-2 gap-6">
                 {[
-                  { icon: Clock, title: "Quick Processing*", desc: "24-48 hours* approval", bg: "from-blue-600 to-cyan-700" },
-                  { icon: Shield, title: "Secure Process", desc: "100% safe & secure", bg: "from-green-600 to-emerald-700" }
+                  { icon: Clock, title: "Quick Processing*", desc: "24-48 hours* approval", bg: "from-blue-600 to-blue-600" },
+                  { icon: Shield, title: "Secure Process", desc: "100% safe & secure", bg: "from-blue-600 to-blue-700" }
                 ].map((item, index) => {
                   const Icon = item.icon;
                   return (
@@ -291,9 +291,9 @@ const PersonalLoanPage: React.FC = () => {
           </div>
 
           {/* Loan Details Section - GLASS EFFECTS */}
-          <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/70 backdrop-blur-sm rounded-3xl p-8 lg:p-12 border border-blue-100/50 shadow-xl mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12">
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+          <div className="bg-gradient-to-br from-blue-50/70 to-blue-50/70 backdrop-blur-sm rounded-3xl border border-blue-100/50 shadow-xl section-mb card-pad">
+            <h2 className="text-3xl lg:text-4xl font-bold text-center section-head">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                 Loan Details &amp; Features
               </span>
             </h2>
@@ -308,7 +308,7 @@ const PersonalLoanPage: React.FC = () => {
                     { label: "Maximum", value: "₹50,00,000*", color: "text-green-600" },
                     { label: "Based on", value: "Income & Profile*", color: "text-gray-700" }
                   ],
-                  bg: "from-green-600 to-emerald-700"
+                  bg: "from-blue-600 to-blue-700"
                 },
                 {
                   icon: TrendingUp,
@@ -318,17 +318,17 @@ const PersonalLoanPage: React.FC = () => {
                     { label: "Up to", value: "18.0% p.a.*", color: "text-blue-600" },
                     { label: "Type", value: "Reducing Rate", color: "text-gray-700" }
                   ],
-                  bg: "from-blue-600 to-cyan-700"
+                  bg: "from-blue-600 to-blue-600"
                 },
                 {
                   icon: Clock,
                   title: "Tenure & Fees",
                   items: [
-                    { label: "Tenure", value: "1 - 5 years", color: "text-purple-600" },
-                    { label: "Processing Fee", value: "Up to 2%*", color: "text-purple-600" },
+                    { label: "Tenure", value: "1 - 5 years", color: "text-blue-700" },
+                    { label: "Processing Fee", value: "Up to 2%*", color: "text-blue-700" },
                     { label: "Prepayment", value: "Allowed*", color: "text-gray-700" }
                   ],
-                  bg: "from-purple-600 to-pink-700"
+                  bg: "from-blue-700 to-blue-800"
                 }
               ].map((section, index) => {
                 const Icon = section.icon;
@@ -360,18 +360,18 @@ const PersonalLoanPage: React.FC = () => {
           </div>
 
           {/* Eligibility Criteria - GLASS EFFECTS */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-xl border border-gray-100/50 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12">
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-100/50 section-mb card-pad">
+            <h2 className="text-3xl lg:text-4xl font-bold text-center section-head">
+              <span className="bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
                 Eligibility Criteria
               </span>
             </h2>
             
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
               {[
-                { icon: User, title: "Age Criteria", value: "21 - 65 years", desc: "At the time of loan maturity", bg: "from-blue-600 to-indigo-700" },
-                { icon: DollarSign, title: "Monthly Income", value: "₹25,000+*", desc: "Net monthly income*", bg: "from-green-600 to-emerald-700" },
-                { icon: FileText, title: "Employment", value: "Salaried/Self-employed", desc: "Stable employment history*", bg: "from-purple-600 to-pink-700" },
+                { icon: User, title: "Age Criteria", value: "21 - 65 years", desc: "At the time of loan maturity", bg: "from-blue-600 to-blue-800" },
+                { icon: DollarSign, title: "Monthly Income", value: "₹25,000+*", desc: "Net monthly income*", bg: "from-blue-600 to-blue-700" },
+                { icon: FileText, title: "Employment", value: "Salaried/Self-employed", desc: "Stable employment history*", bg: "from-blue-700 to-blue-800" },
                 { icon: TrendingUp, title: "Credit Score", value: "650+*", desc: "Higher scores get better rates*", bg: "from-orange-600 to-red-700" }
               ].map((item, index) => {
                 const Icon = item.icon;
@@ -398,7 +398,7 @@ const PersonalLoanPage: React.FC = () => {
           </div>
 
           {/* ✅ COMPLIANCE-FIXED CTA Section - GLASS PRISM BUTTONS */}
-          <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-8 lg:p-12 text-center text-white shadow-2xl mb-16 relative overflow-hidden" role="region" aria-label="Call to action">
+          <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-3xl text-center text-white shadow-2xl relative overflow-hidden section-mb card-pad" role="region" aria-label="Call to action">
             {/* Glass shine effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
             
@@ -444,12 +444,12 @@ const PersonalLoanPage: React.FC = () => {
                   
                   {/* Prismatic Edge Glow */}
                   <span className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        style={{ boxShadow: 'inset 0 0 25px rgba(37,99,235,0.2)' }} />
+                        style={{ boxShadow: 'inset 0 0 25px rgba(32, 100, 200,0.2)' }} />
                   
                   {/* Animated Border Glow */}
                   <span className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                         style={{
-                          background: 'linear-gradient(90deg, transparent, rgba(37,99,235,0.5), transparent)',
+                          background: 'linear-gradient(90deg, transparent, rgba(32, 100, 200,0.5), transparent)',
                           animation: 'borderGlow 3s infinite linear',
                           mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
                           maskComposite: 'xor',
@@ -518,7 +518,7 @@ const PersonalLoanPage: React.FC = () => {
         </div>
 
         {/* Rates, fees & disclosures (Google Ads / Meta compliance) */}
-        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="my-10 sm:my-12" />
+        <LoanDisclosure loanDetails={loanDetails} emiExample={emiExample} eligibility={eligibility} className="section-my" />
 
 
 
@@ -531,11 +531,11 @@ const PersonalLoanPage: React.FC = () => {
             {/* ✅ GLASS PRISM CONSULTATION BUTTON */}
             <Link 
               href="/contact" 
-              className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-500 py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="group relative inline-flex items-center justify-center gap-2 overflow-hidden font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-500 py-3 px-8 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               onClick={(e) => handleRedirect(e, "/contact")}
             >
               {/* Base Glass Prism Gradient */}
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-indigo-600/95 backdrop-blur-md" />
+              <span className="absolute inset-0 bg-gradient-to-r from-blue-600/95 via-blue-500/90 to-blue-700/95 backdrop-blur-md" />
               
               {/* Animated Prism Shine Layer */}
               <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -545,7 +545,7 @@ const PersonalLoanPage: React.FC = () => {
               
               {/* Prismatic Edge Glow */}
               <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(37,99,235,0.25)' }} />
+                    style={{ boxShadow: 'inset 0 0 25px rgba(255,255,255,0.35), inset 0 0 45px rgba(32, 100, 200,0.25)' }} />
               
               {/* Animated Border Glow */}
               <span className="absolute -inset-px rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"
@@ -575,7 +575,7 @@ const PersonalLoanPage: React.FC = () => {
         </div>
 
         {/* Personal loan FAQs (same list as the FAQPage schema above) */}
-        <section aria-labelledby="pl-faq-heading" className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <section aria-labelledby="pl-faq-heading" className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 section-pb">
           <h2 id="pl-faq-heading" className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 text-center">
             Personal Loan FAQs
           </h2>
