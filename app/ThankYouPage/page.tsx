@@ -106,7 +106,7 @@ const ThankYouPage = () => {
       />
 
       <div
-        className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4 py-10 mt-12"
+        className="min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4 py-10"
         itemScope
         itemType="https://schema.org/WebPage"
       >

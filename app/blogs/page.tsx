@@ -65,7 +65,7 @@ export default async function BlogsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
       {blogs.length > 0 && (
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListSchema) }} />

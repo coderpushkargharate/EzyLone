@@ -233,9 +233,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* ✅ INLINE CRITICAL CSS - Eliminates 670ms render-blocking */}
         <style dangerouslySetInnerHTML={{ __html: `
-          .hero-section{position:relative;background:linear-gradient(135deg,#eff6ff,#fff,#ecfeff);padding-top:4rem}
-          @media(min-width:640px){.hero-section{padding-top:5rem}}
-          @media(min-width:1024px){.hero-section{padding-top:6rem}}
+          .hero-section{position:relative;background:linear-gradient(135deg,#eff6ff,#fff,#ecfeff);padding-top:.5rem}
+          @media(min-width:640px){.hero-section{padding-top:.5rem}}
+          @media(min-width:1024px){.hero-section{padding-top:1rem}}
           .hero-section .rounded-full{border-radius:9999px}
           .max-w-7xl{max-width:80rem;margin-left:auto;margin-right:auto}
           .px-4{padding-left:1rem;padding-right:1rem}
@@ -261,7 +261,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Skip link */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded z-50 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded z-[60] focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Skip to main content
         </a>

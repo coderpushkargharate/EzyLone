@@ -85,7 +85,7 @@ export default function FAQSection({
       )}
 
       {/* ✅ Section - NO microdata attributes (JSON-LD only) */}
-      <section className={`relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen mt-10 ${className}`} role="region" aria-labelledby="faq-section-title">
+      <section className={`relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen ${className}`} role="region" aria-labelledby="faq-section-title">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse"></div>

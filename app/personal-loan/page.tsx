@@ -157,7 +157,7 @@ const PersonalLoanPage: React.FC = () => {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
         {/* Banner Image Section */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-28 max-sm:pt-32">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           {/* Hero Image Section */}
           <div className="relative mb-16 max-w-8xl mx-auto overflow-hidden rounded-2xl shadow-xl ">
             <HeroSection

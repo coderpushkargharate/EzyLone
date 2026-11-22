@@ -143,7 +143,7 @@ const EMICalculatorPage: React.FC = () => {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(calculatorSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <div className="pt-32 pb-16 bg-gradient-to-br from-blue-50 via-white to-orange-50 relative overflow-hidden">
+      <div className="pt-12 pb-16 bg-gradient-to-br from-blue-50 via-white to-orange-50 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full blur-3xl animate-pulse"></div>

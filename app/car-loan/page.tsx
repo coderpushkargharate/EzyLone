@@ -103,7 +103,7 @@ const NewCarLoanPage: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         
         {/* Hero Section */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-28 max-sm:pt-32">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           
           {/* 🔥 HERO BANNER */}
           <div className="relative mb-16 w-full">

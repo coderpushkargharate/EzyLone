@@ -228,7 +228,7 @@ export default function CareersPage() {
       {/* ❌ REMOVED: JobPosting schema from listing page - causes validation errors */}
       {/* ✅ JobPosting schema should ONLY be on individual job detail pages: /careers/[jobId] */}
 
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen mt-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-cyan-50 min-h-screen">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
           <div className="absolute -top-4 -left-4 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse" />

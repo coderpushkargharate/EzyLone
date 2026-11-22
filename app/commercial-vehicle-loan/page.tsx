@@ -46,7 +46,7 @@ const CommercialVehicleLoanPage: React.FC = () => {
 
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
         {/* Main Container with Responsive Padding */}
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 pt-20 sm:pt-24 lg:pt-28">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Hero Section */}
           <div className="relative mb-12 sm:mb-16 max-w-[85rem] mx-auto overflow-hidden rounded-2xl shadow-xl mt-8">

@@ -359,7 +359,7 @@ const ApplyNowPage: React.FC = () => {
         */}
 
         {/* ===== HERO + 3-STEP APPLICATION (mockup design) ===== */}
-        <section className="relative pt-[84px] sm:pt-24 lg:pt-28 pb-8 sm:pb-12 bg-gradient-to-b from-[#e6f0ff] via-[#f3f8ff] to-white overflow-hidden">
+        <section className="relative pt-1 sm:pt-4 lg:pt-8 pb-8 sm:pb-12 bg-gradient-to-b from-[#e6f0ff] via-[#f3f8ff] to-white overflow-hidden">
           <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,500px)] gap-5 lg:gap-12 items-start">
 

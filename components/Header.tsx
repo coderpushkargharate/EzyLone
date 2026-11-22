@@ -255,7 +255,7 @@ const Header = memo(() => {
 
       <header
         className="fixed top-0 left-0 right-0 z-50 transition-apple glass-border"
-        style={{ background: "rgba(255,255,255,0.92)" }}
+        style={{ background: "rgba(255,255,255,0.92)", paddingTop: "env(safe-area-inset-top, 0px)" }}
         role="banner"
         aria-label="Main navigation header"
       >
@@ -266,7 +266,7 @@ const Header = memo(() => {
         />
 
         <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-0">
+          <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-2">
               <Link href="/" aria-label="EzyLoan Home">
                 <Image
@@ -345,7 +345,7 @@ const Header = memo(() => {
           </div>
 
           {isMenuOpen && (
-            <div id="mobile-menu" className="lg:hidden py-4 bg-white rounded-2xl mt-2 border border-gray-100 mx-2 animate-slide-down shadow-xl" role="dialog" aria-modal="true" aria-label="Mobile navigation menu">
+            <div id="mobile-menu" className="lg:hidden py-4 bg-white rounded-2xl mt-2 border border-gray-100 mx-2 animate-slide-down shadow-xl max-h-[calc(100dvh-var(--header-offset)-1rem)] overflow-y-auto overscroll-contain" role="dialog" aria-modal="true" aria-label="Mobile navigation menu">
               <nav className="flex flex-col space-y-1 px-5" role="menu" aria-label="Mobile menu">
                 <Link href="/" onClick={(e) => handleMobileLinkClick(e, "/")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Home</Link>
                 <Link href="/about" onClick={(e) => handleMobileLinkClick(e, "/about")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">About</Link>

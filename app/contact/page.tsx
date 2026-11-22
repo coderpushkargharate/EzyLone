@@ -92,7 +92,7 @@ const Contact = () => {
   return (
     <>
 
-      <section id="contact" className="py-20 bg-gradient-to-br from-blue-50 via-white to-cyan-50 relative overflow-hidden">
+      <section id="contact" className="pb-20 bg-gradient-to-br from-blue-50 via-white to-cyan-50 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="absolute top-1/4 -left-20 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-cyan-200/20 rounded-full blur-3xl animate-pulse"></div>

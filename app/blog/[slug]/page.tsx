@@ -190,7 +190,7 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
     d ? new Date(d).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
 
   return (
-    <article className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+    <article className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-16">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }} />
 

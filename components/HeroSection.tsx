@@ -1275,7 +1275,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
   if (page === "home") {
     return (
       <section
-        className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-16 sm:pt-20 lg:pt-24 pb-6 overflow-hidden"
+        className="hero-section relative bg-gradient-to-br from-blue-50 via-white to-cyan-50 pt-2 lg:pt-4 pb-6 overflow-hidden"
         suppressHydrationWarning
       >
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">

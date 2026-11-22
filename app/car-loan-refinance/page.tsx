@@ -47,7 +47,7 @@ const CarLoanRefinance: React.FC = () => {
     <>
   
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 bg-white to-cyan-50/30 relative overflow-hidden">
-        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-20 sm:pt-24 lg:pt-28">
+        <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           {/* Hero Section */}
           <div className="relative mb-12 sm:mb-16 overflow-hidden rounded-2xl shadow-xl mt-8">

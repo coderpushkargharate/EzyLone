@@ -9,5 +9,12 @@ const HIDDEN_PREFIXES = ['/ezyadmin', '/ezylogin'];
 export default function ConditionalHeader() {
   const pathname = usePathname();
   if (HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p))) return null;
-  return <Header />;
+  return (
+    <>
+      <Header />
+      {/* The header is position:fixed, so reserve its exact height here once.
+          Pages must NOT add their own top offset for the header. */}
+      <div aria-hidden="true" className="shrink-0" style={{ height: 'var(--header-offset)' }} />
+    </>
+  );
 }

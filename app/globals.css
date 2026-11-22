@@ -24,6 +24,10 @@
   --cyan-primary: #06b6d4;
   --transition-fast: 0.15s ease;
   --transition-base: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Fixed site header: 80px logo row + 2px glass border. Every page is offset
+     by this via the spacer in ConditionalHeader — never hard-code it per page. */
+  --header-h: 82px;
+  --header-offset: calc(var(--header-h) + env(safe-area-inset-top, 0px));
 }
 
 /* ============================================================
@@ -43,6 +47,8 @@
    ============================================================ */
 html {
   scroll-behavior: auto;
+  /* In-page anchors (#faq, #contact, skip link) land below the fixed header */
+  scroll-padding-top: var(--header-offset);
   /* Prevent text size adjustment on orientation change */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
