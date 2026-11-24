@@ -106,6 +106,15 @@ check('non-object input → {}', JSON.stringify(attr.sanitizeAttribution('x')) =
 check('channel: gclid → google_ads', attr.deriveChannel({ gclid: 'abcdefgh1' }) === 'google_ads');
 check('channel: facebook + paid → meta_ads', attr.deriveChannel({ utmSource: 'facebook', utmMedium: 'paid_social' }) === 'meta_ads');
 check('channel: google referrer, no ids → organic_search', attr.deriveChannel({ referrer: 'https://www.google.com' }) === 'organic_search');
+check('channel: ChatGPT utm_source → ai_referral', attr.deriveChannel({ utmSource: 'chatgpt.com' }) === 'ai_referral');
+check('channel: Perplexity referrer → ai_referral', attr.deriveChannel({ referrer: 'https://www.perplexity.ai/search?q=x' }) === 'ai_referral');
+check('channel: Gemini referrer is not organic search', attr.deriveChannel({ referrer: 'https://gemini.google.com/' }) === 'ai_referral');
+check('channel: Bing referrer stays organic_search', attr.deriveChannel({ referrer: 'https://www.bing.com/' }) === 'organic_search');
+check('channel: microsoft.com is a referral, not social', attr.deriveChannel({ referrer: 'https://www.microsoft.com/' }) === 'referral');
+check('channel: google.co.in → organic_search', attr.deriveChannel({ referrer: 'https://www.google.co.in/' }) === 'organic_search');
+check('channel: l.facebook.com → social', attr.deriveChannel({ referrer: 'https://l.facebook.com/' }) === 'social');
+check('channel: google.com.evil.io is not search', attr.deriveChannel({ referrer: 'https://google.com.evil.io/' }) === 'referral');
+check('channel: lookalike host is not AI', attr.deriveChannel({ referrer: 'https://notchatgpt.com.evil.io/' }) === 'referral');
 check('channel: Lead Ads source', attr.deriveChannel(undefined, 'Facebook Lead Ads') === 'meta_lead_ads');
 check('channel: no touch → direct only when touch exists', attr.deriveChannel({ landingPage: 'https://www.ezyloan.co.in/' }) === 'direct');
 check('consent: only explicit true = granted', attr.consentFromForm(true, 's').adMeasurement === 'granted' && attr.consentFromForm('true', 's').adMeasurement === 'unknown' && attr.consentFromForm(false, 's').adMeasurement === 'denied');

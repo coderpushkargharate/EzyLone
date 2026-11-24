@@ -49,6 +49,8 @@ const Services = () => {
       { icon: Building2, title: "Commercial Vehicle Loan", description: "Get behind the wheel of your dream vehicle with our easy and quick loan approval process.", image: "/homebanners/618797752_122285828318199270_8453964291894126689_n.webp", link: "/commercial-vehicle-loan", applyLink: "/apply-now?loan=commercial-vehicle-loan", highlights: ["High Loan Amount", "Flexible Tenure", "Tax Benefits"] },
       { icon: User, title: "Personal Loan", description: "Fulfill your dreams with our hassle-free Personal Loan, designed to meet your needs.", image: "/homebanners/image.webp", link: "/personal-loan", applyLink: "/apply-now?loan=personal-loan", highlights: ["Up to ₹25 Lakh", "Low Interest Rates", "Minimal Docs"] },
       { icon: Building2, title: "Property Loan", description: "Expand your business with our tailored Property Loan, designed for growth.", image: "/homebanners/634044681_122289263786199270_3408391623228588228_n.webp", link: "/property-loan", applyLink: "/apply-now?loan=property-loan", highlights: ["Up to ₹3 Crore", "Lowest EMIs", "Long Tenure"] },
+      // Appended (not inserted) so admin-uploaded card images, matched by index, keep their slots.
+      { icon: Car, title: "Used Car Loan", description: "Buying a pre-owned car? Apply for a used car loan through our partner banks and NBFCs.", image: "/car_image.webp", link: "/used-car-loan", applyLink: "/apply-now?loan=used-car", highlights: ["Pre-owned cars", "Partner banks & NBFCs", "Apply online"] },
     ];
     return base.map((s, i) => (optionImages[i] ? { ...s, image: optionImages[i] } : s));
   }, [optionImages]);

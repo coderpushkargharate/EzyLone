@@ -452,7 +452,7 @@ const ApplyNowPage: React.FC = () => {
                   <p className="text-base sm:text-lg font-bold text-blue-600">Step {step} of 3: {STEPS[step - 1]}</p>
                   <p className="text-base font-bold text-[#0b1b3f]">{Math.round((step / 3) * 100)}%</p>
                 </div>
-                <div className="mt-2 h-2.5 rounded-full bg-blue-100 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((step / 3) * 100)}>
+                <div className="mt-2 h-2.5 rounded-full bg-blue-100 overflow-hidden" role="progressbar" aria-label="Application progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((step / 3) * 100)}>
                   <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-500" style={{ width: `${(step / 3) * 100}%` }} />
                 </div>
 

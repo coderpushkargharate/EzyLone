@@ -3,7 +3,7 @@ import { createLeadFromWebhook } from '@/lib/ingest';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 import { isBlocked } from '@/lib/blocklist';
 import { sendSecurityAlert } from '@/lib/email';
-import { envFlag, safeEqual } from '@/lib/webhookAuth';
+import { envFlag, isLocalRequest, safeEqual } from '@/lib/webhookAuth';
 import { getCredential } from '@/lib/credentials';
 
 export const runtime = 'nodejs';
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const secret = await getCredential('WEBHOOK_LEAD_SECRET');
   if (!secret && !envFlag('WEBHOOK_LEAD_ALLOW_OPEN')) {
     console.error('Rejected /api/webhook/lead — WEBHOOK_LEAD_SECRET is not set (endpoint is disabled until it is).');
-    sendSecurityAlert('lead-webhook-unconfigured', 'Lead webhook is rejecting requests', {
+    if (!isLocalRequest(req.headers.get('host'))) sendSecurityAlert('lead-webhook-unconfigured', 'Lead webhook is rejecting requests', {
       Reason: 'WEBHOOK_LEAD_SECRET is not set — /api/webhook/lead creates no leads until it is.',
     }).catch(() => {});
     return NextResponse.json({ error: 'Lead webhook is not configured.' }, { status: 503 });

@@ -28,6 +28,7 @@ const Footer = memo(() => {
   const footerLinks = useMemo(() => ({
     products: [
       { name: "Personal Loan", href: "/personal-loan" },
+      { name: "Used Car Loan", href: "/used-car-loan" },
       { name: "New Car Loan", href: "/car-loan" },
       { name: "Property Loan", href: "/property-loan" },
       { name: "Commercial Vehicle Loan", href: "/commercial-vehicle-loan" },

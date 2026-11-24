@@ -126,6 +126,21 @@ That is a question for compliance counsel, not for the code.
   `dateModified`, `app/loan-disclosure`). Confirm the real revision date.
 - [ ] `sameAs: []` in `app/layout.tsx`: add the real social profile URLs.
 
+## 7. Added in the November 2026 SEO/AI-visibility round (not changed — awaiting decision)
+
+| # | Exact text | Location | Concern |
+|---|---|---|---|
+| N1 | Homepage H1 "Get Loan Approved in **24 Hours\*** in Odisha" | `components/HeroSection.tsx` (mobile H1 + desktop heading) | Same as A2. Also conflicts with the brief "avoid unsupported claims about guaranteed approval". The H1 is the most prominent text Google and AI assistants read. Suggested facilitator wording (owner decides): *"Car, Personal & Property Loans in Odisha — apply once, compare partner lenders"* |
+| N2 | Service-card highlights: "Up to 100% Funding", "Quick Approval", "Low Rates" (New Car); "Up to ₹25 Lakh", "Low Interest Rates" (Personal); "Up to ₹3 Crore", "Lowest EMIs" (Property); "High Loan Amount", "Tax Benefits" (Commercial Vehicle); "Lower EMIs", "Better Rates" (Used Car BT / Refinance) | `components/Services.tsx:46–51` (homepage) | Loan amounts, funding % and "lowest" are lender decisions; "Tax Benefits" is tax advice. Needs lender evidence or neutral wording |
+| N3 | Apply Now badge "Top-Up up to 200% of Car Value\*" | `app/apply-now/page.tsx:399` | Specific funding multiple; needs a partner-lender product sheet |
+| N4 | Top-up benefits "Get approved in just 24 hours" and "Same Interest Rate … with no additional charges" | `app/car-loan-topup/page.tsx:289, 296–297` | Same as A5; "same rate, no charges" contradicts the disclosure's processing fee of up to 3% |
+| N5 | Commercial vehicle "Fast Processing — Quick loan approval and disbursement", "Thousands of satisfied customers" | `app/commercial-vehicle-loan/page.tsx:76, 79` | Approval/disbursement promise and an unquantified customer claim |
+
+| N6 | About stats "**100K+** Happy Customers", "**₹500Cr+** Loans Disbursed", "**24/7** Customer Support"; footer "24/7 Customer Support" | `app/about/page.tsx:226–229`, `components/Footer.tsx:394` | 100K+ contradicts "10,000+" used elsewhere (§2); ₹500 Cr disbursed is a lender figure needing evidence; 24/7 contradicts the published hours (Mon–Sat 9–7) |
+| N7 | "Latest Automotive News" — three stock-photo cards ("Electric Vehicle Market Growth", …) dated "Dec 2024", not linked to any article | `app/about/page.tsx:578–604` | Placeholder content presented as news, two years old. Remove, or replace with links to real `/blog` posts |
+
+The new `/used-car-loan` page deliberately makes none of these claims: it only repeats the ranges already published on `/loan-disclosure` (10–28% p.a., fee up to 3% + GST, 12–60 months) and the statement there that EzyLoan charges borrowers no upfront fee.
+
 ## Sign-off
 
 | Section | Decision | Evidence filed at | Approved by | Date |

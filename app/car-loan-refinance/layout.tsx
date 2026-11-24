@@ -6,7 +6,7 @@ export const metadata = pageMeta({
   path: '/car-loan-refinance',
   title: "Loan Against Car in Odisha – Used Car Refinance",
   description:
-    "Raise funds against a car you already own. Used car refinance and loan against car in Odisha: eligibility, documents and process with partner banks and NBFCs in Bhubaneswar and Cuttack.",
+    "Raise funds against a car you already own. Loan against car and used car refinance in Odisha: eligibility, documents and process with partner lenders.",
   keywords: ["loan against car", "loan against car Odisha", "used car refinance", "car refinance Bhubaneswar", "car refinance Cuttack", "loan on car RC", "cash against car"],
 });
 

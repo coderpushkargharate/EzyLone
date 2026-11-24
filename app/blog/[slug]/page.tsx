@@ -7,6 +7,7 @@ import { Blog } from '@/lib/models/Blog';
 import { PUBLIC_BLOG_FILTER } from '@/lib/blog';
 import { sanitizeBlogHtml } from '@/lib/blogHtml';
 import { SITE_URL, jsonLd, siteCanonical, topicLinksFor } from '@/lib/seo';
+import { resizedImage, resizedSrcSet } from '@/lib/imageUrl';
 
 // Server-rendered so search engines & social crawlers get full content + meta.
 // Revalidated every 10 min; refreshed immediately on publish/edit/unpublish via
@@ -157,9 +158,11 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
     image: blog.image ? [blog.image] : [`${SITE_URL}/og-image.jpg`],
     datePublished: published,
     dateModified: modified,
-    author: blog.author
+    // A byline like "EzyLoan Editorial Team" is the organisation, not a person;
+    // marking it Person would misstate authorship in structured data.
+    author: blog.author && !/\b(team|desk|editorial|ezyloan|staff)\b/i.test(blog.author)
       ? { '@type': 'Person', name: blog.author }
-      : { '@type': 'Organization', name: ORG_NAME, url: SITE_URL },
+      : { '@type': 'Organization', name: blog.author || ORG_NAME, url: SITE_URL },
     publisher: {
       '@type': 'Organization',
       '@id': `${SITE_URL}/#organization`,
@@ -230,7 +233,9 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
         <figure className="my-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={blog.image}
+            src={resizedImage(blog.image, 1200)}
+            srcSet={resizedSrcSet(blog.image, [480, 768, 1200])}
+            sizes="(min-width: 800px) 768px, 100vw"
             alt={blog.featuredImageAlt || blog.title}
             width={768}
             height={432}
@@ -302,7 +307,7 @@ export default async function BlogDetails(props: { params: Promise<{ slug: strin
               <Link key={r._id} href={`/blog/${r.slug}`} className="block bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
                 {r.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.image} alt={r.featuredImageAlt || r.title} width={300} height={160} loading="lazy" className="w-full h-32 object-cover" />
+                  <img src={resizedImage(r.image, 600, 320)} alt={r.featuredImageAlt || r.title} width={300} height={160} loading="lazy" className="w-full h-32 object-cover" />
                 )}
                 <div className="p-3">
                   <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">{r.title}</h3>

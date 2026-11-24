@@ -24,6 +24,8 @@ export default function AutomationsManager() {
   const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
   const [connected, setConnected] = useState<Record<string, boolean>>({});
+  // Provider is set up but cannot work yet (Facebook without an App Secret rejects every lead).
+  const [needsAction, setNeedsAction] = useState<Record<string, string>>({});
   const [modalProvider, setModalProvider] = useState<Provider | null>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -66,12 +68,19 @@ export default function AutomationsManager() {
     if (res.ok) {
       const data = await res.json();
       const map: Record<string, boolean> = {};
+      const warn: Record<string, string> = {};
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (data.items || []).forEach((i: any) => {
         const hasToken = i.config?.pageAccessToken_set || i.config?.accessToken_set;
-        map[i.provider] = Boolean(i.enabled && hasToken);
+        let ok = Boolean(i.enabled && hasToken);
+        if (ok && i.provider === 'facebook' && !i.config?.appSecret_set && !i.serverAppSecretSet) {
+          ok = false;
+          warn.facebook = 'App Secret missing — leads are being rejected';
+        }
+        map[i.provider] = ok;
       });
       setConnected(map);
+      setNeedsAction(warn);
     }
   }, []);
 
@@ -182,6 +191,10 @@ export default function AutomationsManager() {
                     <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
                       <CheckCircle2 size={12} /> Connected
                     </span>
+                  ) : s.provider && needsAction[s.provider] ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-amber-700 font-medium" role="status">
+                      ⚠ {needsAction[s.provider]}
+                    </span>
                   ) : (
                     <span className="text-xs text-gray-400">Not connected</span>
                   )}
@@ -190,7 +203,7 @@ export default function AutomationsManager() {
                       onClick={() => setModalProvider(s.provider!)}
                       className="text-xs text-blue-600 font-semibold hover:text-blue-700"
                     >
-                      {connected[s.provider!] ? 'Manage ›' : 'Configure ›'}
+                      {connected[s.provider!] || needsAction[s.provider!] ? 'Manage ›' : 'Configure ›'}
                     </button>
                   )}
                 </div>

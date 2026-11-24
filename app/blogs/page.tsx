@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import { Blog } from '@/lib/models/Blog';
 import { PUBLIC_BLOG_FILTER } from '@/lib/blog';
 import { SITE_URL, jsonLd } from '@/lib/seo';
+import { resizedImage, resizedSrcSet } from '@/lib/imageUrl';
 
 // Server-rendered so the full list is crawlable HTML (no JS-only navigation).
 // Revalidated every 10 min; also refreshed immediately on publish/unpublish via
@@ -97,7 +98,9 @@ export default async function BlogsPage() {
                 {b.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={b.image}
+                    src={resizedImage(b.image, 640, 360)}
+                    srcSet={resizedSrcSet(b.image, [400, 640, 800], 0.5625)}
+                    sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
                     alt={b.featuredImageAlt || b.title}
                     width={400}
                     height={225}

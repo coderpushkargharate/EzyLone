@@ -121,6 +121,7 @@ export default function FAQSection({
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <article key={index} className="bg-white/80 backdrop-blur-sm border border-blue-100 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                <h2 className="m-0 text-base">
                 <button
                   onClick={() => toggleFAQ(index)}
                   className="w-full flex justify-between items-center p-5 text-left hover:bg-blue-50/50 transition-colors duration-200 group"
@@ -133,6 +134,7 @@ export default function FAQSection({
                     {openIndex === index ? "−" : "+"}
                   </span>
                 </button>
+                </h2>
                 <div
                   id={`faq-answer-${index}`}
                   role="region"

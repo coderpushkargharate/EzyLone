@@ -33,3 +33,13 @@ export function verifyMetaSignature(
 export function envFlag(name: string): boolean {
   return process.env[name] === 'true';
 }
+
+/**
+ * True when the request was addressed to this machine (local dev / test runs).
+ * Meta, Zapier etc. can never call localhost, so a rejected webhook there is a
+ * test — log it, but don't email a production alert. Spoofing the Host header
+ * on the real site only suppresses an e-mail; the request is still rejected.
+ */
+export function isLocalRequest(host: string | null | undefined): boolean {
+  return /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test((host || '').trim());
+}

@@ -78,13 +78,19 @@ function leadNotifyAllowed(): boolean {
  * for throttling (e.g. 'login-fail'). `details` becomes a simple table.
  * Fire-and-forget — never throws.
  */
-export async function sendSecurityAlert(key: string, subject: string, details: Record<string, string>) {
+export async function sendSecurityAlert(
+  key: string,
+  subject: string,
+  details: Record<string, string>,
+  // Configuration problems don't change minute to minute; callers can repeat them less often.
+  windowMs: number = ALERT_WINDOW_MS,
+) {
   const t = getTransporter();
   if (!t) return;
 
   const now = Date.now();
   const last = alertThrottle.get(key) || 0;
-  if (now - last < ALERT_WINDOW_MS) return; // throttled
+  if (now - last < windowMs) return; // throttled
   alertThrottle.set(key, now);
 
   const rows = Object.entries(details)
@@ -102,7 +108,7 @@ export async function sendSecurityAlert(key: string, subject: string, details: R
           <table style="margin-top:16px; border-collapse:collapse;">${rows}</table>
           <p style="color:#6b7280; font-size:12px; margin-top:20px;">
             ⏱ ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} (IST)<br>
-            Note: similar alerts are throttled to one per 10 minutes.
+            Note: this alert repeats at most once every ${windowMs >= 3_600_000 ? `${Math.round(windowMs / 3_600_000)} hours` : `${Math.round(windowMs / 60_000)} minutes`} while the problem continues.
           </p>
         </div>`,
     });

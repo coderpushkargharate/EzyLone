@@ -48,7 +48,7 @@ const FixedFooter = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center justify-center gap-0.5
-                       bg-green-500/90 active:bg-green-600 text-white
+                       bg-green-700 active:bg-green-800 text-white
                        px-2 py-2 rounded-2xl backdrop-blur-xl
                        border border-white/30 shadow-md flex-1
                        active:scale-95 transition"
@@ -64,7 +64,7 @@ const FixedFooter = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center justify-center gap-0.5
-                       bg-green-600/90 active:bg-green-700 text-white
+                       bg-green-800 active:bg-green-900 text-white
                        px-2 py-2 rounded-2xl backdrop-blur-xl
                        border border-white/30 shadow-md flex-1
                        active:scale-95 transition"

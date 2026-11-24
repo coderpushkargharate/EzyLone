@@ -21,6 +21,7 @@ const routes: { path: string; priority: number; changeFrequency: MetadataRoute.S
   { path: '/blogs', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/personal-loan', priority: 0.9, changeFrequency: 'weekly' },
   { path: '/car-loan', priority: 0.9, changeFrequency: 'weekly' },
+  { path: '/used-car-loan', priority: 0.9, changeFrequency: 'weekly' },
   { path: '/car-loan-balance-transfer', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/car-loan-refinance', priority: 0.8, changeFrequency: 'weekly' },
   { path: '/car-loan-topup', priority: 0.8, changeFrequency: 'weekly' },

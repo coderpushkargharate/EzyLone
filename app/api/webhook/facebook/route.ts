@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Integration } from '@/lib/models/Integration';
 import { sendSecurityAlert } from '@/lib/email';
-import { envFlag, safeEqual, verifyMetaSignature } from '@/lib/webhookAuth';
+import { envFlag, isLocalRequest, safeEqual, verifyMetaSignature } from '@/lib/webhookAuth';
 import { recordLeadgen, processReceiptNow } from '@/lib/marketing/meta/leads';
 import type { LeadgenChange } from '@/lib/marketing/meta/leads';
 import { metaAppConfig } from '@/lib/marketing/config';
@@ -27,6 +27,8 @@ export const dynamic = 'force-dynamic';
 // empty lead.
 
 const MAX_BODY_BYTES = 1_000_000;
+// Missing/wrong App Secret is a configuration problem: alert every 6 h, not every 10 min.
+const CONFIG_ALERT_WINDOW_MS = 6 * 60 * 60 * 1000;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getFacebookConfig(): Promise<Record<string, any> | null> {
@@ -72,9 +74,20 @@ export async function POST(req: NextRequest) {
   if (raw.length > MAX_BODY_BYTES) return new NextResponse('Payload too large', { status: 413 });
   const cfg = await getFacebookConfig();
 
-  const sig = verifyMetaSignature(raw, req.headers.get('x-hub-signature-256'), await appSecretFrom(cfg));
+  const sigHeader = req.headers.get('x-hub-signature-256');
+  const sig = verifyMetaSignature(raw, sigHeader, await appSecretFrom(cfg));
   if (sig === 'invalid') {
     console.warn('Rejected Facebook webhook — invalid signature');
+    // A signed request that fails verification is usually the App Secret of a
+    // *different* Meta app than the one whose webhook is calling us — every
+    // lead is then rejected. Say so (unsigned probes are ignored, not alerted).
+    if (sigHeader?.startsWith('sha256=') && /"leadgen"/.test(raw) && !isLocalRequest(req.headers.get('host'))) {
+      sendSecurityAlert('fb-webhook-bad-signature', 'Facebook Lead Ads webhook: App Secret does not match', {
+        Reason: 'A signed lead event arrived but its signature does not match the saved App Secret, so the lead was rejected.',
+        'Likely cause': 'The App Secret saved in the admin belongs to a different Meta app than the one that has the webhook subscription.',
+        Fix: 'Meta for Developers → the app whose Webhooks → Page → leadgen points to /api/webhook/facebook → App settings → Basic → App secret. Paste it in Admin → Automations → Facebook Lead Ads → Manage → App Secret.',
+      }, CONFIG_ALERT_WINDOW_MS).catch(() => {});
+    }
     return new NextResponse('Forbidden', { status: 403 });
   }
   const verified = sig === 'valid';
@@ -84,10 +97,10 @@ export async function POST(req: NextRequest) {
         'Rejected Facebook webhook — no App Secret configured, so the request cannot be verified. ' +
           'Save the App Secret in Automations → Facebook Lead Ads (or set META_APP_SECRET / FACEBOOK_APP_SECRET).'
       );
-      sendSecurityAlert('fb-webhook-unconfigured', 'Facebook Lead Ads webhook is rejecting events', {
+      if (!isLocalRequest(req.headers.get('host'))) sendSecurityAlert('fb-webhook-unconfigured', 'Facebook Lead Ads webhook is rejecting events', {
         Reason: 'No App Secret configured — leads are NOT being received until it is saved.',
-        Fix: 'Admin → Automations → Facebook Lead Ads → Configure → App Secret',
-      }).catch(() => {});
+        Fix: 'Meta for Developers → your app (the one with the Page leadgen webhook) → App settings → Basic → App secret → copy it into Admin → Automations → Facebook Lead Ads → Manage → App Secret → Save.',
+      }, CONFIG_ALERT_WINDOW_MS).catch(() => {});
       return new NextResponse('Forbidden', { status: 403 });
     }
     console.warn('Accepting UNSIGNED Facebook webhook (FACEBOOK_ALLOW_UNSIGNED=true) — set an App Secret.');

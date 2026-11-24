@@ -342,7 +342,7 @@ const About = () => {
                 </p>
                 
                 <div className="mb-6">
-                  <h4 className="font-bold text-gray-800 mb-3">We specialize in:</h4>
+                  <h2 className="text-base font-bold text-gray-800 mb-3">We specialize in:</h2>
                   <ul className="space-y-2">
                     <li className="flex items-center text-gray-700">
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>

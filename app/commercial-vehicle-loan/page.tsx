@@ -71,6 +71,7 @@ const CommercialVehicleLoanPage: React.FC = () => {
                 At EzyLoan, we provide comprehensive commercial vehicle financing solutions to help your business thrive. Whether you need trucks, buses, or specialized commercial vehicles, we offer competitive rates and flexible terms tailored to your business needs.
               </p>
               
+              <h2 className="sr-only">Commercial vehicle loan highlights</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-8 sm:mt-10">
                 {[
                   { icon: Zap, title: "Fast Processing", desc: "Quick loan approval and disbursement", bg: "from-blue-600 to-blue-800", iconShadow: "drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" },

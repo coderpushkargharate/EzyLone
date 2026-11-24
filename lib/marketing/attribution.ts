@@ -122,6 +122,22 @@ export function isValidPixelEventId(v: unknown): v is string {
 const PAID_MEDIUMS = /^(cpc|ppc|paid|paidsocial|paid_social|paid-social|cpm|display|ads?)$/i;
 const META_SOURCES = /^(facebook|fb|instagram|ig|meta|an|messenger)$/i;
 const GOOGLE_SOURCES = /^(google|adwords|youtube|gdn)$/i;
+// AI assistants/answer engines. ChatGPT tags its links utm_source=chatgpt.com;
+// others are recognised by referrer host. Checked before the search-engine rule
+// so gemini.google.com / copilot.microsoft.com are not counted as organic search.
+const AI_SOURCES = /^(chatgpt(\.com)?|openai|perplexity(\.ai)?|gemini|copilot|claude(\.ai)?|meta\.ai)$/i;
+// Referrers are matched on the exact host (or a subdomain of it), never as a
+// substring: a substring test like /t\.co/ also matched microsoft.com, reddit.com…
+const AI_HOSTS = /(^|\.)(chatgpt\.com|chat\.openai\.com|perplexity\.ai|gemini\.google\.com|bard\.google\.com|copilot\.microsoft\.com|claude\.ai|meta\.ai|you\.com|phind\.com)$/;
+const SEARCH_HOSTS = /(^|\.)(google\.[a-z]{2,3}(\.[a-z]{2})?|bing\.com|duckduckgo\.com|yahoo\.com|yandex\.[a-z]{2,3}|ecosia\.org)$/;
+const SOCIAL_HOSTS = /(^|\.)(facebook\.com|instagram\.com|t\.co|twitter\.com|x\.com|linkedin\.com|lnkd\.in|youtube\.com|youtu\.be)$/;
+function referrerHost(ref: string): string {
+  try {
+    return new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(ref) ? ref : `https://${ref}`).hostname.toLowerCase();
+  } catch {
+    return '';
+  }
+}
 
 /**
  * Marketing channel of a touch. Click ids are authoritative; otherwise UTMs;
@@ -141,6 +157,7 @@ export function deriveChannel(t: Touch | undefined, crmSource?: string): string 
   const us = t.utmSource || '';
   const um = t.utmMedium || '';
   if (us) {
+    if (AI_SOURCES.test(us)) return 'ai_referral';
     if (GOOGLE_SOURCES.test(us) && PAID_MEDIUMS.test(um)) return 'google_ads';
     if (META_SOURCES.test(us)) return PAID_MEDIUMS.test(um) ? 'meta_ads' : 'social';
     if (/email|newsletter/i.test(um) || /email/i.test(us)) return 'email';
@@ -148,8 +165,10 @@ export function deriveChannel(t: Touch | undefined, crmSource?: string): string 
     return PAID_MEDIUMS.test(um) ? 'other_paid' : 'campaign';
   }
   if (t.referrer) {
-    if (/google\.|bing\.|duckduckgo\.|yahoo\./i.test(t.referrer)) return 'organic_search';
-    if (/facebook\.|instagram\.|t\.co|twitter\.|linkedin\.|youtube\./i.test(t.referrer)) return 'social';
+    const host = referrerHost(t.referrer);
+    if (AI_HOSTS.test(host)) return 'ai_referral';
+    if (SEARCH_HOSTS.test(host)) return 'organic_search';
+    if (SOCIAL_HOSTS.test(host)) return 'social';
     return 'referral';
   }
   return 'direct';

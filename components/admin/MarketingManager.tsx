@@ -26,7 +26,7 @@ const EVENT_LABEL: Record<string, string> = {
   LoanDisbursed: 'Loan disbursed',
 };
 const LEAD_STATUSES = ['New', 'No Response', 'Cold', 'Warm', '1. Interested', '0. Not Interested', 'Lost', 'Converted', 'Out Of Odisha'];
-const CHANNELS = ['google_ads', 'meta_lead_ads', 'meta_ads', 'meta_click', 'organic_search', 'social', 'referral', 'direct', 'campaign', 'email', 'whatsapp', 'manual', 'other', 'unattributed'];
+const CHANNELS = ['google_ads', 'meta_lead_ads', 'meta_ads', 'meta_click', 'organic_search', 'ai_referral', 'social', 'referral', 'direct', 'campaign', 'email', 'whatsapp', 'manual', 'other', 'unattributed'];
 const STATUS_STYLE: Record<string, string> = {
   sent: 'bg-green-50 text-green-700', accepted: 'bg-green-50 text-green-700', submitted: 'bg-blue-50 text-blue-700',
   pending: 'bg-gray-100 text-gray-700', processing: 'bg-gray-100 text-gray-700', retry: 'bg-amber-50 text-amber-700',

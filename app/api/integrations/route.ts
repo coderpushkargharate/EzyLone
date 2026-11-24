@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import { Integration } from '@/lib/models/Integration';
 import { audit } from '@/lib/audit';
 import { requireAuth } from '@/lib/auth';
+import { metaAppConfig } from '@/lib/marketing/config';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,11 +36,16 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
   const list = await Integration.find({}).lean();
+  // The Lead Ads webhook also accepts an App Secret from the server env or the
+  // Marketing credentials panel; report whether one exists so the admin does
+  // not show "Connected" while every lead is being rejected.
+  const serverAppSecretSet = Boolean((await metaAppConfig()).appSecret);
   const items = list.map((i) => ({
     provider: i.provider,
     enabled: i.enabled,
     connectedAt: i.connectedAt,
     config: redact(i.config),
+    ...(i.provider === 'facebook' ? { serverAppSecretSet } : {}),
   }));
   return NextResponse.json({ items });
 }

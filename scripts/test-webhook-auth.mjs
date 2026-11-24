@@ -21,8 +21,16 @@ function check(name, ok, detail = '') {
 
 try {
   const require = createRequire(import.meta.url);
-  const { verifyMetaSignature, safeEqual, envFlag } = require(path.resolve(OUT, 'webhookAuth.js'));
+  const { verifyMetaSignature, safeEqual, envFlag, isLocalRequest } = require(path.resolve(OUT, 'webhookAuth.js'));
   const { resolveClientIp, ipSourceConfigured } = require(path.resolve(OUT, 'clientIp.js'));
+
+  console.log('Local-request detection (no alert e-mails from local test runs)');
+  check('localhost:3101 is local', isLocalRequest('localhost:3101'));
+  check('127.0.0.1 is local', isLocalRequest('127.0.0.1'));
+  check('[::1]:3000 is local', isLocalRequest('[::1]:3000'));
+  check('production host is not local', !isLocalRequest('www.ezyloan.co.in'));
+  check('look-alike localhost.evil.com is not local', !isLocalRequest('localhost.evil.com'));
+  check('missing host is not local', !isLocalRequest(null));
 
   console.log('Meta signature (X-Hub-Signature-256)');
   const secret = 'test-app-secret';

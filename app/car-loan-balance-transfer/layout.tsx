@@ -6,7 +6,7 @@ export const metadata = pageMeta({
   path: '/car-loan-balance-transfer',
   title: "Car Loan Balance Transfer in Odisha – Lower Your EMI",
   description:
-    "Transfer your running car loan to a partner bank or NBFC with a lower rate and reduce your EMI. Check balance transfer eligibility and documents in Bhubaneswar, Cuttack and across Odisha.",
+    "Move your running car loan to a partner bank or NBFC that may offer better terms. Check car loan balance transfer eligibility, documents and process in Odisha.",
   keywords: ["car loan balance transfer", "car loan balance transfer Odisha", "reduce car loan EMI", "car loan takeover", "transfer car loan to another bank", "used car balance transfer Bhubaneswar", "car loan BT Cuttack"],
 });
 

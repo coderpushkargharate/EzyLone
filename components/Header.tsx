@@ -100,6 +100,11 @@ const Header = memo(() => {
           from { opacity: 0; transform: translateY(-8px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        /* Link spacing is layout, not motion: it must also apply when the
+           visitor prefers reduced motion (otherwise the menu items run together). */
+        @media (min-width: 1024px) {
+          .nav-link-water { border-radius: 12px; padding: 4px 11px; }
+        }
         @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
           @keyframes glass-shimmer {
             0%   { background-position: -1000px 0; }
@@ -303,20 +308,21 @@ const Header = memo(() => {
                 <div className="liquid-overlay" />
               </Link>
               <div className="relative group" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave}>
-                <button className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap flex items-center space-x-1 apple-glass-btn" aria-expanded={isCarRefinanceOpen} aria-haspopup="true" aria-label="Car Refinance options">
-                  <span className="relative z-10">Car Refinance</span>
+                <button className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap flex items-center space-x-1 apple-glass-btn" aria-expanded={isCarRefinanceOpen} aria-haspopup="true" aria-label="Car loan options">
+                  <span className="relative z-10">Car Loans</span>
                   <ChevronDown className={`w-4 h-4 transition-apple ${isCarRefinanceOpen ? "rotate-180" : ""}`} aria-hidden="true" />
                   <div className="liquid-overlay" />
                 </button>
                 {isCarRefinanceOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-white/30 py-2 z-50 animate-slide-down glass-border" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave} role="menu" aria-label="Car Refinance submenu">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white/90 backdrop-blur-xl rounded-xl shadow-xl border border-white/30 py-2 z-50 animate-slide-down glass-border" onMouseEnter={handleDropdownEnter} onMouseLeave={handleDropdownLeave} role="menu" aria-label="Car Loans submenu">
+                    <Link href="/used-car-loan" className="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-apple nav-link-water" role="menuitem">Used Car Loan</Link>
+                    <Link href="/car-loan" className="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-apple nav-link-water" role="menuitem">New Car Loan</Link>
                     <Link href="/car-loan-refinance" className="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-apple nav-link-water" role="menuitem">Car Loan Refinance</Link>
                     <Link href="/car-loan-topup" className="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-apple nav-link-water" role="menuitem">Car Loan TopUp</Link>
                     <Link href="/car-loan-balance-transfer" className="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-apple nav-link-water" role="menuitem">Car Loan Balance Transfer</Link>
                   </div>
                 )}
               </div>
-              <Link href="/car-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">New Car Loan</span><div className="liquid-overlay" /></Link>
               <Link href="/personal-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Personal Loan</span><div className="liquid-overlay" /></Link>
               <Link href="/property-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Property Loan</span><div className="liquid-overlay" /></Link>
               <Link href="/commercial-vehicle-loan" className="nav-link-water relative text-gray-700 hover:text-blue-600 transition-apple font-medium text-base whitespace-nowrap apple-glass-btn"><span className="relative z-10">Commercial Vehicle</span><div className="liquid-overlay" /></Link>
@@ -349,13 +355,14 @@ const Header = memo(() => {
               <nav className="flex flex-col space-y-1 px-5" role="menu" aria-label="Mobile menu">
                 <Link href="/" onClick={(e) => handleMobileLinkClick(e, "/")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Home</Link>
                 <Link href="/about" onClick={(e) => handleMobileLinkClick(e, "/about")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">About</Link>
-                <div className="border-l-2 border-blue-200 pl-3 ml-3" role="group" aria-label="Car Refinance submenu">
-                  <div className="text-base font-semibold text-blue-600 mb-1 py-2">Car Refinance</div>
+                <div className="border-l-2 border-blue-200 pl-3 ml-3" role="group" aria-label="Car Loans submenu">
+                  <div className="text-base font-semibold text-blue-600 mb-1 py-2">Car Loans</div>
+                  <Link href="/used-car-loan" onClick={(e) => handleMobileLinkClick(e, "/used-car-loan")} className="nav-link-water text-gray-700 block text-base min-h-[44px] flex items-center px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Used Car Loan</Link>
+                  <Link href="/car-loan" onClick={(e) => handleMobileLinkClick(e, "/car-loan")} className="nav-link-water text-gray-700 block text-base min-h-[44px] flex items-center px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">New Car Loan</Link>
                   <Link href="/car-loan-refinance" onClick={(e) => handleMobileLinkClick(e, "/car-loan-refinance")} className="nav-link-water text-gray-700 block text-base min-h-[44px] flex items-center px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Car Loan Refinance</Link>
                   <Link href="/car-loan-topup" onClick={(e) => handleMobileLinkClick(e, "/car-loan-topup")} className="nav-link-water text-gray-700 block text-base min-h-[44px] flex items-center px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Car Loan TopUp</Link>
                   <Link href="/car-loan-balance-transfer" onClick={(e) => handleMobileLinkClick(e, "/car-loan-balance-transfer")} className="nav-link-water text-gray-700 block text-base min-h-[44px] flex items-center px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Car Loan Balance Transfer</Link>
                 </div>
-                <Link href="/car-loan" onClick={(e) => handleMobileLinkClick(e, "/car-loan")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">New Car Loan</Link>
                 <Link href="/personal-loan" onClick={(e) => handleMobileLinkClick(e, "/personal-loan")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Personal Loan</Link>
                 <Link href="/property-loan" onClick={(e) => handleMobileLinkClick(e, "/property-loan")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Property Loan</Link>
                 <Link href="/commercial-vehicle-loan" onClick={(e) => handleMobileLinkClick(e, "/commercial-vehicle-loan")} className="nav-link-water text-gray-700 text-base min-h-[44px] flex items-center px-3 rounded-lg hover:bg-blue-50 hover:text-blue-600" role="menuitem">Commercial Vehicle Loan</Link>

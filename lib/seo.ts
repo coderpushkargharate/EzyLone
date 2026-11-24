@@ -49,7 +49,8 @@ export const TOPIC_CLUSTERS: { key: string; match: RegExp; links: TopicLink[] }[
     key: 'car',
     match: /\b(cars?|auto loan|balance transfer|top[- ]?up|refinanc\w*)\b/i,
     links: [
-      { href: '/car-loan', label: 'Car Loan', description: 'New and used car finance through partner banks & NBFCs' },
+      { href: '/car-loan', label: 'New Car Loan', description: 'Finance for a new car through partner banks & NBFCs' },
+      { href: '/used-car-loan', label: 'Used Car Loan', description: 'Finance for a pre-owned car through partner lenders' },
       { href: '/car-loan-balance-transfer', label: 'Car Loan Balance Transfer', description: 'Move an existing car loan to a lender with better terms' },
       { href: '/car-loan-topup', label: 'Car Loan Top-Up', description: 'Additional funds on your running car loan' },
       { href: '/car-loan-refinance', label: 'Car Loan Refinance', description: 'Raise funds against a car you already own' },
@@ -77,7 +78,8 @@ export const TOPIC_CLUSTERS: { key: string; match: RegExp; links: TopicLink[] }[
 
 const DEFAULT_LINKS: TopicLink[] = [
   { href: '/personal-loan', label: 'Personal Loan', description: 'Unsecured loans through partner lenders' },
-  { href: '/car-loan', label: 'Car Loan', description: 'New and used car finance' },
+  { href: '/car-loan', label: 'New Car Loan', description: 'Finance for a new car' },
+  { href: '/used-car-loan', label: 'Used Car Loan', description: 'Finance for a pre-owned car' },
   { href: '/property-loan', label: 'Loan Against Property', description: 'Funds against property you own' },
   { href: '/emi-calculator', label: 'EMI Calculator', description: 'Estimate your monthly repayment' },
 ];
@@ -104,7 +106,8 @@ export function pageMeta(opts: {
 }): import('next').Metadata {
   const url = `${SITE_URL}${opts.path === '/' ? '' : opts.path}`;
   const image = opts.image || `${SITE_URL}/og-image.jpg`;
-  const socialTitle = `${opts.title} | EzyLoan`;
+  // Don't repeat the brand when the title already carries it (e.g. the homepage).
+  const socialTitle = /ezyloan/i.test(opts.title) ? opts.title : `${opts.title} | EzyLoan`;
   return {
     title: opts.title,
     description: opts.description,
