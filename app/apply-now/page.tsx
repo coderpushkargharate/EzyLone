@@ -369,7 +369,7 @@ const ApplyNowPage: React.FC = () => {
                 <div className="relative min-h-[178px] sm:min-h-[250px] lg:min-h-0">
                   <div className="relative z-10 w-[56%] sm:w-[55%] lg:w-full pt-3 sm:pt-6 lg:pt-0">
                     <h1 className="text-[27px] leading-[1.08] sm:text-[42px] lg:text-[46px] xl:text-[52px] font-extrabold text-[#0b1b3f] tracking-tight">
-                      Get the Right Car Finance with{' '}
+                      Apply for a Car, Personal or Property Loan with{' '}
                       <span className="bg-gradient-to-r from-[#1d5bf0] to-[#ff9100] bg-clip-text text-transparent italic pr-1">EzyLoan</span>
                     </h1>
                     <ul className="mt-2.5 sm:mt-4 space-y-0.5 sm:space-y-1 text-[12px] sm:text-[15px] lg:text-base text-[#173b6d] font-medium lg:flex lg:flex-wrap lg:gap-x-4 lg:space-y-0">

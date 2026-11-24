@@ -293,8 +293,7 @@ export default function TermsPage() {
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg space-y-2 text-gray-700">
             <p><span className="font-medium">Legal Entity:</span> Dibyansh Associates (d/b/a EzyLoan)</p>
             {/* <p><span className="font-medium">CIN:</span> [To be added]</p> */}
-            <p><span className="font-medium">GST:</span> [21CNXPM8317C1ZV
-]</p>
+            <p><span className="font-medium">GST:</span> 21CNXPM8317C1ZV</p>
             <p><span className="font-medium">Email:</span> <a href="mailto:care@ezyloan.co.in" className="text-blue-600 hover:underline">care@ezyloan.co.in</a></p>
             <p><span className="font-medium">Phone:</span> <a href="tel:+916372977626" className="text-blue-600 hover:underline">+91 63729 77626</a> / <a href="tel:+919692429674" className="text-blue-600 hover:underline">+91 96924 29674</a></p>
             <p><span className="font-medium">WhatsApp:</span> <a href="https://wa.me/919692429674" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">+91 96924 29674</a></p>

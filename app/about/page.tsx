@@ -332,8 +332,9 @@ const About = () => {
                 </div>
                 <h1 className="text-3xl lg:text-4xl font-bold mb-6">
                   <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-                    ABOUT EZYLOAN
-                  </span>
+                    About EzyLoan
+                  </span>{' '}
+                  <span className="text-gray-800">– Loan Facilitator in Cuttack, Odisha</span>
                 </h1>
                 <p className="text-gray-700 leading-relaxed text-lg mb-6">
                   EzyLoan is a loan service provider that helps customers secure loans from Banks and NBFCs. 

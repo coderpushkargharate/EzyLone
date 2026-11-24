@@ -307,7 +307,7 @@ const Footer = memo(() => {
                     </div>
                     <div>
                       <span className="text-white font-semibold text-sm leading-relaxed">
-                        1st Floor, Hindustan-Tyres, Pir Bazar, Bhanpur, Cuttack, Odisha-753011, India
+                        1st Floor, Hindustan Tyres Building, Pir Bazar, Bhanpur, Cuttack, Odisha – 753011, India
                       </span>
                       <p className="text-blue-300/90 text-xs mt-1">🕐 Visit us: Mon-Sat, 10AM-6PM</p>
                     </div>
