@@ -1815,3 +1815,13 @@ button.sc:hover { transform: translateY(-1px); }
 @media (max-width: 400px) {
   .adm2-brand > span:last-child, .adm2-brand .sep { display: none; }
 }
+
+/* Sub-tabs: switch between the merged tabs of one sidebar section. */
+.adm2-subtabs { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; margin: 0 0 16px; padding: 5px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--card-shadow); scrollbar-width: none; }
+.adm2-subtabs::-webkit-scrollbar { display: none; }
+.adm2-subtab { flex: none; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 0; border-radius: 10px; background: none; font: 600 13.5px var(--font); color: #475569; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s; }
+.adm2-subtab:hover { background: #f5f7fa; color: var(--fg); }
+.adm2-subtab.on { background: linear-gradient(135deg, var(--accent), var(--forest-deep)); color: #fff; box-shadow: 0 6px 14px -8px rgba(29,78,216,.9); }
+.adm2-subtab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.adm2-subtab .tab-badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10.5px; font-weight: 700; display: inline-grid; place-items: center; }
+@media (prefers-reduced-motion: reduce) { .adm2-subtab { transition: none; } }

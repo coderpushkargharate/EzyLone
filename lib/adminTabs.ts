@@ -8,7 +8,7 @@ export interface AdminTab {
 }
 
 export const ASSIGNABLE_TABS: AdminTab[] = [
-  { id: 'dashboard', name: 'Overview' },
+  { id: 'dashboard', name: 'Dashboard' },
   { id: 'banners', name: 'Banners' },
   { id: 'contacts', name: 'Contacts' },
   { id: 'loans', name: 'Loan Applications' },
@@ -16,7 +16,7 @@ export const ASSIGNABLE_TABS: AdminTab[] = [
   { id: 'activities', name: 'Activities' },
   { id: 'content', name: 'Content' },
   { id: 'team', name: 'Team' },
-  { id: 'analytics', name: 'CRM Analytics' },
+  { id: 'analytics', name: 'CRM Analytics (on Dashboard)' },
   { id: 'automations', name: 'Automations' },
   { id: 'marketing', name: 'Marketing & Ads' },
   { id: 'blogs', name: 'Blog Manager' },

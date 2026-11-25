@@ -56,7 +56,9 @@ function Dashboard({ title, icon, pill, children }: { title: string; icon?: stri
   );
 }
 
-export default function AnalyticsManager() {
+// `embedded` = shown inside the Dashboard (Overview) page: a small section
+// heading instead of the full page title card.
+export default function AnalyticsManager({ embedded = false }: { embedded?: boolean } = {}) {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +69,9 @@ export default function AnalyticsManager() {
   if (loading || !data) {
     return (
       <div>
-        <PageHead icon={BarChart3} title="CRM Analytics" sub="Real-time insights into your leads, sales funnel, and activity." />
+        {embedded
+          ? <h3 className="ov-more">CRM Analytics</h3>
+          : <PageHead icon={BarChart3} title="CRM Analytics" sub="Real-time insights into your leads, sales funnel, and activity." />}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 bg-white rounded-2xl border border-gray-200 animate-pulse" />)}
         </div>
@@ -101,7 +105,9 @@ export default function AnalyticsManager() {
 
   return (
     <div>
-      <PageHead icon={BarChart3} title="CRM Analytics" sub={`Real-time insights into your leads, sales funnel, and activity — ${conversionRate}% conversion rate.`} />
+      {embedded
+        ? <h3 className="ov-more" style={{ marginBottom: 12 }}>CRM Analytics <span className="ov-chip">{conversionRate}% conversion</span></h3>
+        : <PageHead icon={BarChart3} title="CRM Analytics" sub={`Real-time insights into your leads, sales funnel, and activity — ${conversionRate}% conversion rate.`} />}
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

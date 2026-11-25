@@ -468,7 +468,7 @@ function AdminDashboard({
   // page title. `ownHead` = the component draws its own page title card
   // (because it has buttons or live numbers in it); otherwise the shell does.
   const menuItems: any[] = [
-    { id: 'dashboard', name: 'Overview', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview', desc: 'Today at a glance', ownHead: true },
+    { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, component: DashboardOverview, group: 'Overview', desc: 'Today at a glance', ownHead: true },
     { id: 'seoTraffic', name: 'SEO & Traffic', icon: LineChart, component: SeoTrafficPanel, group: 'Overview', desc: 'Visitors, Analytics & Search Console', sub: 'Website traffic, Google Analytics 4 and Google Search Console.' },
     { id: 'siteHealth', name: 'Website Health', icon: ShieldCheck, component: SiteHealth, group: 'Overview', desc: 'Security, SEO, speed & daily leads', ownHead: true },
     { id: 'leads', name: 'Lead Management', icon: Target, component: LeadsManager, group: 'Leads & CRM', desc: 'Website enquiries & CRM clients', ownHead: true },
@@ -495,12 +495,27 @@ function AdminDashboard({
     { id: 'account', name: 'Account', icon: UserIcon, component: AccountManager, hidden: true, desc: 'Profile, settings & subscription', sub: 'Your profile, notifications, subscription and password.' }
   ];
 
-  // Order the section labels appear in the sidebar.
+  // Simplified sidebar: related tabs are merged into ONE sidebar entry and
+  // switched with small sub-tabs at the top of the page. The underlying tab ids
+  // (and so employee permissions, data loading and deep links) are unchanged —
+  // a section only shows the sub-tabs the user may open.
+  // CRM Analytics has no entry of its own: it is shown inside the Dashboard.
+  const SECTIONS: { key: string; name: string; icon: React.ElementType; group: string; tabs: string[] }[] = [
+    { key: 'dashboard', name: 'Dashboard', icon: LayoutDashboard, group: 'Main', tabs: ['dashboard', 'analytics'] },
+    { key: 'leads', name: 'Leads & Applications', icon: Target, group: 'Main', tabs: ['leads', 'loans', 'contacts'] },
+    { key: 'activities', name: 'Follow-ups & Team', icon: ActivityIcon, group: 'Main', tabs: ['activities', 'team'] },
+    { key: 'whatsapp', name: 'WhatsApp', icon: MessageSquareText, group: 'Main', tabs: ['whatsappChats', 'whatsappBrain'] },
+    { key: 'marketing', name: 'Marketing & Automation', icon: Megaphone, group: 'Marketing & Website', tabs: ['marketing', 'automations'] },
+    { key: 'seo', name: 'SEO & Website Health', icon: LineChart, group: 'Marketing & Website', tabs: ['seoTraffic', 'siteHealth'] },
+    { key: 'content', name: 'Website Content', icon: FolderOpen, group: 'Marketing & Website', tabs: ['banners', 'testimonials', 'content'] },
+    { key: 'blogs', name: 'Blogs', icon: FileText, group: 'Marketing & Website', tabs: ['blogs'] },
+    { key: 'chatbot', name: 'Website Chatbot', icon: Brain, group: 'Marketing & Website', tabs: ['ezyBrain', 'ezyInsights'] },
+    { key: 'admin', name: 'Staff & Security', icon: ShieldCheck, group: 'Administration', tabs: ['employees', 'blockedIps', 'auditLog'] },
+  ];
   const GROUP_ICONS: Record<string, React.ElementType> = {
-    Overview: LayoutDashboard, 'Leads & CRM': Target, 'Growth & Automation': Megaphone,
-    'Website Content': FolderOpen, 'AI Assistants': Brain, Administration: ShieldCheck,
+    Main: LayoutDashboard, 'Marketing & Website': Megaphone, Administration: ShieldCheck,
   };
-  const GROUP_ORDER = ['Overview', 'Leads & CRM', 'Growth & Automation', 'Website Content', 'AI Assistants', 'Administration'];
+  const GROUP_ORDER = ['Main', 'Marketing & Website', 'Administration'];
 
   // Role-based visibility: admins (anything not explicitly 'employee') see every
   // tab; employees only see the tabs listed in their `permissions`. The
@@ -877,11 +892,28 @@ function AdminDashboard({
     setProfileOpen(false);
   };
 
-  // Sidebar = labelled groups, each listing its sections.
-  const groupItemsOf = (g: string) => visibleMenuItems.filter((item) => item.group === g);
+  // Sidebar = labelled groups of merged sections. A section's sub-tabs are the
+  // tabs in it the user may open (CRM Analytics is folded into the Dashboard
+  // whenever the user can see the Dashboard).
+  const canDashboard = visibleMenuItems.some((i) => i.id === 'dashboard');
+  const subTabsOf = (s: (typeof SECTIONS)[number]) =>
+    s.tabs
+      .filter((id) => !(id === 'analytics' && canDashboard))
+      .map((id) => visibleMenuItems.find((i) => i.id === id))
+      .filter(Boolean) as any[];
+  const visibleSections = SECTIONS.filter((s) => subTabsOf(s).length > 0);
+  const groupItemsOf = (g: string) => visibleSections.filter((s) => s.group === g);
   const tabGroups = GROUP_ORDER.filter((g) => groupItemsOf(g).length > 0);
+  const activeSection = SECTIONS.find((s) => s.tabs.includes(activeItem?.id));
+  const activeSubTabs = activeSection ? subTabsOf(activeSection) : [];
   const go = (id: string) => {
-    setCurrentPage(id);
+    // CRM Analytics lives on the Dashboard: open it there and scroll to it.
+    if (id === 'analytics' && canDashboard) {
+      setCurrentPage('dashboard');
+      setTimeout(() => document.getElementById('crm-analytics')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    } else {
+      setCurrentPage(id);
+    }
     setQ('');
     setSearchOpen(false);
     setSideOpen(false);
@@ -992,16 +1024,17 @@ function AdminDashboard({
                 <p className="adm2-side-label">{GIcon && <GIcon size={12} />}<span>{g}</span></p>
                 {groupItemsOf(g).map((item) => {
                   const Icon = item.icon;
-                  const badge = waBadge(item.id);
-                  const on = activeItem?.id === item.id;
+                  const subs = subTabsOf(item);
+                  const badge = item.tabs.includes('whatsappChats') ? waBadge('whatsappChats') : '';
+                  const on = activeSection?.key === item.key;
                   return (
                     <button
-                      key={item.id}
+                      key={item.key}
                       type="button"
                       className={`adm2-side-item${on ? ' on' : ''}`}
                       aria-current={on ? 'page' : undefined}
-                      title={collapsed ? item.name : item.desc}
-                      onClick={() => go(item.id)}
+                      title={collapsed ? item.name : subs.map((t) => t.name).join(' · ')}
+                      onClick={() => go(subs[0].id)}
                     >
                       <span className="ic"><Icon size={17} /></span>
                       <span className="txt">{item.name}</span>
@@ -1021,6 +1054,28 @@ function AdminDashboard({
 
       <main className="adm2-main">
         <div className="adm-content">
+          {CurrentComponent && activeSubTabs.length > 1 && (
+            <div className="adm2-subtabs" role="tablist" aria-label={activeSection?.name}>
+              {activeSubTabs.map((t) => {
+                const Icon = t.icon;
+                const on = t.id === activeItem?.id;
+                const badge = waBadge(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={on}
+                    className={`adm2-subtab${on ? ' on' : ''}`}
+                    onClick={() => go(t.id)}
+                  >
+                    <Icon size={15} /> <span>{t.name}</span>
+                    {badge && <span className="tab-badge">{badge}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {CurrentComponent && !activeItem?.ownHead && (
             <PageHead icon={activeItem.icon} title={activeItem.name} sub={activeItem.sub} />
           )}
@@ -1340,6 +1395,14 @@ function DashboardOverview({ stats, analytics, setCurrentPage, userName, canOpen
           <LeadsTrend days={days} />
         </section>
       </div>
+
+      {/* CRM Analytics (funnel, sources, activity) — shown right here on the
+          dashboard instead of on a separate tab. */}
+      {can('analytics') && (
+        <div id="crm-analytics" style={{ scrollMarginTop: 80 }}>
+          <AnalyticsManager embedded />
+        </div>
+      )}
 
       <h3 className="ov-more">More insights</h3>
       {/* Search Console clicks, GA4 cities, conversions sent (Marketing permission only) */}
