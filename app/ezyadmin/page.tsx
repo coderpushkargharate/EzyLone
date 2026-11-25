@@ -1265,7 +1265,21 @@ function DashboardOverview({ stats, analytics, setCurrentPage, userName, canOpen
   userName?: string; canOpen?: (id: string) => boolean;
 }) {
   const [hour, setHour] = useState<number | null>(null);
-  useEffect(() => { setHour(new Date().getHours()); }, []);
+  // The admin app (PWA) often stays open for hours, so the greeting must not be
+  // frozen at the time the page first loaded. Re-check the hour every minute and
+  // whenever the app comes back to the foreground. Uses India time (IST) so a
+  // wrongly-set device timezone can't show the wrong greeting.
+  useEffect(() => {
+    const read = () => {
+      const h = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Asia/Kolkata' }).format(new Date()));
+      setHour(Number.isFinite(h) ? h : new Date().getHours());
+    };
+    read();
+    const t = setInterval(read, 60_000);
+    const onVis = () => { if (!document.hidden) read(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
+  }, []);
   const loans = analytics?.loans || [];
   const contacts = analytics?.contacts || [];
   const can = (id: string) => (canOpen ? canOpen(id) : true);
