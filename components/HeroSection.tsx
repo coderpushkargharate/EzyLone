@@ -1476,7 +1476,7 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           </div>
 
           {/* Google review strip */}
-          <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 lg:mt-[-140px] w-full">
+          <div className="mt-5 lg:mt-[-140px] w-full">
             <a
               href={GOOGLE_REVIEW_LINK}
               target="_blank"
@@ -1510,9 +1510,12 @@ const HeroSection: React.FC<HeroProps> = ({ page, title, subtitle }) => {
           </div>
 
           {/* Testimonials — auto-advancing carousel (same behaviour as the Services carousel) */}
-          <div className="max-w-7xl px-4 sm:px-6 lg:px-0 mt-5 w-full" style={{ minHeight: "160px" }}>
+          {/* Full hero width (no extra max-width/padding). The negative margin
+              cancels the per-card gutter so the outer card edges line up exactly
+              with the hero content / review strip above. */}
+          <div className="mt-5 w-full" style={{ minHeight: "160px" }}>
             <div
-              className="relative overflow-hidden py-2"
+              className="relative overflow-hidden py-2 -mx-2 sm:-mx-3"
               onMouseEnter={() => setIsTestimonialPaused(true)}
               onMouseLeave={() => setIsTestimonialPaused(false)}
             >
