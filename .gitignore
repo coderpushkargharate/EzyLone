@@ -24,3 +24,7 @@ EzyLoanCrm/
 
 # Local backups written by scripts/seed-blogs.mjs before it changes blog posts
 scripts/blog-backups/
+
+# SEO report output (scripts/seo/*). Contains Search Console / GA4 business data;
+# the weekly workflow stores history on the separate `seo-reports` branch instead.
+/reports/

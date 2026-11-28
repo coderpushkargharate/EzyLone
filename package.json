@@ -15,7 +15,11 @@
     "test:staging": "node scripts/test-staging.mjs",
     "test:marketing": "node --import ./scripts/lib/register-ts.mjs scripts/test-marketing.mjs",
     "test:marketing-runtime": "node scripts/test-marketing-runtime.mjs",
-    "check:env": "node scripts/check-env.mjs"
+    "check:env": "node scripts/check-env.mjs",
+    "test:seo": "node scripts/test-seo-tools.mjs",
+    "seo:weekly": "node scripts/seo/weekly-report.mjs",
+    "seo:gsc": "node scripts/seo/gsc-report.mjs",
+    "seo:ga4": "node scripts/seo/ga4-report.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.3",

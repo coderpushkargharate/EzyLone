@@ -1,0 +1,126 @@
+# Weekly SEO audit — read-only against https://www.ezyloan.co.in and Google APIs.
+#
+# INERT UNTIL APPROVED: GitHub runs `schedule` workflows only from the default branch,
+# so nothing runs while this file lives on a feature branch. Setup: docs/STAGE-2-IMPLEMENTATION-PLAN.md §5.
+#
+# Never deploys, never writes to the website, database, Search Console or GA4, never pushes to git.
+#
+# PUBLIC-REPOSITORY SAFETY: in a public repository, workflow logs, job summaries, artifacts
+# and issues can be read by others. The first step checks visibility. If the repo is NOT
+# private, the report runs in technical-only mode: Google secrets are not passed to it, and
+# no Search Console / GA4 data is fetched. GSC and GA4 run only in a private repository.
+#
+# This is the only scheduled SEO job. Do not also cron weekly-report.mjs on the server.
+
+name: Weekly SEO report
+
+on:
+  schedule:
+    - cron: '30 3 * * 1' # Mondays 03:30 UTC = 09:00 IST
+  workflow_dispatch: {}
+
+permissions:
+  contents: read   # checkout only — nothing is pushed
+  actions: read    # download the previous run's history artifact
+  issues: write    # one deduplicated issue on failure or P0 technical findings
+
+concurrency:
+  group: weekly-seo-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Only jsonwebtoken is needed; skip install scripts (sharp, etc.).
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Check repository visibility
+        id: vis
+        run: |
+          PRIVATE=$(gh api "repos/${GITHUB_REPOSITORY}" --jq .private)
+          echo "private=${PRIVATE}" >> "$GITHUB_OUTPUT"
+          echo "Repository private: ${PRIVATE}"
+
+      - name: Restore previous weeks (for the week-on-week comparison)
+        run: |
+          mkdir -p reports/seo/history
+          RUN=$(gh run list --workflow weekly-seo-report.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)
+          if [ -n "$RUN" ]; then gh run download "$RUN" -n seo-history -D reports/seo/history || echo "no previous history artifact"; fi
+          ls reports/seo/history || true
+
+      - name: Weekly report (private repo — Search Console + GA4 + PageSpeed)
+        id: report_private
+        if: steps.vis.outputs.private == 'true'
+        env:
+          GOOGLE_SA_KEY_JSON: ${{ secrets.GOOGLE_SA_KEY_JSON }}
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+          GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID }}
+          GSC_SITE: ${{ vars.GSC_SITE }}
+        run: node scripts/seo/weekly-report.mjs --out=reports/seo
+
+      - name: Weekly report (public repo — technical only, no Google data)
+        id: report_public
+        if: steps.vis.outputs.private != 'true'
+        env:
+          SEO_TECHNICAL_ONLY: '1'
+          SEO_TECHNICAL_ONLY_REASON: 'repository is public, so Google data would be readable in logs and artifacts'
+          # PageSpeed results are public data (anyone can run PageSpeed on the site), so the key may be used here.
+          PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+        run: node scripts/seo/weekly-report.mjs --out=reports/seo
+
+      - name: Job summary
+        if: always()
+        run: |
+          if [ -f reports/seo/summary.json ]; then
+            node -e 'const s=require("./reports/seo/summary.json");console.log(`### Weekly SEO report ${s.date}\n\nHealth score **${s.score ?? "—"}** (previous ${s.previousScore ?? "—"}), ${s.coverage}% of checks measured. ${s.actionCount} action(s), ${s.p0Count} P0. Not measured: ${s.notMeasured.join(", ") || "none"}.\n\nFull report: the \`weekly-seo-report\` artifact of this run.`)' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-seo-report
+          path: |
+            reports/seo/*.md
+            reports/seo/summary.json
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Upload history
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-history
+          path: reports/seo/history/*.json
+          retention-days: 90
+
+      - name: Notify — P0 technical findings
+        if: success()
+        run: |
+          P0=$(node -e 'const s=require("./reports/seo/summary.json");console.log(s.p0.length)')
+          [ "$P0" = "0" ] && exit 0
+          BODY=$(node -e 'const s=require("./reports/seo/summary.json");console.log(`Weekly SEO report ${s.date} found P0 technical issue(s):\n\n${s.p0.map(x=>"- "+x).join("\n")}\n\nRun: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`)')
+          gh label create seo-report --color B60205 --description "Weekly SEO report alerts" 2>/dev/null || true
+          OPEN=$(gh issue list --label seo-report --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$OPEN" ]; then gh issue comment "$OPEN" --body "$BODY"; else gh issue create --label seo-report --title "Weekly SEO report: P0 technical issues" --body "$BODY"; fi
+
+      - name: Notify — workflow failed
+        if: failure()
+        run: |
+          BODY="The weekly SEO report failed on $(date -u +%F). Logs: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          gh label create seo-report --color B60205 --description "Weekly SEO report alerts" 2>/dev/null || true
+          OPEN=$(gh issue list --label seo-report --state open --limit 1 --json number --jq '.[0].number // empty')
+          if [ -n "$OPEN" ]; then gh issue comment "$OPEN" --body "$BODY"; else gh issue create --label seo-report --title "Weekly SEO report failed" --body "$BODY"; fi

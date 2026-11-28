@@ -42,8 +42,13 @@ function inspect(html) {
   for (const m of ld) { try { collect(JSON.parse(m[1])); } catch { invalid++; } }
   const imgs = [...body.matchAll(/<img\b[^>]*>/gi)].map((m) => m[0]);
   const noAlt = imgs.filter((t) => attr(t, 'alt') === null).map((t) => attr(t, 'src'));
-  const links = [...body.matchAll(/<a\b[^>]*href=["']([^"'#]*)["']/gi)].map((m) => decode(m[1])).filter(Boolean);
-  const internal = [...new Set(links.filter((h) => h.startsWith('/') && !h.startsWith('//') || h.startsWith(CANON_HOST)).map((h) => h.replace(CANON_HOST, '') || '/').map((h) => h.split('?')[0]))];
+  const hrefs = (s) => [...s.matchAll(/<a\b[^>]*href=["']([^"'#]*)["']/gi)].map((m) => decode(m[1])).filter(Boolean);
+  const internalOf = (list) => [...new Set(list.filter((h) => h.startsWith('/') && !h.startsWith('//') || h.startsWith(CANON_HOST)).map((h) => h.replace(CANON_HOST, '') || '/').map((h) => h.split('?')[0]))];
+  const internal = internalOf(hrefs(body));
+  // Links inside <main> only — excludes the site-wide header/footer navigation, so
+  // contextual linking (blog → service page, related posts) can be measured.
+  const main = body.match(/<main\b[\s\S]*<\/main>/i);
+  const contentLinks = main ? internalOf(hrefs(main[0])) : null;
   const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1];
   const canon = (html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i) || [])[0];
   return {
@@ -58,7 +63,7 @@ function inspect(html) {
     headingCount: headings.length, headingSkips: skips,
     jsonLdTypes: types, jsonLdInvalid: invalid,
     images: imgs.length, imagesNoAlt: noAlt,
-    internalLinks: internal, textChars: strip(body).length,
+    internalLinks: internal, contentLinks, textChars: strip(body).length,
   };
 }
 
